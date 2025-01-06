@@ -3,10 +3,10 @@ name: Nuxt.js Development
 on:
   pull_request:
     branches:
-      - main 
+      - main
   push:
     branches:
-      - dev  
+      - dev
 
 jobs:
   development:
@@ -19,8 +19,8 @@ jobs:
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 18  
-        cache: 'npm'     
+        node-version: 18
+        cache: 'npm'
 
     - name: Install dependencies
       run: npm install
@@ -28,7 +28,7 @@ jobs:
     - name: Run lint
       run: npm run lint
 
-
+    - name: Run tests
       run: npm test
 
     - name: Build the project
