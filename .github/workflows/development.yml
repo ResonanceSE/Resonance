@@ -1,0 +1,35 @@
+name: Nuxt.js Development
+
+on:
+  pull_request:
+    branches:
+      - main 
+  push:
+    branches:
+      - dev  
+
+jobs:
+  development:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18  
+        cache: 'npm'     
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run lint
+      run: npm run lint
+
+
+      run: npm test
+
+    - name: Build the project
+      run: npm run build
