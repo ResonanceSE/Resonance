@@ -16,21 +16,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Front-End Setup and Build
-    - name: List root directory files
-      run: ls -la
-
-    - name: List frontend directory files
-      run: ls -la ./frontend
-
     - name: Install NVM and Node.js
       run: |
         export NVM_DIR="$HOME/.nvm"
         mkdir -p $NVM_DIR
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
         source $NVM_DIR/nvm.sh
-        nvm install 18  # Install Node.js version 18 (or your desired version)
-        nvm use 18  # Use Node.js version 18
+        nvm install 18
+        nvm use 18
 
     - name: Install Front-End Dependencies
       run: npm install
