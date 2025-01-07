@@ -23,14 +23,18 @@ jobs:
     - name: List frontend directory files
       run: ls -la ./frontend
 
-    - name: Set up Node.js for Front-End
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-        cache: 'npm'
+    - name: Install NVM and Node.js
+      run: |
+        export NVM_DIR="$HOME/.nvm"
+        mkdir -p $NVM_DIR
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+        source $NVM_DIR/nvm.sh
+        nvm install 18  # Install Node.js version 18 (or your desired version)
+        nvm use 18  # Use Node.js version 18
 
     - name: Install Front-End Dependencies
-      run: cd ./frontend && npm install
+      run: npm install
+      working-directory: ./frontend
 
     - name: Run ESLint on Front-End
       run: npm run lint
@@ -39,4 +43,3 @@ jobs:
     - name: Build the Front-End
       run: npm run build
       working-directory: ./frontend
-
