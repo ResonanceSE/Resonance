@@ -30,8 +30,7 @@ jobs:
         cache: 'npm'
 
     - name: Install Front-End Dependencies
-      run: npm install
-      working-directory: ./frontend
+      run: cd ./frontend && npm install
 
     - name: Run ESLint on Front-End
       run: npm run lint
