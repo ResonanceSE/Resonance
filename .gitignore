@@ -26,3 +26,4 @@ logs
 # Python Environment
 environment_3_12_6/
 venv/
+__pycache__/
