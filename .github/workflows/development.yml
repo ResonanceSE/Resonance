@@ -11,22 +11,27 @@ on:
 jobs:
   development:
     runs-on: ubuntu-latest
-
+  
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Set up Node.js
+    # Front-End Setup and Build
+    - name: Set up Node.js for Front-End
       uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
 
-    - name: Install dependencies
+    - name: Install Front-End Dependencies
       run: npm install
+      working-directory: ./frontend
 
-    - name : Run Eslint
-      run : npm run lint
+    - name: Run ESLint on Front-End
+      run: npm run lint
+      working-directory: ./frontend
 
-    - name: Build the project
+    - name: Build the Front-End
       run: npm run build
+      working-directory: ./frontend
+
