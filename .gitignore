@@ -23,3 +23,6 @@ logs
 .env.*
 !.env.example
 >>>>>>> master
+# Python Environment
+environment_3_12_6/
+venv/
