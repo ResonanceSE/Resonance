@@ -20,7 +20,7 @@ yarn install
 bun install
 ```
 
-## Development Server
+## Front-End Development
 
 Start the development server on `http://localhost:3000`:
 
@@ -37,7 +37,11 @@ yarn dev
 # bun
 bun run dev
 ```
-
+## Back-End Developement
+In terminal run :
+```bash
+pip install -r requirements.txt
+```
 ## Production
 
 Build the application for production:
