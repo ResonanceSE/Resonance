@@ -1,4 +1,4 @@
-name: Development
+name: Development Checking
 
 on:
   pull_request:
@@ -17,6 +17,12 @@ jobs:
       uses: actions/checkout@v3
 
     # Front-End Setup and Build
+    - name: List root directory files
+      run: ls -la
+
+    - name: List frontend directory files
+      run: ls -la ./frontend
+
     - name: Set up Node.js for Front-End
       uses: actions/setup-node@v3
       with:
