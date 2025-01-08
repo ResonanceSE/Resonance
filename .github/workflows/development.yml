@@ -24,6 +24,8 @@ jobs:
         source $NVM_DIR/nvm.sh
         nvm install 18
         nvm use 18
+        npm ci
+        npm test
 
     - name: Install Front-End Dependencies
       run: npm install
