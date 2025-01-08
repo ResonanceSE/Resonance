@@ -41,7 +41,7 @@ jobs:
       run: pip install -r requirements.txt flake8 pytest-django coverage
 
     - name: Run Python Linter
-      run: flake8 /.backend/
+      run: flake8 ./backend
 
     - name: Run Back-End Tests with Coverage
       run: |
