@@ -18,7 +18,7 @@
           
           <!-- Product Card 1 -->
           <div class="card card-compact w-full bg-white shadow-xl">
-            <figure><img src="https://via.placeholder.com/300" alt="Headphone 1" class="w-full h-48 object-cover"/></figure>
+            <figure><img src="https://via.placeholder.com/300" alt="Headphone 1" class="w-full h-48 object-cover"></figure>
             <div class="card-body">
               <h3 class="card-title">Premium Sound Pro</h3>
               <p class="text-xl font-semibold">$299.99</p>
@@ -30,7 +30,7 @@
 
           <!-- Product Card 2 -->
           <div class="card card-compact w-full bg-white shadow-xl">
-            <figure><img src="https://via.placeholder.com/300" alt="Headphone 2" class="w-full h-48 object-cover"/></figure>
+            <figure><img src="https://via.placeholder.com/300" alt="Headphone 2" class="w-full h-48 object-cover"></figure>
             <div class="card-body">
               <h3 class="card-title">Noise Cancelling X</h3>
               <p class="text-xl font-semibold">$199.99</p>
@@ -42,7 +42,7 @@
 
           <!-- Product Card 3 -->
           <div class="card card-compact w-full bg-white shadow-xl">
-            <figure><img src="https://via.placeholder.com/300" alt="Headphone 3" class="w-full h-48 object-cover"/></figure>
+            <figure><img src="https://via.placeholder.com/300" alt="Headphone 3" class="w-full h-48 object-cover"></figure>
             <div class="card-body">
               <h3 class="card-title">Wireless SoundMax</h3>
               <p class="text-xl font-semibold">$149.99</p>
@@ -54,7 +54,7 @@
 
           <!-- Product Card 4 -->
           <div class="card card-compact w-full bg-white shadow-xl">
-            <figure><img src="https://via.placeholder.com/300" alt="Headphone 4" class="w-full h-48 object-cover"/></figure>
+            <figure><img src="https://via.placeholder.com/300" alt="Headphone 4" class="w-full h-48 object-cover"></figure>
             <div class="card-body">
               <h3 class="card-title">Sporty Beats</h3>
               <p class="text-xl font-semibold">$129.99</p>
