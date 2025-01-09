@@ -2,7 +2,6 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxtjs/tailwindcss',
   ],
   css: ['~/assets/css/main.css'],
   devtools: { enabled: true },
