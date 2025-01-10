@@ -38,7 +38,15 @@ yarn dev
 bun run dev
 ```
 ## Back-End Developement
-In terminal run :
+After Clone then, start env module in project folder:
+```bash
+python -m venv <folder>
+```
+then after that activate env using
+```bash
+./<env folder>/Scripts/activate
+```
+then terminal run :
 ```bash
 pip install -r requirements.txt
 ```
