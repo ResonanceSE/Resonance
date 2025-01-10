@@ -41,15 +41,15 @@ bun run dev
 ## Back-End Developement
 After Clone then, start env module in project folder:
 ```bash
-python -m venv <folder>
+python -m venv <your env folder's name>
 ```
 then after that activate env using
 ```bash
-./<env folder>/Scripts/activate
+./<your env folder's name>/Scripts/activate
 ```
 then terminal run :
 ```bash
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 ```
 ## Production
 
