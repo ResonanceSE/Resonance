@@ -38,14 +38,14 @@ jobs:
       working-directory: ./frontend
 
     - name: Install Back-End Dependencies
-      run: pip install -r requirements.txt flake8 pytest-django coverage
+      run: pip install -r ./backend/requirements.txt flake8 pytest-django coverage
 
     - name: Run Python Linter
-      run: flake8 ./backend
+      run: flake8 ./backend/server
 
     - name: Run Back-End Tests with Coverage
       run: |
-        coverage run --source='./backend' manage.py test
+        coverage run --source='./backend/server' manage.py test
         coverage report
 
 
