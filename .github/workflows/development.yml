@@ -45,7 +45,7 @@ jobs:
 
     - name: Run Back-End Tests with Coverage
       run: |
-        coverage run --source='./backend' manage.py test
+        coverage run --source='./backend' ./backend/manage.py test
         coverage report
 
 
