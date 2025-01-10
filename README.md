@@ -1,7 +1,7 @@
 # SoundShop
 Software Engineering's Project
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
-
+This is the folder structure [Folder Structure](https://vueschool.io/articles/vuejs-tutorials/how-to-structure-a-large-scale-vue-js-application)
 ## Setup
 
 Make sure to install dependencies:
