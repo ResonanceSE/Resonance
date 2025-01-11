@@ -4,8 +4,7 @@
 
 
 <template>
-  <div class="div">
-    <html data-theme="light" />
+  <div class="div"> 
     <navbar_header />
     <hero_section />
     <main_section />
