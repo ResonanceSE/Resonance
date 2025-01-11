@@ -3,9 +3,10 @@
 
 <template>
     <div class="h-3/4">
-        <div class="hero h-full"
-            style="background-image: url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp);">
-            <div class="hero-overlay bg-opacity-60"></div>
+        <div 
+        class="hero h-full"
+        style="background-image: url(https://img.daisyui.com/images/stock/photo-1507358522600-9f71e620c44e.webp);">
+            <div class="hero-overlay bg-opacity-60"/>
             <div class="hero-content text-neutral-left text-left p-10 sm:p-18 lg:p-48 lg:mr-auto"  >
                 <div class="max-w-md">
                     <h1 class="font-bold mb-5 text-white lg:text-4xl">

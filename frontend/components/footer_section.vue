@@ -31,28 +31,28 @@
               target="_blank"
               class="link link-hover text-xl"
             >
-              <span class="iconify" data-icon="mdi:facebook" aria-hidden="true"></span>
+              <span class="iconify" data-icon="mdi:facebook" aria-hidden="true"/>
             </a>
             <a
               href="https://twitter.com"
               target="_blank"
               class="link link-hover text-xl"
             >
-              <span class="iconify" data-icon="mdi:twitter" aria-hidden="true"></span>
+              <span class="iconify" data-icon="mdi:twitter" aria-hidden="true"/>
             </a>
             <a
               href="https://instagram.com"
               target="_blank"
               class="link link-hover text-xl"
             >
-              <span class="iconify" data-icon="mdi:instagram" aria-hidden="true"></span>
+              <span class="iconify" data-icon="mdi:instagram" aria-hidden="true"/>
             </a>
             <a
               href="https://youtube.com"
               target="_blank"
               class="link link-hover text-xl"
             >
-              <span class="iconify" data-icon="mdi:youtube" aria-hidden="true"></span>
+              <span class="iconify" data-icon="mdi:youtube" aria-hidden="true"/>
             </a>
           </div>
         </div>

@@ -29,9 +29,9 @@ const closeMenu = () => {
     <!-- Backdrop -->
     <div 
       v-if="isMenuOpen" 
-      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
       @click="closeMenu"
-    ></div>
+      />
 
     <div class="navbar bg-base-100 px-4 md:px-10 shadow-md">
       <!-- Logo Section -->
@@ -44,9 +44,9 @@ const closeMenu = () => {
       <!-- Mobile Menu Button -->
       <div class="flex-1 justify-end lg:hidden">
         <button 
-          @click="isMenuOpen = !isMenuOpen" 
           class="btn btn-ghost btn-circle"
           aria-label="Toggle menu"
+          @click="isMenuOpen = !isMenuOpen" 
         >
           <Icon 
             :name="isMenuOpen ? 'heroicons:x-mark' : 'heroicons:bars-3'" 
@@ -108,8 +108,8 @@ const closeMenu = () => {
       <!-- Sidebar Header -->
       <div class="p-4 border-b">
         <button 
-          @click="closeMenu"
           class="btn btn-ghost btn-circle float-right"
+          @click="closeMenu"
         >
           <Icon name="heroicons:x-mark" class="h-6 w-6" />
         </button>
@@ -123,14 +123,12 @@ const closeMenu = () => {
           <div class="space-y-2">
             <div v-for="item in navbar_left_placeholder" :key="item">
               <div v-if="item === 'Catalog'" class="collapse collapse-arrow">
-                <input type="checkbox"/> 
-                <div class="collapse-title text-xl font-medium">
-                  Catalog
-                </div>
+                <input type="checkbox" />
+                <div class="collapse-title text-xl font-medium">Catalog</div>
                 <div class="collapse-content">
                   <ul class="menu">
                     <li v-for="catalog_item in catalog_placeholder" :key="catalog_item">
-                      <NuxtLink @click="closeMenu" class="text-lg">
+                      <NuxtLink class="text-lg" @click="closeMenu">
                         {{ catalog_item }}
                       </NuxtLink>
                     </li>
@@ -139,29 +137,30 @@ const closeMenu = () => {
               </div>
               <NuxtLink 
                 v-else
-                @click="closeMenu"
                 class="block text-xl p-2 hover:bg-base-200 rounded-lg"
+                @click="closeMenu"
               >
                 {{ item }}
               </NuxtLink>
             </div>
           </div>
 
-          <div class="divider"></div>
+          <div class="divider"/>
 
           <!-- Mobile Right Menu Items -->
           <div class="space-y-2">
             <div v-for="item in navbar_right_placeholder" :key="item">
               <NuxtLink 
-                @click="closeMenu"
                 class="block text-xl p-2 hover:bg-base-200 rounded-lg"
+                @click="closeMenu"
+        
               >
                 {{ item }}
               </NuxtLink>
             </div>
             <NuxtLink 
-              @click="closeMenu"
               class="flex items-center gap-2 text-xl p-2 hover:bg-base-200 rounded-lg"
+              @click="closeMenu"
             >
               <Icon name="heroicons:shopping-cart" class="h-6 w-6" />
               Cart
