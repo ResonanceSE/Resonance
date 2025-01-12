@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { NuxtLink } from '#build/components';
-import { ref } from 'vue'
+
 
 const navbar_left_placeholder = ref<string[]>([
   'Home',
