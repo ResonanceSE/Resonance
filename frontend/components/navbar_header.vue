@@ -10,11 +10,19 @@ const navbar_left_placeholder = ref<string[]>([
 const navbar_right_placeholder = ref<string[]>([
   "Log In",
 ])
-const catalog_placeholder = ref<string[]>([
-  'Headphones',
-  'Speakers',
-  'Earphones',
-  'Accessories'
+const catalog_placeholder = reactive<{ slug: string; name: string }[]>([
+  {
+    slug: "headphones",
+    name: "Headphones"
+  },
+  {
+    slug: "speakers",
+    name: "Speakers"
+  },
+  {
+    slug: "earphones",
+    name: "Earphones"
+  }
 ])
 
 const isMenuOpen = ref(false)
@@ -27,11 +35,7 @@ const closeMenu = () => {
 <template>
   <div class="sticky top-0 z-50">
     <!-- Backdrop -->
-    <div 
-      v-if="isMenuOpen" 
-      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
-      @click="closeMenu"
-      />
+    <div v-if="isMenuOpen" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" @click="closeMenu" />
 
     <div class="navbar bg-base-100 px-4 md:px-10 shadow-md">
       <!-- Logo Section -->
@@ -43,15 +47,8 @@ const closeMenu = () => {
 
       <!-- Mobile Menu Button -->
       <div class="flex-1 justify-end lg:hidden">
-        <button 
-          class="btn btn-ghost btn-circle"
-          aria-label="Toggle menu"
-          @click="isMenuOpen = !isMenuOpen" 
-        >
-          <Icon 
-            :name="isMenuOpen ? 'heroicons:x-mark' : 'heroicons:bars-3'" 
-            class="h-6 w-6"
-          />
+        <button class="btn btn-ghost btn-circle" aria-label="Toggle menu" @click="isMenuOpen = !isMenuOpen">
+          <Icon :name="isMenuOpen ? 'heroicons:x-mark' : 'heroicons:bars-3'" class="h-6 w-6" />
         </button>
       </div>
 
@@ -68,14 +65,17 @@ const closeMenu = () => {
                 </span>
               </label>
               <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                <li v-for="catalog_item in catalog_placeholder" :key="catalog_item">
-                  <NuxtLink class="text-base hover:bg-base-200">
-                    {{ catalog_item }}
+                <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
+                  <NuxtLink 
+                    class="text-lg" 
+                    @click="closeMenu"
+                    :to="catalog_item ? `/products/${catalog_item.slug}` : '/'">
+                    {{ catalog_item.name }}
                   </NuxtLink>
                 </li>
               </ul>
             </div>
-            <NuxtLink v-else class="hover:bg-base-200">
+            <NuxtLink v-else class="hover:bg-base-200" :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`">
               {{ item }}
             </NuxtLink>
           </li>
@@ -101,16 +101,12 @@ const closeMenu = () => {
     </div>
 
     <!-- Mobile Sidebar Menu -->
-    <div 
+    <div
       class="fixed top-0 right-0 h-full w-80 bg-base-100 z-50 lg:hidden transform transition-transform duration-300 ease-in-out shadow-xl"
-      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'"
-    >
+      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'">
       <!-- Sidebar Header -->
       <div class="p-4 border-b">
-        <button 
-          class="btn btn-ghost btn-circle float-right"
-          @click="closeMenu"
-        >
+        <button class="btn btn-ghost btn-circle float-right" @click="closeMenu">
           <Icon name="heroicons:x-mark" class="h-6 w-6" />
         </button>
         <h2 class="text-xl font-semibold">Resonance</h2>
@@ -127,41 +123,34 @@ const closeMenu = () => {
                 <div class="collapse-title text-xl font-medium">Catalog</div>
                 <div class="collapse-content">
                   <ul class="menu">
-                    <li v-for="catalog_item in catalog_placeholder" :key="catalog_item">
-                      <NuxtLink class="text-lg" @click="closeMenu">
-                        {{ catalog_item }}
+                    <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
+                      <NuxtLink 
+                        class="text-lg" 
+                        @click="closeMenu"
+                        :to="catalog_item ? `/products/${catalog_item.slug}` : '/'">
+                        {{ catalog_item.name }}
                       </NuxtLink>
                     </li>
                   </ul>
                 </div>
               </div>
-              <NuxtLink 
-                v-else
-                class="block text-xl p-2 hover:bg-base-200 rounded-lg"
-                @click="closeMenu"
-              >
+              <NuxtLink v-else class="block text-xl p-2 hover:bg-base-200 rounded-lg" @click="closeMenu"
+                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`">
                 {{ item }}
               </NuxtLink>
             </div>
           </div>
 
-          <div class="divider"/>
+          <div class="divider" />
 
           <!-- Mobile Right Menu Items -->
           <div class="space-y-2">
             <div v-for="item in navbar_right_placeholder" :key="item">
-              <NuxtLink 
-                class="block text-xl p-2 hover:bg-base-200 rounded-lg"
-                @click="closeMenu"
-        
-              >
+              <NuxtLink class="block text-xl p-2 hover:bg-base-200 rounded-lg" @click="closeMenu">
                 {{ item }}
               </NuxtLink>
             </div>
-            <NuxtLink 
-              class="flex items-center gap-2 text-xl p-2 hover:bg-base-200 rounded-lg"
-              @click="closeMenu"
-            >
+            <NuxtLink class="flex items-center gap-2 text-xl p-2 hover:bg-base-200 rounded-lg" @click="closeMenu">
               <Icon name="heroicons:shopping-cart" class="h-6 w-6" />
               Cart
               <span class="badge badge-sm">0</span>
