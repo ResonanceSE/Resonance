@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NuxtLink } from '#build/components';
 import { ref } from 'vue'
 
 const navbar_left_placeholder = ref<string[]>([
@@ -66,10 +67,10 @@ const closeMenu = () => {
               </label>
               <ul class="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
                 <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
-                  <NuxtLink 
+                  <NuxtLink
                     class="text-lg" 
-                    @click="closeMenu"
-                    :to="catalog_item ? `/products/${catalog_item.slug}` : '/'">
+                    :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
+                    @click="closeMenu">
                     {{ catalog_item.name }}
                   </NuxtLink>
                 </li>
@@ -126,16 +127,19 @@ const closeMenu = () => {
                     <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
                       <NuxtLink 
                         class="text-lg" 
-                        @click="closeMenu"
-                        :to="catalog_item ? `/products/${catalog_item.slug}` : '/'">
+                        :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
+                        @click="closeMenu">
                         {{ catalog_item.name }}
                       </NuxtLink>
                     </li>
                   </ul>
                 </div>
               </div>
-              <NuxtLink v-else class="block text-xl p-2 hover:bg-base-200 rounded-lg" @click="closeMenu"
-                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`">
+              <NuxtLink 
+                v-else 
+                class="block text-xl p-2 hover:bg-base-200 rounded-lg" 
+                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
+                @click="closeMenu">
                 {{ item }}
               </NuxtLink>
             </div>
