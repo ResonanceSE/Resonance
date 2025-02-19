@@ -40,17 +40,61 @@ bun run dev
 ```
 ## Back-End Developement
 After Clone then, start env module in project folder:
+Backend Development Setup
+
+1. Clone the Repository
+
+git clone https://github.com/yourusername/your-repo.git
+cd your-repo
+
+2. Create a Virtual Environment
+
+Inside the project folder, run:
 ```bash
-python -m venv <your env folder's name>
+python -m venv <your-env-folder-name>
 ```
-then after that activate env using
+💡 Example:
 ```bash
-./<your env folder's name>/Scripts/activate
+python -m venv env
 ```
-then terminal run :
+3. Activate the Virtual Environment
+
+🔹 On Windows (PowerShell)
+```bash
+./<your-env-folder-name>/Scripts/Activate
+```
+💡 Example:
+```bash
+./env/Scripts/Activate
+```
+🔹 On Mac/Linux
+```bash
+source <your-env-folder-name>/bin/activate
+```
+💡 Example:
+```bash
+source env/bin/activate
+```
+4. Install Dependencies
+
+Once the environment is activated, install required dependencies:
 ```bash
 pip install -r backend/requirements.txt
 ```
+5. Apply Database Migrations
+
+Ensure the database is up to date by running:
+```bash
+python manage.py makemigrations server
+python manage.py migrate
+```
+6. Run the Django Server
+
+Start the backend server with:
+```bash
+python manage.py runserver
+```
+
 ## Production
 
 Build the application for production:

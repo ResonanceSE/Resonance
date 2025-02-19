@@ -11,7 +11,7 @@
   <div>
     <navbar_header/>
     <div class="container mx-auto py-10">
-          <h1 class="text-2xl font-bold text-center mb-8">Product : {{ productName.charAt(0).toUpperCase() + productName.slice(1)}}</h1>
+          <h1 class="text-2xl font-bold text-center mb-8">{{ productName.charAt(0).toUpperCase() + productName.slice(1)}}</h1>
     </div>
   </div>  
 </template>
