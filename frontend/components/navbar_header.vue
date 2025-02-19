@@ -70,10 +70,12 @@ const closeMenu = () => {
                 <Icon :name="isCatalogOpen ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" class="h-4 w-4" />
               </button>
 
-              <ul class="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow absolute top-full mt-2"
+              <ul
+class="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow absolute top-full mt-2"
                 :class="{ 'hidden': !isCatalogOpen }">
                 <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
-                  <NuxtLink class="text-lg" :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
+                  <NuxtLink
+class="text-lg" :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
                     @click="closeMenu">
                     {{ catalog_item.name }}
                   </NuxtLink>
@@ -82,7 +84,8 @@ const closeMenu = () => {
             </div>
 
             <!-- Other Menu Items -->
-            <NuxtLink v-else class="hover:bg-base-200 px-3 py-2 rounded-lg"
+            <NuxtLink
+v-else class="hover:bg-base-200 px-3 py-2 rounded-lg"
               :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`" @click="closeMenu">
               {{ item }}
             </NuxtLink>
@@ -93,7 +96,8 @@ const closeMenu = () => {
         <div class="flex items-center gap-4">
           <ul class="menu menu-horizontal px-1">
             <li v-for="item in navbar_right_placeholder" :key="item">
-              <NuxtLink class="text-lg hover:bg-base-200" 
+              <NuxtLink
+class="text-lg hover:bg-base-200" 
               :to="'/login'"
               @click="closeMenu">
                 {{ item }}
@@ -129,14 +133,15 @@ const closeMenu = () => {
           <div class="space-y-2">
             <div v-for="item in navbar_left_placeholder" :key="item">
               <div v-if="item === 'Catalog'" class="collapse collapse-arrow">
-                <input type="checkbox" />
+                <input type="checkbox" >
                 <div class="collapse-title text-xl font-medium ">
                   Catalog
                 </div>
                 <div class="collapse-content">
                   <ul class="menu">
                     <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
-                      <NuxtLink class="text-lg" :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
+                      <NuxtLink
+class="text-lg" :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
                         @click="closeMenu">
                         {{ catalog_item.name }}
                       </NuxtLink>
@@ -144,7 +149,8 @@ const closeMenu = () => {
                   </ul>
                 </div>
               </div>
-              <NuxtLink v-else class="block text-xl p-2 hover:bg-base-200 rounded-lg"
+              <NuxtLink
+v-else class="block text-xl p-2 hover:bg-base-200 rounded-lg"
                 :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`" 
                 @click="closeMenu">
                 {{ item }}
@@ -157,7 +163,8 @@ const closeMenu = () => {
           <!-- Mobile Right Menu Items -->
           <div class="space-y-2">
             <div v-for="item in navbar_right_placeholder" :key="item">
-              <NuxtLink class="block text-xl p-2 hover:bg-base-200 rounded-lg" 
+              <NuxtLink
+class="block text-xl p-2 hover:bg-base-200 rounded-lg" 
               :to="'/login'"
               @click="closeMenu">
                 {{ item }}

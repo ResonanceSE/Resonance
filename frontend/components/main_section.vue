@@ -44,7 +44,7 @@ const items = [
         >
           <!-- Image -->
           <figure>
-            <img :src="item.image" :alt="item.name" class="w-full h-48 object-cover" />
+            <img :src="item.image" :alt="item.name" class="w-full h-48 object-cover" >
           </figure>
           <!-- Content -->
           <div class="card-body">

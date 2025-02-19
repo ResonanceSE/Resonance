@@ -1,8 +1,6 @@
   
 <script setup>
-import Footer_section from '~/components/footer_section.vue';
 
-  
 const email = ref('');
 const password = ref('');
 const router = useRouter();
@@ -35,7 +33,7 @@ const handleLogin = () => {
           </button>
         </form>
       </div>
+      <footer_section/>
     </div>
-    <footer_section/>
-  </template>
+</template>
   
