@@ -43,9 +43,10 @@ After Clone then, start env module in project folder:
 Backend Development Setup
 
 1. Clone the Repository
-
-git clone https://github.com/yourusername/your-repo.git
+```bash
+git clone https://github.com/KKhamwiset/Resonance
 cd your-repo
+```
 
 2. Create a Virtual Environment
 
