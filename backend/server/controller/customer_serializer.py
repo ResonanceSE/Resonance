@@ -1,6 +1,6 @@
-from rest_framework import serializers
 from django.contrib.auth import authenticate
-from django.contrib.auth.models import User
+from rest_framework import serializers
+
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -11,4 +11,3 @@ class LoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError("Invalid username or password")
         return {"user": user}
-    
