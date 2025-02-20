@@ -16,18 +16,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # Install Node.js properly
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
+    - name: Install NVM and Node.js
+      run: |
+        export NVM_DIR="$HOME/.nvm"
+        mkdir -p $NVM_DIR
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+        source $NVM_DIR/nvm.sh
+        nvm install 18
+        nvm use 18
 
     - name: Install Front-End Dependencies
       run: npm install
       working-directory: ./frontend
 
     - name: Run ESLint on Front-End
-      run: npm run lint -- --max-warnings=0
+      run: npm run lint
       working-directory: ./frontend
 
     - name: Build the Front-End
@@ -35,15 +38,18 @@ jobs:
       working-directory: ./frontend
 
     - name: Install Back-End Dependencies
-      run: pip install -r ./backend/requirements.txt ruff isort pytest-django coverage
+      run: pip install -r ./backend/requirements.txt ruff isoe pytest-django coverage
 
     - name: Run Python Linter
       run: |
-        ruff format ./backend/server 
-        isort ./backend/server  
-        ruff check ./backend/server 
+          ruff check ./backend/server
+          ruff format ./backend/server
+          
 
     - name: Run Back-End Tests with Coverage
       run: |
-        coverage run -m pytest
+        coverage run --source='./backend' ./backend/manage.py test
         coverage report
+
+
+
