@@ -42,8 +42,9 @@ jobs:
 
     - name: Run Python Linter
       run: |
-          ruff check ./backend/server
           ruff format ./backend/server
+          isort ./backend/server 
+          ruff check ./backend/server
           
 
     - name: Run Back-End Tests with Coverage
