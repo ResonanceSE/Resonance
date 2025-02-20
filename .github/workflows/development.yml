@@ -39,14 +39,11 @@ jobs:
 
     - name: Install Back-End Dependencies
       run: pip install -r ./backend/requirements.txt ruff isort pytest-django coverage
-      
-    - name: Set environment variables
-      run: echo "DJANGO_KEY=${{ secrets.DJANGO_KEY }}" >> $GITHUB_ENV
 
     - name: Run Python Linter
       run: |
-          ruff format ./backend/server
-          isort ./backend/server 
+          isort ./backend/server
+          ruff format --check ./backend/server  
           ruff check ./backend/server
           
 
