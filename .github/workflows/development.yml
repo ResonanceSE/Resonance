@@ -38,7 +38,7 @@ jobs:
       working-directory: ./frontend
 
     - name: Install Back-End Dependencies
-      run: pip install -r ./backend/requirements.txt ruff isoe pytest-django coverage
+      run: pip install -r ./backend/requirements.txt ruff isort pytest-django coverage
 
     - name: Run Python Linter
       run: |
