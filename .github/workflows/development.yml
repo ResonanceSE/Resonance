@@ -39,14 +39,16 @@ jobs:
 
     - name: Install Back-End Dependencies
       run: pip install -r ./backend/requirements.txt ruff isort pytest-django coverage
-
-
-    - name: Run Python Linter
-      run: |
-          ruff format --check ./backend/server  
-          ruff check ./backend/server
-          
-
+    
+    - name: Check code formatting with isort
+      run: isort --check-only ./backend/server
+    
+    - name: Check code formatting with ruff
+      run: ruff format --check ./backend/server
+    
+    - name: Check code quality with ruff
+      run: ruff check ./backend/server
+    
     - name: Run Back-End Tests with Coverage
       run: |
         coverage run --source='./backend' ./backend/manage.py test
