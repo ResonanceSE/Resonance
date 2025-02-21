@@ -2,12 +2,15 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+
 from server.serializers import LoginSerializer
 
-class initializeController:
+
+class initializeController_Customer:
     def __str__(self):
         return "Initialize Controller"
-    
+
+
 class LoginView(APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
