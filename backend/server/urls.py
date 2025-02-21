@@ -18,8 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from server.controller.product_controller import (get_all_products,
-                                                  get_product_by_name)
+from server.controller.product_controller import get_all_products, get_product_by_name
 
 from .views import home_view
 
