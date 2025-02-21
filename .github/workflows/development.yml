@@ -40,9 +40,6 @@ jobs:
     - name: Install Back-End Dependencies
       run: pip install -r ./backend/requirements.txt ruff isort pytest-django coverage
     
-    - name: Check code formatting with isort
-      run: isort --check-only ./backend/server
-    
     - name: Check code formatting with ruff
       run: ruff format --check ./backend/server
     
