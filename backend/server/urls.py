@@ -17,17 +17,15 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
-from rest_framework.routers import DefaultRouter
 
-from server.controller import LoginView, ProductViewSet
+from server.controller.product_controller import get_all_products, get_product_by_name
 
 from .views import home_view
 
-router = DefaultRouter()
-router.register(r"products", ProductViewSet)
+
 urlpatterns = [
     path("", home_view),
     path("admin/", admin.site.urls),
-    path("api/", include(router.urls)),
-    path("api/login/", LoginView.as_view(), name="login"),
+    path("api/products/", get_all_products, name="all-products"),
+    path("api/products/<str:name>/", get_product_by_name, name="product-by-name"),
 ]
