@@ -42,7 +42,7 @@ jobs:
 
     - name: Run Python Linter
       run: |
-          isort ./backend/server
+          isort --check-only ./backend/server
           ruff format --check ./backend/server  
           ruff check ./backend/server
           
