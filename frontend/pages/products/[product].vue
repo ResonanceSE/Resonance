@@ -27,7 +27,7 @@ onMounted(async () => {
     <div class="container mx-auto py-8">
       <!-- Loading State -->
       <div v-if="product === null" class="flex items-center justify-center h-48">
-        <span class="loading loading-spinner loading-lg"></span>
+        <span class="loading loading-spinner loading-lg" />
       </div>
 
       <!-- Error State -->
@@ -50,4 +50,3 @@ onMounted(async () => {
     </div>
   </div>
 </template>
-
