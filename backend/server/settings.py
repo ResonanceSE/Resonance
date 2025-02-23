@@ -25,7 +25,11 @@ if environment == "production":
     }
     SECRET_KEY = os.getenv("DJANGO_KEY")
     DEBUG = False
-    ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()]
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in os.getenv("ALLOWED_HOSTS", "").split(",")
+        if host.strip()
+    ]
 else:
     # Development database and settings
     DATABASES = {
