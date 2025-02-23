@@ -7,7 +7,7 @@ const route = useRoute();
 const productSlug = ref(route.params.product);
 
 // Fetch product data
-const { data: product, error, pending } = useFetch(() => `https://resonance-brown.vercel.app/api/products/${productSlug.value}`, {
+const { data: product, error, pending } = useFetch(() => `https://resonance-cswh.onrender.com/api/products/${productSlug.value}`, {
   method: 'GET',
   immediate: true, //
 });
