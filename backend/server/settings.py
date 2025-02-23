@@ -25,7 +25,7 @@ if environment == "production":
     }
     SECRET_KEY = os.getenv("DJANGO_KEY")
     DEBUG = False
-    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "resonance-brown.vercel.app").split(",")
+    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "resonance-cswh.onrender.com").split(",")
 else:
     # Development database and settings
     DATABASES = {
