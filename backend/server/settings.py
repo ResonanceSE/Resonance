@@ -25,7 +25,7 @@ if environment == "production":
     }
     SECRET_KEY = os.getenv("DJANGO_KEY")
     DEBUG = False
-    ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "resonance-cswh.onrender.com").split(",")
+    ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "").split(",") if host.strip()]
 else:
     # Development database and settings
     DATABASES = {
@@ -43,10 +43,6 @@ else:
     ALLOWED_HOSTS = ["localhost"]
 
 # Default settings
-SECRET_KEY = os.getenv("DJANGO_KEY", "fallback-secret-key")
-DEBUG = True
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
