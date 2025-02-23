@@ -71,7 +71,8 @@ MIDDLEWARE = [
 ]
 
 # CORS configuration
-CORS_ALLOWED_ORIGINS = ["localhost:3000", "resonance-brown.vercel.app"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000",
+                        "https://resonance-brown.vercel.app"]
 
 ROOT_URLCONF = "server.urls"
 
