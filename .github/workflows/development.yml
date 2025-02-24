@@ -17,7 +17,7 @@ jobs:
       DB_PASSWORD: postgres
       DB_HOST: localhost
       DB_PORT: 5432
-      DJANGO_KEY: 'DJANGO_KEY'
+      DJANGO_KEY: ${{secrets.DJANGO_KEY}}
       ENVIRONMENT: development
     steps:
     - name: Checkout repository
