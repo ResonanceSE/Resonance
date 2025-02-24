@@ -11,7 +11,14 @@ on:
 jobs:
   development:
     runs-on: ubuntu-latest
-  
+    env:
+      DB_NAME: test_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DJANGO_KEY: 'DJANGO_KEY'
+      ENVIRONMENT: development
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
