@@ -6,13 +6,12 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-load_dotenv()
 
-# Determine the environment (production or development)
+#                        Production     (devs- auto switch if production env isn't found)
 environment = os.getenv("ENVIRONMENT", "development")
 
 if environment == "production":
-    # Production database and settings
+    load_dotenv()
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -31,20 +30,20 @@ if environment == "production":
         if host.strip()
     ]
 else:
-    # Development database and settings
+    load_dotenv(f'.env.{environment}')
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "dev_db",
-            "USER": "dev_user",
-            "PASSWORD": "dev_password",
-            "HOST": "localhost",
-            "PORT": "5432",
+            "NAME": os.getenv("DB_NAME"),
+            "USER": os.getenv("DB_USER"),
+            "PASSWORD": os.getenv("DB_PASSWORD"),
+            "HOST": os.getenv("DB_HOST"),
+            "PORT": os.getenv("DB_PORT"),
         }
     }
     SECRET_KEY = os.getenv("DJANGO_KEY", "fallback-secret-key")
     DEBUG = True
-    ALLOWED_HOSTS = ["localhost"]
+    ALLOWED_HOSTS = ["localhost:","127.0.0.1"]
 
 # Default settings
 INSTALLED_APPS = [
@@ -93,17 +92,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "server.wsgi.application"
 
-# Database settings (already set above in `if` blocks)
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "Resonance"),
-        "USER": os.getenv("DB_USER", "postgres"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT": os.getenv("DB_PORT", "5432"),
-    }
-}
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [

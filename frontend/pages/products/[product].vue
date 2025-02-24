@@ -1,7 +1,4 @@
 <script setup>
-import { useRoute } from 'vue-router';
-import { ref } from 'vue';
-
 // Access route params
 const route = useRoute();
 const productSlug = ref(route.params.product);
