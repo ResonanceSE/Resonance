@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
 #                        Production     (devs- auto switch if production env isn't found)
 environment = os.getenv("ENVIRONMENT", "development")
 
@@ -30,7 +29,7 @@ if environment == "production":
         if host.strip()
     ]
 else:
-    load_dotenv(f'.env.{environment}')
+    load_dotenv(f".env.{environment}")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -43,7 +42,7 @@ else:
     }
     SECRET_KEY = os.getenv("DJANGO_KEY", "fallback-secret-key")
     DEBUG = True
-    ALLOWED_HOSTS = ["localhost:","127.0.0.1"]
+    ALLOWED_HOSTS = ["localhost:", "127.0.0.1"]
 
 # Default settings
 INSTALLED_APPS = [
