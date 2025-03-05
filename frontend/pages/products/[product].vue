@@ -1,13 +1,24 @@
 <script setup>
 // Access route params
 const route = useRoute();
-const productSlug = ref(route.params.product);
+const productSlug = computed(() => route.params.product);
 
 // Fetch product data
-const { data: product, error, pending } = useFetch(() => `https://resonance-cswh.onrender.com/api/products/${productSlug.value}`, {
-  method: 'GET',
-  immediate: true, //
-});
+const { data: product, error, pending } = useFetch(
+  () => productSlug.value 
+    ? `https://resonance-cswh.onrender.com/api/products/${productSlug.value}` 
+    : null,
+  {
+    method: 'GET',
+    // Only fetch when we have a slug
+    watch: [productSlug],
+    // Add headers to help with CORS
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  }
+);
 
 </script>
 

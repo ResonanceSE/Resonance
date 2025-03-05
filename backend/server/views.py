@@ -10,7 +10,3 @@ def home_view(request):
 def keep_alive(request):
     return JsonResponse({"message": "Ping server!"})
 
-@api_view(["GET"])
-def debug_cors(request):
-    print(f"Request origin: {request.headers.get('origin')}")
-    print(f"CORS settings: {settings.CORS_ALLOWED_ORIGINS}")
