@@ -1,6 +1,6 @@
 <script setup>
 // Define a base URL to ensure consistency
-const apiBaseUrl = process.env.API_URL;
+const apiBaseUrl = process.env.apiUrl;
 const route = useRoute();
 const productSlug = computed(() => route.params.product);
 
