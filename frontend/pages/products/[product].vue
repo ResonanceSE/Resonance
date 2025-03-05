@@ -1,14 +1,20 @@
 <script setup>
-// Access route params
+// Define a base URL to ensure consistency
+const apiBaseUrl = process.env.API_URL;
 const route = useRoute();
-const productSlug = ref(route.params.product);
-const apiUrl = useRuntimeConfig().public.apiUrl
-console.log(apiUrl)
-const { data: product, error, pending } = useFetch(() => `${apiUrl}/api/products/${productSlug.value}`, {
-  method: 'GET',
-  immediate: true, //
-});
+const productSlug = computed(() => route.params.product);
 
+// Use relative fetch with baseURL option
+const { data: product, error, pending } = useFetch(`/api/products/${productSlug.value}`, {
+  method: 'GET',
+  immediate: true,
+  baseURL: apiBaseUrl,
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  },
+  retry: 1,
+});
 </script>
 
 <template>
