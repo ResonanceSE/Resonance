@@ -54,7 +54,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "server"
+    "server",
 ]
 CORS_ALLOWED_ORIGINS = [
     ("https://" if environment == "production" else "http://") + x.strip()
@@ -63,17 +63,17 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
 ]
 
 CORS_ALLOW_HEADERS = [
     *default_headers,
-    'X-CSRFToken',
+    "X-CSRFToken",
 ]
 
 
