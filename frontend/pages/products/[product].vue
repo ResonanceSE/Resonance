@@ -5,10 +5,9 @@ const route = useRoute();
 const productSlug = computed(() => route.params.product);
 
 // Use relative fetch with baseURL option
-const { data: product, error, pending } = useFetch(`/api/products/${productSlug.value}`, {
+const { data: product, error, pending } = useFetch(`${apiBaseUrl}/api/products/${productSlug.value}`, {
   method: 'GET',
   immediate: true,
-  baseURL: apiBaseUrl,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
