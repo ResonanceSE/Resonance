@@ -46,6 +46,7 @@ else:
 
 # Default settings
 INSTALLED_APPS = [
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -53,8 +54,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    "server",
-    "corsheaders",
+    "server"
 ]
 
 MIDDLEWARE = [
@@ -73,6 +73,27 @@ CORS_ALLOWED_ORIGINS = [
     ("https://" if environment == "production" else "http://") + x.strip()
     for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
     if x.strip()  # Skip empty entries
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 ROOT_URLCONF = "server.urls"
