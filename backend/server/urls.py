@@ -19,12 +19,12 @@ from django.contrib import admin
 from django.urls import path
 from server.controller.product_controller import get_all_products, get_product_by_name
 
-
-from .views import home_view, keep_alive
+from .views import home_view, keep_alive , debug_cors   
 
 urlpatterns = [
     path("", home_view),
     path("keepalive/", keep_alive),
+    path("cors_debug/", debug_cors),
     path("admin/", admin.site.urls),
     path("api/products/", get_all_products, name="all-products"),
     path("api/products/<str:name>/", get_product_by_name, name="product-by-name"),
