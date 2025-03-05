@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-
+from corsheaders.defaults import default_headers
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 #                        Production     (devs- auto switch if production env isn't found)
 environment = os.getenv("ENVIRONMENT", "development")
-
+print(environment)
 if environment == "production":
     load_dotenv()
     DATABASES = {
@@ -46,6 +46,7 @@ else:
 
 # Default settings
 INSTALLED_APPS = [
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -54,13 +55,32 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "server",
-    "corsheaders",
+]
+CORS_ALLOWED_ORIGINS = [
+    ("https://" if environment == "production" else "http://") + x.strip()
+    for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+    if x.strip()  # Skip empty entries
 ]
 
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+CORS_ALLOW_HEADERS = [
+    *default_headers,
+    "X-CSRFToken",
+]
+
+
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -68,12 +88,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-# CORS configuration
-CORS_ALLOWED_ORIGINS = [
-    ("https://" if environment == "production" else "http://") + x.strip()
-    for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
-    if x.strip()  # Skip empty entries
-]
 
 ROOT_URLCONF = "server.urls"
 
@@ -119,7 +133,7 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
-
+CORS_ALLOW_CREDENTIALS = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 

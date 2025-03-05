@@ -1,9 +1,12 @@
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
+from django.conf import settings
 
 
 def home_view(request):
-    return JsonResponse({"message": "Django API is Running!"})
+    return JsonResponse(
+        {"message": f"Allowed origins: {', '.join(settings.CORS_ALLOWED_ORIGINS)}"}
+    )
 
 
 @api_view(["GET"])
