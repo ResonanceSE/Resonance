@@ -56,19 +56,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "server"
 ]
-
-MIDDLEWARE = [
-    "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.security.SecurityMiddleware",
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
-]
-
-# CORS configuration
 CORS_ALLOWED_ORIGINS = [
     ("https://" if environment == "production" else "http://") + x.strip()
     for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
@@ -88,6 +75,19 @@ CORS_ALLOW_HEADERS = [
     *default_headers,
     'X-CSRFToken',
 ]
+
+
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
 
 ROOT_URLCONF = "server.urls"
 
