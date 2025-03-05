@@ -69,7 +69,10 @@ MIDDLEWARE = [
 ]
 
 # CORS configuration
-CORS_ALLOWED_ORIGINS = "https://" + os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+CORS_ALLOWED_ORIGINS = [
+    "https:" if environment == "production" else "http:" + x
+    for x in os.getenv("CORS_ALLOWED_ORIGINS", "").split(",")
+]
 
 ROOT_URLCONF = "server.urls"
 
