@@ -69,7 +69,7 @@ MIDDLEWARE = [
 ]
 
 # CORS configuration
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "https://resonance-brown.vercel.app"]
+CORS_ALLOWED_ORIGINS = "https://" + os.getenv("CORS_ALLOWED_ORIGINS", "").split(',')
 
 ROOT_URLCONF = "server.urls"
 
