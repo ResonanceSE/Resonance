@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 #                        Production     (devs- auto switch if production env isn't found)
 environment = os.getenv("ENVIRONMENT", "development")
-
+print(environment)
 if environment == "production":
     load_dotenv()
     DATABASES = {
