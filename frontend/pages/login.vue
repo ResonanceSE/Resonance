@@ -21,13 +21,13 @@ const handleLogin = () => {
         <div class="hidden md:block md:col-span-7 relative p-6 lg:p-16">
           <!-- Decorative shapes -->
           <div class="absolute right-0 top-1/4 w-32 h-32 bg-teal-500 rounded-l-full"/>
-          <div class="absolute left-0 top-0 w-48 h-48 bg-teal-500 rounded-r-full"/>
+          <div class="absolute left-0 top-0 w-40 h-48 bg-teal-500 rounded-r-full"/>
           <div class="absolute right-16 bottom-40 w-16 h-16 bg-orange-500 rotate-45"/>
           <div class="absolute left-16 bottom-24 w-32 h-32 bg-pink-500 rounded-full"/>
           
           <!-- Main text -->
-          <div class="z-10 absolute flex items-center justify-center">
-            <h2 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+          <div class="z-10 absolute flex justify-end right-4">
+            <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-right">
               Explore the world of sounds<br>
               ...at Resonance
             </h2>
