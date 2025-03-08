@@ -1,5 +1,4 @@
 <script setup>
-const name = ref('');
 const email = ref('');
 const password = ref('');
 const router = useRouter();
@@ -21,10 +20,10 @@ const handleLogin = () => {
         <!-- Left side - Decorative content (7/12 columns on desktop) -->
         <div class="hidden md:block md:col-span-7 relative p-6 lg:p-16">
           <!-- Decorative shapes -->
-          <div class="absolute right-0 top-1/4 w-32 h-32 bg-teal-500 rounded-l-full"></div>
-          <div class="absolute left-0 top-0 w-48 h-48 bg-teal-500 rounded-r-full"></div>
-          <div class="absolute right-16 bottom-40 w-16 h-16 bg-orange-500 rotate-45"></div>
-          <div class="absolute left-16 bottom-24 w-32 h-32 bg-pink-500 rounded-full"></div>
+          <div class="absolute right-0 top-1/4 w-32 h-32 bg-teal-500 rounded-l-full"/>
+          <div class="absolute left-0 top-0 w-48 h-48 bg-teal-500 rounded-r-full"/>
+          <div class="absolute right-16 bottom-40 w-16 h-16 bg-orange-500 rotate-45"/>
+          <div class="absolute left-16 bottom-24 w-32 h-32 bg-pink-500 rounded-full"/>
           
           <!-- Main text -->
           <div class="z-10 absolute flex items-center justify-center">
@@ -51,7 +50,7 @@ const handleLogin = () => {
             <div>
               <div class="mb-8">
                 <div class="flex items-center">
-                  <div class="w-4 h-4 bg-gray-800 mr-1"></div>
+                  <div class="w-4 h-4 bg-gray-800 mr-1"/>
                   <span class="font-semibold text-gray-800">Resonance</span>
                 </div>
               </div>
@@ -74,7 +73,7 @@ const handleLogin = () => {
                     type="email" 
                     placeholder="Email or Username" 
                     class="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400"
-                  />
+                  >
                 </div>
                 <div>
                   <input 
@@ -82,12 +81,12 @@ const handleLogin = () => {
                     type="password" 
                     placeholder="Password" 
                     class="w-full px-4 py-3 rounded-md border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400"
-                  />
+                  >
                 </div>
                 <div>
                   <button 
-                    @click="handleLogin" 
-                    class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-md transition-colors"
+                    class="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-md transition-colors" 
+                    @click="handleLogin"
                   >
                     LOG IN
                   </button>

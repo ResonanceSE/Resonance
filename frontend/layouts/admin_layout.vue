@@ -71,7 +71,7 @@ const settingsMenuItems = [
 
 <template>
     <div class="drawer lg:drawer-open">
-      <input id="admin-drawer" type="checkbox" class="drawer-toggle" v-model="isDrawerOpen" />
+      <input id="admin-drawer" v-model="isDrawerOpen" type="checkbox" class="drawer-toggle" >
       
       <div class="drawer-content flex flex-col">
         <!-- Navbar -->
@@ -79,7 +79,7 @@ const settingsMenuItems = [
           <div class="flex-none">
             <label for="admin-drawer" class="btn btn-square btn-ghost drawer-button lg:hidden">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
             </label>
           </div>
@@ -88,12 +88,12 @@ const settingsMenuItems = [
           </div>
           <div class="flex-none gap-2">
             <div class="form-control">
-              <input type="text" placeholder="Search..." class="input input-bordered w-24 md:w-auto" />
+              <input type="text" placeholder="Search..." class="input input-bordered w-24 md:w-auto" >
             </div>
             <div class="dropdown dropdown-end">
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                 <div class="w-10 rounded-full">
-                  <img src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                  <img src="https://daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" >
                 </div>
               </label>
               <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
@@ -124,7 +124,7 @@ const settingsMenuItems = [
       
       <!-- Sidebar -->
       <div class="drawer-side">
-        <label for="admin-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+        <label for="admin-drawer" aria-label="close sidebar" class="drawer-overlay"/>
         <aside class="bg-base-100 w-64 min-h-full border-r border-base-200">
           <!-- Logo area -->
           <div class="p-4 flex items-center border-b border-base-200 h-16">
@@ -156,7 +156,7 @@ const settingsMenuItems = [
               </NuxtLink>
             </li>
             
-            <div class="divider my-2"></div>
+            <div class="divider my-2"/>
             
             <li class="font-semibold text-xs uppercase text-base-content/50 pb-2">Settings</li>
             <li v-for="(item, index) in settingsMenuItems" :key="index">

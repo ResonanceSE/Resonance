@@ -1,6 +1,4 @@
-<!-- pages/products/index.vue -->
 <script setup>
-import { NuxtImg } from '#components';
 
 // Access route params
 const route = useRoute();
@@ -107,14 +105,14 @@ const displayProducts = computed(() => {
 
               <!-- Brand filter -->
               <div class="collapse collapse-arrow border-b">
-                <input type="checkbox" v-model="brandExpanded" />
+                <input v-model="brandExpanded" type="checkbox" >
                 <div class="collapse-title font-medium">
                   Brand
                 </div>
                 <div class="collapse-content">
                   <div v-for="(brand, index) in brands" :key="index" class="form-control">
                     <label class="cursor-pointer label justify-start">
-                      <input type="checkbox" v-model="brand.selected" class="checkbox checkbox-sm checkbox-primary" />
+                      <input v-model="brand.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
                       <span class="label-text ml-2">{{ brand.name }}</span>
                     </label>
                   </div>
@@ -123,14 +121,14 @@ const displayProducts = computed(() => {
 
               <!-- Type filter -->
               <div class="collapse collapse-arrow border-b">
-                <input type="checkbox" v-model="typeExpanded" />
+                <input v-model="typeExpanded" type="checkbox" >
                 <div class="collapse-title font-medium">
                   Type <span class="text-xs text-gray-400">(Portable/Desktop)</span>
                 </div>
                 <div class="collapse-content">
                   <div v-for="(type, index) in types" :key="index" class="form-control">
                     <label class="cursor-pointer label justify-start">
-                      <input type="checkbox" v-model="type.selected" class="checkbox checkbox-sm checkbox-primary" />
+                      <input v-model="type.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
                       <span class="label-text ml-2">{{ type.name }}</span>
                     </label>
                   </div>
@@ -139,14 +137,14 @@ const displayProducts = computed(() => {
 
               <!-- Connection filter -->
               <div class="collapse collapse-arrow border-b">
-                <input type="checkbox" v-model="connectionExpanded" />
+                <input v-model="connectionExpanded" type="checkbox" >
                 <div class="collapse-title font-medium">
                   Connection
                 </div>
                 <div class="collapse-content">
                   <div v-for="(connection, index) in connections" :key="index" class="form-control">
                     <label class="cursor-pointer label justify-start">
-                      <input type="checkbox" v-model="connection.selected" class="checkbox checkbox-sm checkbox-primary" />
+                      <input v-model="connection.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
                       <span class="label-text ml-2">{{ connection.name }}</span>
                     </label>
                   </div>
@@ -155,14 +153,14 @@ const displayProducts = computed(() => {
 
               <!-- Price Range filter -->
               <div class="collapse collapse-arrow">
-                <input type="checkbox" v-model="priceExpanded" />
+                <input v-model="priceExpanded" type="checkbox" >
                 <div class="collapse-title font-medium">
                   Price Range
                 </div>
                 <div class="collapse-content">
                   <div v-for="(range, index) in priceRanges" :key="index" class="form-control">
                     <label class="cursor-pointer label justify-start">
-                      <input type="checkbox" v-model="range.selected" class="checkbox checkbox-sm checkbox-primary" />
+                      <input v-model="range.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
                       <span class="label-text ml-2">{{ range.name }}</span>
                     </label>
                   </div>
@@ -180,17 +178,17 @@ const displayProducts = computed(() => {
               <button 
                 v-for="filter in filters" 
                 :key="filter.name" 
-                @click="setFilter(filter.name)"
                 :class="[
                   'btn btn-sm', 
                   activeFilter === filter.name ? 'btn-warning' : 'btn-outline'
                 ]"
+                @click="setFilter(filter.name)"
               >
                 {{ filter.name }}
               </button>
             </div>
             <div class="flex gap-2 w-full md:w-auto">
-              <input type="text" placeholder="Search Products" class="input input-bordered w-full md:w-auto" v-model="searchQuery" />
+              <input v-model="searchQuery" type="text" placeholder="Search Products" class="input input-bordered w-full md:w-auto" >
               <div class="dropdown dropdown-end">
                 <label tabindex="0" class="btn btn-sm btn-outline gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h- w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -210,7 +208,7 @@ const displayProducts = computed(() => {
 
           <!-- Loading State -->
           <div v-if="pending" class="flex items-center justify-center h-48">
-            <span class="loading loading-spinner loading-lg"></span>
+            <span class="loading loading-spinner loading-lg"/>
           </div>
 
           <!-- Error State -->
@@ -223,7 +221,7 @@ const displayProducts = computed(() => {
           <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div v-for="product in displayProducts" :key="product.id" class="card bg-base-100 shadow-xl">
               <figure class="p-4 bg-base-200 h-48 flex items-center justify-center">
-                <NuxtImg src="" alt="Product" />
+                <NuxtImg src="" alt="placeholder" />
               </figure>
               <div class="card-body p-4">
                 <h2 class="card-title text-lg">{{ product.name }}</h2>
