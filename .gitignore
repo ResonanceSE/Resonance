@@ -22,14 +22,21 @@ logs
 .env
 .env.*
 !.env.example
+.venv
+env.development
+env.production
 
 # Python Environment
 environment_3_12_6/
 venv/
 __pycache__/
+<<<<<<< Updated upstream
 .venv
 
 env.development
 env.production
 
 npm
+=======
+
+>>>>>>> Stashed changes
