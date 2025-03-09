@@ -247,7 +247,7 @@ type="submit"
 
                                 <!-- Close button -->
                                 <button
-                                    class="btn btn-sm btn-circleabsolute -top-3 -right-3 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md z-10 hover:bg-gray-100"
+                                    class="btn btn-sm btn-circle absolute top-4 right-3 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md z-10 hover:bg-gray-100"
                                     @click="toggleLiveChat">
                                     <Icon name="heroicons:x-mark" class="h-5 w-5" />
                                 </button>
