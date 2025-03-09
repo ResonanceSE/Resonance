@@ -27,3 +27,9 @@ logs
 environment_3_12_6/
 venv/
 __pycache__/
+.venv
+
+env.development
+env.production
+
+npm
