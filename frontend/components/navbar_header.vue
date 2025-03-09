@@ -30,8 +30,8 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
 
 // State management
 const isMenuOpen = ref(false);
-const isCatalogOpen = ref(false);
-const searchQuery = ref('');
+// const isCatalogOpen = ref(false);
+// const searchQuery = ref('');
 const cartCount = ref(2); // Would be reactive from your cart store
 
 // Get current route for active link highlighting
@@ -46,13 +46,13 @@ const closeMenu = () => {
 };
 
 // Search functionality
-const submitSearch = () => {
-  if (searchQuery.value.trim()) {
-    // Navigate to search results page
-    navigateTo(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`);
-    searchQuery.value = '';
-  }
-};
+// const submitSearch = () => {
+//   if (searchQuery.value.trim()) {
+//     // Navigate to search results page
+//     navigateTo(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`);
+//     searchQuery.value = '';
+//   }
+// };
 
 // Check if route is active
 const isActive = (path: string): boolean => {
