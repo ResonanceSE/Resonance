@@ -4,64 +4,23 @@ const currentYear = new Date().getFullYear();
 
 
 <template>
-  <footer class="bg-neutral text-neutral-content">
-    <div class="container mx-auto p-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Brand and About -->
-      <div>
-        <h2 class="text-lg font-bold">Resonance</h2>
-        <p class="text-sm mt-2">
-          Discover the best sound quality with our exclusive range of headphones. Designed for music enthusiasts.
-        </p>
+  <footer class="footer footer-horizontal footer-center bg-neutral text-base-content rounded p-10 relative bottom-0 ">
+    <nav class="grid grid-flow-col gap-4">
+      <a class="link link-hover text-white">About us</a>
+      <a class="link link-hover text-white">Contact</a>
+      <a class="link link-hover text-white">Jobs</a>
+      <a class="link link-hover text-white">Press kit</a>
+    </nav>
+    <nav>
+      <div class="grid grid-flow-col gap-6">
+        <a class="link link-hover"><Icon name="logos:x" class="h-10 w-10" aria-hidden="true"/></a>
+        <a class="link link-hover"><Icon name="logos:facebook" class="h-10 w-10" aria-hidden="true"/></a>
+        <a class="link link-hover"><Icon name="logos:youtube-icon" class="h-10 w-10" aria-hidden="true"/></a>
+        <a class="link link-hover"><Icon name="logos:google-icon" class="h-10 w-10" aria-hidden="true"/></a>
       </div>
-
-      <!-- Navigation Links -->
-      <div>
-        <h3 class="text-lg font-semibold">Quick Links</h3>
-        <ul class="mt-2 space-y-1">
-          <li><a class="link link-hover" href="/shop">Shop</a></li>
-          <li><a class="link link-hover" href="/about">About Us</a></li>
-          <li><a class="link link-hover" href="/support">Support</a></li>
-          <li><a class="link link-hover" href="/contact">Contact</a></li>
-        </ul>
-      </div>
-
-      <!-- Social Links -->
-      <div>
-        <h3 class="text-lg font-semibold">Follow Us</h3>
-        <div class="flex mt-2 space-x-4">
-          <a
-            href="https://facebook.com"
-            target="_blank"
-            class="link link-hover text-xl"
-          >
-            <Icon name="mdi:facebook" class="h-6 w-6" aria-hidden="true" />
-          </a>
-          <a
-            href="https://twitter.com"
-            target="_blank"
-            class="link link-hover text-xl"
-          >
-            <Icon name="mdi:twitter" class="h-6 w-6" aria-hidden="true" />
-          </a>
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            class="link link-hover text-xl"
-          >
-            <Icon name="mdi:instagram" class="h-6 w-6" aria-hidden="true" />
-          </a>
-          <a
-            href="https://youtube.com"
-            target="_blank"
-            class="link link-hover text-xl"
-          >
-            <Icon name="mdi:youtube" class="h-6 w-6" aria-hidden="true" />
-          </a>
-        </div>
-      </div>
-    </div>
-    <div class="bg-neutral-focus py-4 text-center">
-      <p>&copy; {{ currentYear }} Resonance. All Rights Reserved.</p>
-    </div>
+    </nav>
+    <aside>
+      <p class="text-white">Copyright © {{ currentYear }} - All right reserved by Resonance</p>
+    </aside>
   </footer>
 </template>

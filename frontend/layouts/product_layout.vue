@@ -1,15 +1,5 @@
 <script setup>
-
-// Access route params
-const route = useRoute();
-const productSlug = ref(route.params.product);
-const apiUrl = useRuntimeConfig().public.apiUrl
-const { data: product, error, pending } = useFetch(() => `${apiUrl}/api/products/${productSlug.value}`, {
-  method: 'GET',
-  immediate: true, //
-});
-
-const activeCategory = ref('Headphones'); 
+// Active states for filters
 const activeFilter = ref('All');
 const searchQuery = ref('');
 const sortBy = ref('default');
@@ -66,41 +56,72 @@ const typeExpanded = ref(true);
 const connectionExpanded = ref(true);
 const priceExpanded = ref(true);
 
-// Navigate to product detail
-const viewProductDetails = (productId) => {
-  route.push(`/products/${productSlug.value}/${productId}`);
-};
+// Mobile drawer state
+const isFilterDrawerOpen = ref(false);
 
-// Default Template
-const mockProducts = [
-  { id: 1, name: 'Premium Bookshelf Speaker', detail: 'High-fidelity audio with deep bass', price: 299.99, image: '/placeholder.png' },
-  { id: 2, name: 'Portable Bluetooth Speaker', detail: 'Waterproof design with 20-hour battery', price: 149.99, image: '/placeholder.png' },
-  { id: 3, name: 'Wireless Surround System', detail: 'Complete 5.1 cinema experience', price: 599.99, image: '/placeholder.png' },
-  { id: 4, name: 'Desktop Gaming Speakers', detail: 'RGB lighting with powerful sound', price: 199.99, image: '/placeholder.png' },
-  { id: 5, name: 'Smart Home Speaker', detail: 'Voice control with premium sound', price: 249.99, image: '/placeholder.png' },
-  { id: 6, name: 'Outdoor Party Speaker', detail: 'Weather-resistant with LED lights', price: 329.99, image: '/placeholder.png' },
-];
+// Emitting events to parent components
+const emit = defineEmits(['filterChange', 'searchChange', 'sortChange']);
 
-const displayProducts = computed(() => {
-  return product.value || mockProducts;
+// Watch for filter changes and emit events
+watch([activeFilter, searchQuery, sortBy], () => {
+  emit('filterChange', {
+    filter: activeFilter.value,
+    brands: brands.value.filter(b => b.selected).map(b => b.name),
+    types: types.value.filter(t => t.selected).map(t => t.name),
+    connections: connections.value.filter(c => c.selected).map(c => c.name),
+    priceRanges: priceRanges.value.filter(p => p.selected).map(p => p.name)
+  });
+  
+  emit('searchChange', searchQuery.value);
+  emit('sortChange', sortBy.value);
 });
+
+const route = useRoute();
+const productSlug = ref(route.params.product);
+const apiUrl = useRuntimeConfig().public.apiUrl
+const { data: product, error, pending } = useFetch(() => `${apiUrl}/api/products/${productSlug.value}`, {
+  method: 'GET',
+  immediate: true, //
+});
+
 </script>
 
 <template>
   <div class="w-full bg-base-100">
+    <navbar_header/>
     <div class="container mx-auto px-4 py-8">
-      <!-- Category header -->
+      <!-- Category header - slot for page-specific header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-center md:text-right">{{ activeCategory }}</h1>
+        <slot name="header">
+          <!-- Default header if none provided -->
+          <h1 class="text-3xl font-bold text-center md:text-right">{{ productSlug }}</h1>
+        </slot>
       </div>
 
       <!-- Main content area with sidebar and products -->
       <div class="flex flex-col md:flex-row gap-8">
         <!-- Sidebar with filters -->
         <div class="w-full md:w-64 flex-shrink-0">
-          <div class="card bg-base-100 shadow-md">
+          <!-- Mobile filter toggle -->
+          <div class="block md:hidden mb-4">
+            <button 
+              class="btn btn-outline w-full"
+              @click="isFilterDrawerOpen = !isFilterDrawerOpen"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+              </svg>
+              Filters
+            </button>
+          </div>
+
+          <!-- Desktop filters -->
+          <div class="hidden md:block card bg-base-100 shadow-md">
             <div class="card-body p-4">
               <h2 class="text-xl font-bold mb-4">Filter</h2>
+
+              <!-- Filter before sidebar slot -->
+              <slot name="before-sidebar-filters"/>
 
               <!-- Brand filter -->
               <div class="collapse collapse-arrow border-b">
@@ -165,6 +186,47 @@ const displayProducts = computed(() => {
                   </div>
                 </div>
               </div>
+
+              <!-- Filter after sidebar slot -->
+              <slot name="after-sidebar-filters"/>
+            </div>
+          </div>
+
+          <!-- Mobile filter drawer -->
+          <div class="drawer drawer-end md:hidden">
+            <input id="filter-drawer" v-model="isFilterDrawerOpen" type="checkbox" class="drawer-toggle" >
+            <div class="drawer-side z-10">
+              <label for="filter-drawer" class="drawer-overlay"/>
+              <div class="p-4 w-80 min-h-full bg-base-100 text-base-content">
+                <h2 class="text-xl font-bold mb-4">Filter</h2>
+                
+                <!-- Mobile filters (same as desktop) -->
+                <!-- Brand filter -->
+                <div class="collapse collapse-arrow border-b">
+                  <input v-model="brandExpanded" type="checkbox" >
+                  <div class="collapse-title font-medium">
+                    Brand
+                  </div>
+                  <div class="collapse-content">
+                    <div v-for="(brand, index) in brands" :key="index" class="form-control">
+                      <label class="cursor-pointer label justify-start">
+                        <input v-model="brand.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
+                        <span class="label-text ml-2">{{ brand.name }}</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Repeat other mobile filters... -->
+                
+                <!-- Apply button -->
+                <button 
+                  class="btn btn-primary w-full mt-4"
+                  @click="isFilterDrawerOpen = false"
+                >
+                  Apply Filters
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -179,7 +241,7 @@ const displayProducts = computed(() => {
                 :key="filter.name" 
                 :class="[
                   'btn btn-sm', 
-                  activeFilter === filter.name ? 'btn-warning' : 'btn-outline'
+                  activeFilter === filter.name ? 'btn-primary' : 'btn-outline'
                 ]"
                 @click="setFilter(filter.name)"
               >
@@ -190,7 +252,7 @@ const displayProducts = computed(() => {
               <input v-model="searchQuery" type="text" placeholder="Search Products" class="input input-bordered w-full md:w-auto" >
               <div class="dropdown dropdown-end">
                 <label tabindex="0" class="btn btn-sm btn-outline gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h- w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
                   </svg>
                   Sort by
@@ -205,39 +267,21 @@ const displayProducts = computed(() => {
             </div>
           </div>
 
-          <!-- Loading State -->
-          <div v-if="pending" class="flex items-center justify-center h-48">
-            <span class="loading loading-spinner loading-lg"/>
-          </div>
-
-          <!-- Error State -->
-          <div v-else-if="error" class="alert alert-error">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span>Error: {{ error.message }}</span>
-          </div>
-
-          <!-- Product grid -->
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="product in displayProducts" :key="product.id" class="card bg-base-100 shadow-xl">
-              <figure class="p-4 bg-base-200 h-48 flex items-center justify-center">
-                <NuxtImg src="" alt="placeholder" />
-              </figure>
-              <div class="card-body p-4">
-                <h2 class="card-title text-lg">{{ product.name }}</h2>
-                <p class="text-sm text-gray-600">{{ product.detail }}</p>
-                <div class="flex justify-between items-center mt-2">
-                  <div class="text-lg font-bold">${{ product.price }}</div>
-                  <button class="btn btn-primary btn-sm" @click="viewProductDetails(product.id)">Buy Now</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Main content slot -->
+          <slot/>
         </div>
       </div>
     </div>
+    <footer_section />    
   </div>
 </template>
 
 <style scoped>
+.card {
+  transition: all 0.3s ease;
+}
 
+.card:hover {
+  transform: translateY(-5px);
+}
 </style>
