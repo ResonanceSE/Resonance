@@ -56,7 +56,9 @@ const closeMenu = () => {
 
 // Check if route is active
 const isActive = (path: string): boolean => {
-  if (path === '') return route.path === '/';
+  if (path === '') {
+    return route.path === '/';
+  }
   return route.path.includes(path.toLowerCase());
 };
 </script>
