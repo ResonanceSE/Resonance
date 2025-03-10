@@ -28,8 +28,8 @@ urlpatterns = [
     path("api/products/", get_all_products, name="all-products"),
     path("api/products/<str:name>/", get_product_by_name, name="product-by-name"),
     # Auth api urls
-    path('api/auth/register/', RegisterAPI.as_view()),
-    path('api/auth/login/', LoginAPI.as_view()),
-    path('api/auth/logout/', LogoutAPI.as_view()),
-    path('api/auth/user/', UserAPI.as_view()),
+    path("api/auth/register/", RegisterAPI.as_view()),
+    path("api/auth/login/", LoginAPI.as_view()),
+    path("api/auth/logout/", LogoutAPI.as_view()),
+    path("api/auth/user/", UserAPI.as_view()),
 ]

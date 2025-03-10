@@ -129,9 +129,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'server.middleware.auth_middleware.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "server.middleware.auth_middleware.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
     ],
 }
 

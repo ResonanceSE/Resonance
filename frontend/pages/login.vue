@@ -1,12 +1,13 @@
 <script setup >
-import { defineComponent, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import  { login } from '~/services/authService'
+
+import { login } from '~/services/authService';
 
 definePageMeta({
   layout: 'false'
 })
-const email = ref('');
+
+
+const username_or_email = ref('')
 const password = ref('');
 const router = useRouter();
 const passwordVisible = ref(false);
@@ -14,79 +15,26 @@ const errorMessage = ref('');
 const formSubmitted = ref(false);
 
 
-const handleLogin = () => {
+
+const handleLogin = async () => {
   formSubmitted.value = true;
   errorMessage.value = '';
-  
-  if (!email.value || !password.value) {
-    errorMessage.value = 'Please enter both email and password';
-    return;
+  console.log('Form submitted:', { username_or_email: username_or_email.value, password: password.value });
+  const credentials = { username : username_or_email.value, password: password.value };
+  try {
+    await login(credentials);
+    console.log('Logging in:', username_or_email.value);
+    router.push('/');
+  } catch (error) {
+    errorMessage.value = error.message || 'Login failed';
+    console.error('Login error:', error);
+  } finally {
+    console.log("Log in attempted")
   }
-  
-  console.log('Logging in:', email.value);
-  router.push('/');
 };
-
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
-
-export default defineComponent({
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    
-    const username = ref('')
-    const password = ref('')
-    const passwordVisible = ref(false)
-    const loading = ref(false)
-    const error = ref('')
-    
-    async function handleLogin() {
-      if (!username.value || !password.value) {
-        error.value = 'Please enter both username and password'
-        return
-      }
-      
-      loading.value = true
-      error.value = ''
-      
-      try {
-        await login({
-          username: username.value,
-          password: password.value
-        })
-        
-        // Redirect after login
-        const redirectPath = route.query.redirect?.toString() || '/'
-        router.push(redirectPath)
-      } catch (err) {
-        if (err instanceof Error) {
-          error.value = err.message
-        } else {
-          error.value = 'Login failed'
-        }
-      } finally {
-        loading.value = false
-      }
-    }
-    
-    function togglePasswordVisibility() {
-      passwordVisible.value = !passwordVisible.value
-    }
-    
-    return {
-      username,
-      password,
-      passwordVisible,
-      loading,
-      error,
-      handleLogin,
-      togglePasswordVisibility
-    }
-  }
-})
-
 
 </script>
 
@@ -187,9 +135,9 @@ export default defineComponent({
                       ✉
                     </span>
                     <input 
-                      v-model="email" 
-                      id="email"
-                      type="email" 
+                      v-model="username_or_email" 
+                      id="user_email"
+                      type="user_email" 
                       placeholder="Email or Username" 
                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                       :class="{'border-red-300 focus:ring-red-400': formSubmitted && !email}"
