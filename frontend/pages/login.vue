@@ -1,4 +1,8 @@
-<script setup>
+<script setup >
+import { defineComponent, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import  { login } from '~/services/authService'
+
 definePageMeta({
   layout: 'false'
 })
@@ -8,6 +12,7 @@ const router = useRouter();
 const passwordVisible = ref(false);
 const errorMessage = ref('');
 const formSubmitted = ref(false);
+
 
 const handleLogin = () => {
   formSubmitted.value = true;
@@ -25,6 +30,64 @@ const handleLogin = () => {
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
+
+export default defineComponent({
+  setup() {
+    const router = useRouter()
+    const route = useRoute()
+    
+    const username = ref('')
+    const password = ref('')
+    const passwordVisible = ref(false)
+    const loading = ref(false)
+    const error = ref('')
+    
+    async function handleLogin() {
+      if (!username.value || !password.value) {
+        error.value = 'Please enter both username and password'
+        return
+      }
+      
+      loading.value = true
+      error.value = ''
+      
+      try {
+        await login({
+          username: username.value,
+          password: password.value
+        })
+        
+        // Redirect after login
+        const redirectPath = route.query.redirect?.toString() || '/'
+        router.push(redirectPath)
+      } catch (err) {
+        if (err instanceof Error) {
+          error.value = err.message
+        } else {
+          error.value = 'Login failed'
+        }
+      } finally {
+        loading.value = false
+      }
+    }
+    
+    function togglePasswordVisibility() {
+      passwordVisible.value = !passwordVisible.value
+    }
+    
+    return {
+      username,
+      password,
+      passwordVisible,
+      loading,
+      error,
+      handleLogin,
+      togglePasswordVisibility
+    }
+  }
+})
+
+
 </script>
 
 <template>
