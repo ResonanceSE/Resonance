@@ -88,7 +88,6 @@ const displayProducts = computed(() => {
 
 <template>
   <div class="w-full bg-base-100">
-    <navbar_header/>
     <div class="container mx-auto px-4 py-8">
       <!-- Category header -->
       <div class="mb-8">

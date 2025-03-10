@@ -1,185 +1,287 @@
 <script setup lang="ts">
-
-
 const navbar_left_placeholder = ref<string[]>([
   'Home',
   'Catalog',
   'Products',
   'Contact'
-])
+]);
+
 const navbar_right_placeholder = ref<string[]>([
   "Log In",
-])
-const catalog_placeholder = reactive<{ slug: string; name: string }[]>([
+]);
+
+const catalog_placeholder = reactive<{ slug: string; name: string; icon: string }[]>([
   {
     slug: "headphones",
-    name: "Headphones"
+    name: "Headphones",
+    icon: "ic:baseline-headset"
   },
   {
     slug: "speakers",
-    name: "Speakers"
+    name: "Speakers",
+    icon: "heroicons:speaker-wave"
   },
   {
     slug: "earphones",
-    name: "Earphones"
+    name: "Earphones",
+    icon: "heroicons:musical-note"
   }
-])
+]);
 
-const isMenuOpen = ref(false)
-const isCatalogOpen = ref(false);
+// State management
+const isMenuOpen = ref(false);
+// const isCatalogOpen = ref(false);
+// const searchQuery = ref('');
+const cartCount = ref(2); // Would be reactive from your cart store
+
+// Get current route for active link highlighting
+const route = useRoute();
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
 };
-const toggleCatalog = () => {
-  isCatalogOpen.value = !isCatalogOpen.value;
-}
+
 const closeMenu = () => {
-  isMenuOpen.value = false; // Close the sidebar 
+  isMenuOpen.value = false;
+};
+
+// Search functionality
+// const submitSearch = () => {
+//   if (searchQuery.value.trim()) {
+//     // Navigate to search results page
+//     navigateTo(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`);
+//     searchQuery.value = '';
+//   }
+// };
+
+// Check if route is active
+const isActive = (path: string): boolean => {
+  if (path === '') return route.path === '/';
+  return route.path.includes(path.toLowerCase());
 };
 </script>
 
 <template>
   <div class="sticky top-0 z-50">
-    <!-- Backdrop -->
-    <div v-if="isMenuOpen" class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" @click="closeMenu" />
-
-    <div class="navbar bg-base-100 px-4 md:px-10 shadow-md">
+    <!-- Backdrop for mobile menu -->
+    <div 
+      v-if="isMenuOpen" 
+      class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" 
+      @click="closeMenu"
+    />
+    
+    <!-- Main Navbar -->
+    <div class="navbar bg-base-100 shadow-md">
       <!-- Logo Section -->
-      <div class="flex-0">
+      <div class="flex flex-grow lg:flex-grow-0">
         <NuxtLink to="/" class="text-2xl md:text-3xl font-semibold px-2 md:px-5">
-          Resonance
+          <span class="text-primary hidden sm:inline">♪</span> Resonance
         </NuxtLink>
       </div>
-
-      <!-- Mobile Menu Button -->
-      <div class="flex-1 justify-end lg:hidden">
-        <button class="btn btn-ghost btn-circle" aria-label="Toggle menu" @click="toggleMenu">
-          <Icon :name="isMenuOpen ? 'heroicons:x-mark' : 'heroicons:bars-3'" class="h-6 w-6" />
-        </button>
-      </div>
-
+      
       <!-- Desktop Navigation -->
-      <div class="hidden lg:flex lg:  flex-1 lg:justify-between lg:items-center">
-        <!-- Left Menu Items -->
-        <ul class="menu menu-horizontal px-1 text-lg">
-          <li v-for="item in navbar_left_placeholder" :key="item">
-            <div v-if="item === 'Catalog'" class="relative">
-              <button class="flex items-center gap-1 rounded-lg" @click="toggleCatalog">
-                {{ item }}
-                <Icon :name="isCatalogOpen ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" class="h-4 w-4" />
-              </button>
-
-              <ul
-class="dropdown-content menu bg-base-100 rounded-box z-10 w-52 p-2 shadow absolute top-full mt-2"
-                :class="{ 'hidden': !isCatalogOpen }">
-                <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
-                  <NuxtLink
-class="text-lg" :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
-                    @click="closeMenu">
-                    {{ catalog_item.name }}
-                  </NuxtLink>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Other Menu Items -->
-            <NuxtLink
-v-else class="hover:bg-base-200 px-3 py-2 rounded-lg"
-              :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`" @click="closeMenu">
-              {{ item }}
-            </NuxtLink>
-          </li>
-        </ul>
-
-        <!-- Right Menu Items -->
-        <div class="flex items-center gap-4">
-          <ul class="menu menu-horizontal px-1">
-            <li v-for="item in navbar_right_placeholder" :key="item">
+      <div class="hidden lg:flex flex-1 lg:min-w-screen">
+        <div class="flex">
+          <ul class="menu menu-horizontal px-1 text-lg items-center">
+            <li v-for="item in navbar_left_placeholder" :key="item">
+              <!-- Catalog Dropdown -->
+              <details v-if="item === 'Catalog'" class="dropdown dropdown-bottom">
+                <summary class="m-1 btn btn-ghost items-center">
+                  <div class="my-auto py-2">{{ item }}</div>
+                </summary>
+                <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
+                  <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
+                    <NuxtLink :to="`/products/${catalog_item.slug}`">
+                      <Icon :name="catalog_item.icon" class="h-5 w-5" />
+                      {{ catalog_item.name }}
+                    </NuxtLink>
+                  </li>
+                  <div class="divider my-0"/>
+                  <li>
+                    <NuxtLink to="/products">
+                      <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
+                      All Categories
+                    </NuxtLink>
+                  </li>
+                </ul>
+              </details>
+          
+              <!-- Other Menu Items -->
               <NuxtLink
-class="text-lg hover:bg-base-200" 
-              :to="'/login'"
-              @click="closeMenu">
+                v-else
+                class="m-1 btn btn-ghost"
+                :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''"
+                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
+              >
                 {{ item }}
               </NuxtLink>
             </li>
           </ul>
-          <NuxtLink class="btn btn-ghost btn-rectangle" @click="closeMenu">
-            <div class="indicator">
-              <Icon name="heroicons:shopping-cart" class="h-6 w-6" />
-              <span class="badge badge-sm indicator-item">0</span>
-            </div>
-          </NuxtLink>
         </div>
       </div>
-    </div>
+        
+        <!-- Desktop Right Menu -->
+      <div class="hidden lg:flex gap-2 ml-2">
 
+          <!-- User Menu -->
+          <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+              <div class="w-10 rounded-full bg-neutral-content flex items-center justify-center">
+                <Icon name="heroicons:user-circle" class="h-10 w-10 text-neutral" />
+              </div>
+            </label>
+            <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+              <li v-for="item in navbar_right_placeholder" :key="item">
+                <NuxtLink to="/login">{{ item }}</NuxtLink>
+              </li>
+              <li><a>Settings</a></li>
+              <li><a>Logout</a></li>
+            </ul>
+          </div>
+          
+          <!-- Cart -->
+          <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-ghost btn-circle">
+              <div class="indicator">
+                <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
+                <span class="badge badge-sm badge-primary indicator-item">{{ cartCount }}</span>
+              </div>
+            </label>
+            <div tabindex="0" class="mt-3 card card-compact dropdown-content w-52 bg-base-100 shadow-lg z-[1]">
+              <div class="card-body">
+                <span class="font-bold text-lg">{{ cartCount }} Items</span>
+                <span class="text-info">Subtotal: $999</span>
+                <div class="card-actions">
+                  <NuxtLink to="/cart" class="btn btn-primary btn-block">View cart</NuxtLink>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+      <!-- Mobile Controls -->
+      <div class="flex lg:hidden gap-2">
+        <!-- Mobile Search -->
+        <!-- Mobile Cart Button -->
+        <NuxtLink to="/cart" class="btn btn-ghost btn-circle">
+          <div class="indicator">
+            <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
+            <span v-if="cartCount > 0" class="badge badge-sm badge-primary indicator-item">{{ cartCount }}</span>
+          </div>
+        </NuxtLink>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="btn btn-ghost btn-circle" @click="toggleMenu">
+          <Icon name="heroicons:bars-3" class="h-5 w-5" />
+        </button>
+      </div>
+    </div>
+    
     <!-- Mobile Sidebar Menu -->
     <div
       class="fixed top-0 right-0 h-full w-80 bg-base-100 z-50 lg:hidden transform transition-transform duration-300 ease-in-out shadow-xl"
-      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'">
+      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'"
+    >
       <!-- Sidebar Header -->
-      <div class="p-4 border-b my-auto flex justify-end">
-        <h2 class="text-xl font-semibold my-auto flex-1">Resonance</h2>
-        <button class="btn btn-ghost btn-circle my-auto mr-5 pt-1" @click="closeMenu">
-          <Icon name="heroicons:x-mark" class="h-6 w-6" />
+      <div class="flex justify-between items-center p-4 border-b">
+        <h2 class="text-xl font-semibold">Resonance</h2>
+        <button class="btn btn-sm btn-circle btn-ghost" @click="closeMenu">
+          <Icon name="heroicons:x-mark" class="h-5 w-5" />
         </button>
       </div>
-
+      
       <!-- Sidebar Content -->
       <div class="overflow-y-auto h-[calc(100%-4rem)]">
-        <div class="p-4 space-y-4">
+        <ul class="menu p-4 text-base-content">
           <!-- Mobile Menu Items -->
-          <div class="space-y-2">
-            <div v-for="item in navbar_left_placeholder" :key="item">
-              <div v-if="item === 'Catalog'" class="collapse collapse-arrow">
-                <input type="checkbox" >
-                <div class="collapse-title text-xl font-medium ">
-                  Catalog
+          <li v-for="item in navbar_left_placeholder" :key="item">
+            <!-- Catalog in Mobile -->
+            <details v-if="item === 'Catalog'" class="collapse collapse-arrow bg-base-200 rounded-box">
+              <summary class="collapse-title flex flex-row items-center gap-2">
+                <div class="flex items-center space-x-2">
+                  <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
+                  <span class="text-center items-center">{{ item }} </span>
                 </div>
-                <div class="collapse-content">
-                  <ul class="menu">
-                    <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
-                      <NuxtLink
-class="text-lg" :to="catalog_item ? `/products/${catalog_item.slug}` : '/'"
-                        @click="closeMenu">
-                        {{ catalog_item.name }}
-                      </NuxtLink>
-                    </li>
-                  </ul>
-                </div>
+              </summary>
+              <div class="collapse-content">
+                <ul class="menu menu-sm">
+                  <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
+                    <NuxtLink :to="`/products/${catalog_item.slug}`" @click="closeMenu">
+                      <Icon :name="catalog_item.icon" class="h-5 w-5" />
+                      {{ catalog_item.name }}
+                    </NuxtLink>
+                  </li>
+                  <li>
+                    <NuxtLink to="/products" @click="closeMenu">
+                      <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
+                      All Categories
+                    </NuxtLink>
+                  </li>
+                </ul>
               </div>
-              <NuxtLink
-v-else class="block text-xl p-2 hover:bg-base-200 rounded-lg"
-                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`" 
-                @click="closeMenu">
-                {{ item }}
-              </NuxtLink>
-            </div>
-          </div>
-
-          <div class="divider" />
-
-          <!-- Mobile Right Menu Items -->
-          <div class="space-y-2">
-            <div v-for="item in navbar_right_placeholder" :key="item">
-              <NuxtLink
-class="block text-xl p-2 hover:bg-base-200 rounded-lg" 
-              :to="'/login'"
-              @click="closeMenu">
-                {{ item }}
-              </NuxtLink>
-            </div>
-            <NuxtLink class="flex items-center gap-2 text-xl p-2 hover:bg-base-200 rounded-lg" @click="closeMenu">
-              <Icon name="heroicons:shopping-cart" class="h-6 w-6" />
-              Cart
-              <span class="badge badge-sm">0</span>
+            </details>
+            
+            <!-- Other Menu Items -->
+            <NuxtLink
+              v-else
+              :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`" 
+              class="flex items-center gap-2 my-2 py-2"
+              @click="closeMenu"
+            >
+              <Icon 
+                :name="
+                  item === 'Home' ? 'heroicons:home' : 
+                  item === 'Products' ? 'heroicons:shopping-bag' : 
+                  item === 'Contact' ? 'heroicons:envelope' : 'heroicons:document-text'
+                " 
+                class="h-5 w-5" 
+              />
+              {{ item }}
             </NuxtLink>
+          </li>
+          
+          <div class="divider">Account</div>
+          
+          <!-- Mobile Account Items -->
+          <li v-for="item in navbar_right_placeholder" :key="item">
+            <NuxtLink to="/login" class="flex items-center gap-2 py-2" @click="closeMenu">
+              <Icon name="heroicons:user-circle" class="h-5 w-5" />
+              {{ item }}
+            </NuxtLink>
+          </li>
+          <li>
+            <NuxtLink to="/cart" class="flex items-center gap-2 py-2" @click="closeMenu">
+              <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
+              Cart
+              <span v-if="cartCount > 0" class="badge badge-sm badge-primary ml-2">{{ cartCount }}</span>
+            </NuxtLink>
+          </li>
+          
+          <!-- Contact Info in Mobile Menu -->
+          <div class="mt-auto pt-6">
+            <div class="text-sm opacity-50 mb-2">Contact Us</div>
+            <a href="tel:+1234567890" class="flex items-center gap-2 py-1">
+              <Icon name="heroicons:phone" class="h-4 w-4" />
+              (123) 456-7890
+            </a>
+            <a href="mailto:info@resonance.com" class="flex items-center gap-2 py-1">
+              <Icon name="heroicons:envelope" class="h-4 w-4" />
+              info@resonance.com
+            </a>
           </div>
-        </div>
+        </ul>
       </div>
     </div>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* Smooth transition for mobile menu */
+.translate-x-full {
+  transform: translateX(100%);
+}
+
+.translate-x-0 {
+  transform: translateX(0);
+}
+</style>
