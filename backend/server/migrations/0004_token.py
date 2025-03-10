@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("server", "0003_alter_customuser_is_superuser"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
