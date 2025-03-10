@@ -14,15 +14,15 @@ interface RegisterData {
   last_name?: string;
 }
 
-interface ApiResponse {
-  status: string;
-  message?: string;
-  data?: any;
-}
+// interface ApiResponse {
+//   status: string;
+//   message?: string;
+//   data?: any;
+// }
 
 // Get the backend URL from environment or use a default
 const getBaseUrl = (): string => {
-  if (process.client) {
+  if (import.meta.client) {
     // Access runtimeConfig properly in Nuxt 3
     const config = useRuntimeConfig();
     return config.public.apiUrl || 'http://127.0.0.1:8000';
@@ -169,7 +169,7 @@ export async function logout(): Promise<void> {
 }
 
 export function getUser(): User | null {
-  if (process.client) {
+  if (import.meta.client) {
     const userJson = localStorage.getItem('user');
     return userJson ? JSON.parse(userJson) : null;
   }
@@ -177,14 +177,14 @@ export function getUser(): User | null {
 }
 
 export function getToken(): string | null {
-  if (process.client) {
+  if (import.meta.client) {
     return localStorage.getItem('auth_token');
   }
   return null;
 }
 
 export function isAuthenticated(): boolean {
-  if (process.client) {
+  if (import.meta.client) {
     return !!localStorage.getItem('auth_token');
   }
   return false;
