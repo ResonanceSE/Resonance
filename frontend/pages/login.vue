@@ -35,7 +35,7 @@ const togglePasswordVisibility = () => {
     <div class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
     <div class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
     
-    <div class="relative w-full max-w-6xl mx-auto rounded-3xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-sm">
+    <div class="relative top-[50%] w-full max-w-6xl m-auto rounded-3xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-sm">
       <!-- Grid container -->
       <div class="grid grid-cols-1 md:grid-cols-12">
         
