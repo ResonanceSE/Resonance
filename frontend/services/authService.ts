@@ -22,12 +22,8 @@ interface RegisterData {
 
 // Get the backend URL from environment or use a default
 const getBaseUrl = (): string => {
-  if (import.meta.client) {
-    // Access runtimeConfig properly in Nuxt 3
-    const config = useRuntimeConfig();
-    return config.public.apiUrl || 'http://127.0.0.1:8000';
-  }
-  return 'http://127.0.0.1:8000'; // Default fallback
+  const config = useRuntimeConfig();
+  return config.public.apiUrl || 'http://127.0.0.1:8000';
 };
 
 export async function login(credentials: LoginCredentials): Promise<User> {
