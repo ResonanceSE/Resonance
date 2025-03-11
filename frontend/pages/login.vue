@@ -140,7 +140,7 @@ const togglePasswordVisibility = () => {
                       type="user_email" 
                       placeholder="Email or Username" 
                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
-                      :class="{'border-red-300 focus:ring-red-400': formSubmitted && !email}"
+                      :class="{'border-red-300 focus:ring-red-400': formSubmitted && !username_or_email}"
                     >
                   </div>
                 </div>

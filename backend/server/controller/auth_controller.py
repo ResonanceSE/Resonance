@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -36,6 +37,7 @@ class RegisterAPI(APIView):
 
         # Create user
         try:
+            
             user = User.objects.create_user(
                 username=data["username"],
                 email=data["email"],
