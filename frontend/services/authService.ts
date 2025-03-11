@@ -23,6 +23,7 @@ interface RegisterData {
 // Get the backend URL from environment or use a default
 const getBaseUrl = (): string => {
   const config = useRuntimeConfig();
+  console.log('API URL:', config.public.apiUrl);
   return config.public.apiUrl || 'http://127.0.0.1:8000';
 };
 
@@ -36,7 +37,7 @@ export async function login(credentials: LoginCredentials): Promise<User> {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(credentials),
-      credentials: 'include', // Important for cookies if using session auth
+      credentials: 'include',
     });
     console.log("Response:", response);
     if (!response.ok) {
