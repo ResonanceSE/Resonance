@@ -62,9 +62,15 @@ export default {
                 this.errorMessage = error.message || 'Registration failed. Please try again.';
             }
         },
-        // ... other methods remain the same
+        togglePasswordVisibility() {
+            this.passwordVisible = !this.passwordVisible;
+        },
+        toggleConfirmPasswordVisibility() {
+            this.confirmPasswordVisible = !this.confirmPasswordVisible;
+        }
     }
 }
+
 </script>
 
 <template>
