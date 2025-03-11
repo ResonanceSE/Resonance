@@ -1,5 +1,7 @@
 <script>
 // Registration form logic
+import { register } from '~/services/authService';
+
 export default {
     data() {
         return {
@@ -19,13 +21,12 @@ export default {
         }
     },
     methods: {
-        handleRegister() {
-            // Reset messages
+        async handleRegister() {
+
             this.errorMessage = '';
             this.successMessage = '';
             this.formSubmitted = true;
 
-            // Basic validation
             if (!this.firstName || !this.lastName || !this.email || !this.password || !this.confirmPassword) {
                 this.errorMessage = 'Please fill in all required fields';
                 return;
@@ -41,18 +42,27 @@ export default {
                 return;
             }
 
-            // If all validation passes, proceed with registration
-            this.successMessage = 'Registration successful! Redirecting to login...';
+            const userData = {
+                username: this.username || this.email, 
+                email: this.email,
+                password: this.password,
+                first_name: this.firstName,
+                last_name: this.lastName
+            };
 
-            // In a real app, you would send the data to your backend here
-            // Then redirect or show success message
+            try {
+                const user = await register(userData);
+                this.successMessage = 'Registration successful! Redirecting to login...';
+
+                setTimeout(() => {
+                    this.$router.push('/login'); 
+                }, 2000);
+
+            } catch (error) {
+                this.errorMessage = error.message || 'Registration failed. Please try again.';
+            }
         },
-        togglePasswordVisibility() {
-            this.passwordVisible = !this.passwordVisible;
-        },
-        toggleConfirmPasswordVisibility() {
-            this.confirmPasswordVisible = !this.confirmPasswordVisible;
-        }
+        // ... other methods remain the same
     }
 }
 </script>
@@ -62,18 +72,18 @@ export default {
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 relative overflow-hidden">
         <!-- Decorative circles -->
         <div
-            class="absolute top-20 left-10 w-64 h-64 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"/>
+            class="absolute top-20 left-10 w-64 h-64 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob" />
         <div
-            class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"/>
+            class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000" />
         <div
-            class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"/>
+            class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000" />
 
         <div class="flex flex-col justify-center items-center my-10 relative z-10">
             <!-- Enhanced header with icon -->
             <div class="flex items-center gap-2 mb-6">
                 <div
                     class="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full flex items-center justify-center">
-                    <div class="w-4 h-4 bg-white rounded-sm transform rotate-45"/>
+                    <div class="w-4 h-4 bg-white rounded-sm transform rotate-45" />
                 </div>
                 <h4 class="text-3xl font-bold">Create your account!</h4>
             </div>
@@ -83,7 +93,7 @@ export default {
                 class="relative mx-auto w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-sm">
                 <!-- Optional decorative side pattern -->
                 <div
-                    class="absolute left-0 top-0 h-full w-3 bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600"/>
+                    class="absolute left-0 top-0 h-full w-3 bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600" />
 
                 <div class="col-span-1 md:col-span-5 p-8 md:p-12 pl-10 rounded-3xl md:rounded-l-none">
                     <!-- Grid layout for the vertical sections -->
@@ -92,7 +102,7 @@ export default {
                         <div>
                             <div class="mb-8">
                                 <div class="flex items-center">
-                                    <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2"/>
+                                    <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2" />
                                     <span class="font-semibold text-gray-800 text-lg tracking-wide">Resonance</span>
                                 </div>
                             </div>
@@ -106,8 +116,7 @@ export default {
                                         class="bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">Resonance</span>
                                     <span class="relative">
                                         Website
-                                        <span
-                                            class="absolute -bottom-1 left-0 w-full h-1 bg-orange-400 rounded-full"/>
+                                        <span class="absolute -bottom-1 left-0 w-full h-1 bg-orange-400 rounded-full" />
                                     </span>
                                 </h1>
                             </div>
@@ -116,14 +125,12 @@ export default {
                         <!-- Main form section-->
                         <div class="grid gap-6">
                             <!-- Enhanced Error/Success Messages -->
-                            <div
-v-if="errorMessage"
+                            <div v-if="errorMessage"
                                 class="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 rounded-r-md flex items-start">
                                 <span class="text-xl mr-2">ⓘ</span>
                                 {{ errorMessage }}
                             </div>
-                            <div
-v-if="successMessage"
+                            <div v-if="successMessage"
                                 class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 rounded-r-md flex items-start">
                                 <span class="text-xl mr-2">✓</span>
                                 {{ successMessage }}
@@ -133,16 +140,14 @@ v-if="successMessage"
                             <div class="grid gap-5">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label
-for="firstName"
+                                        <label for="firstName"
                                             class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                                         <div class="relative">
                                             <span
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input
-id="firstName" v-model="firstName" type="text"
+                                            <input id="firstName" v-model="firstName" type="text"
                                                 placeholder="First Name"
                                                 class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !firstName }">
@@ -156,60 +161,51 @@ id="firstName" v-model="firstName" type="text"
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input
-id="lastName" v-model="lastName" type="text" placeholder="Last Name"
+                                            <input id="lastName" v-model="lastName" type="text" placeholder="Last Name"
                                                 class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !lastName }">
                                         </div>
                                     </div>
                                     <div class="lg:col-span-2">
-                                        <label
-for="Username"
+                                        <label for="Username"
                                             class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                                         <div class="relative">
                                             <span
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input
-id="username" v-model="username" type="text"
-                                                placeholder="Username"
+                                            <input id="username" v-model="username" type="text" placeholder="Username"
                                                 class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !username }">
                                         </div>
                                     </div>
                                     <div class="lg:col-span-2">
-                                        <label
-for="email"
+                                        <label for="email"
                                             class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                         <div class="relative">
                                             <span
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 ✉
                                             </span>
-                                            <input
-id="email" v-model="email" type="email" placeholder="Email address"
+                                            <input id="email" v-model="email" type="email" placeholder="Email address"
                                                 class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !email }">
                                         </div>
                                     </div>
                                     <div>
-                                        <label
-for="password"
+                                        <label for="password"
                                             class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                                         <div class="relative">
                                             <span
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 🔒
                                             </span>
-                                            <input
-id="password" v-model="password"
+                                            <input id="password" v-model="password"
                                                 :type="passwordVisible ? 'text' : 'password'"
                                                 placeholder="Create password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !password }">
-                                            <button
-type="button"
+                                            <button type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                                                 @click="togglePasswordVisibility">
                                                 <span v-if="!passwordVisible">👁</span>
@@ -219,8 +215,7 @@ type="button"
                                     </div>
 
                                     <div>
-                                        <label
-for="confirmPassword"
+                                        <label for="confirmPassword"
                                             class="block text-sm font-medium text-gray-700 mb-1">Confirm
                                             Password</label>
                                         <div class="relative">
@@ -228,14 +223,12 @@ for="confirmPassword"
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 🔒
                                             </span>
-                                            <input
-id="confirmPassword" v-model="confirmPassword"
+                                            <input id="confirmPassword" v-model="confirmPassword"
                                                 :type="confirmPasswordVisible ? 'text' : 'password'"
                                                 placeholder="Confirm password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !confirmPassword }">
-                                            <button
-type="button"
+                                            <button type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                                                 @click="toggleConfirmPasswordVisibility">
                                                 <span v-if="!confirmPasswordVisible">👁</span>
@@ -249,20 +242,17 @@ type="button"
                                         <div class="flex items-center">
                                             <div class="relative flex items-start">
                                                 <div class="flex items-center h-5">
-                                                    <input
-id="agreeTerms" v-model="agreeTerms" type="checkbox"
+                                                    <input id="agreeTerms" v-model="agreeTerms" type="checkbox"
                                                         class="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 transition-colors"
                                                         :class="{ 'border-red-300': formSubmitted && !agreeTerms }">
                                                 </div>
                                                 <label for="agreeTerms" class="ml-3 text-sm">
                                                     <span class="text-gray-700">I agree to the </span>
-                                                    <a
-href="#"
+                                                    <a href="#"
                                                         class="text-orange-500 hover:text-orange-600 font-medium hover:underline">Terms
                                                         of Service</a>
                                                     <span class="text-gray-700"> and </span>
-                                                    <a
-href="#"
+                                                    <a href="#"
                                                         class="text-orange-500 hover:text-orange-600 font-medium hover:underline">Privacy
                                                         Policy</a>
                                                 </label>
@@ -276,7 +266,7 @@ href="#"
                                             @click="handleRegister">
                                             <div class="flex items-center justify-center">
                                                 <span>CREATE ACCOUNT</span>
-                                                <span class="arrow-right ml-2"/>
+                                                <span class="arrow-right ml-2" />
                                             </div>
                                         </button>
                                     </div>
@@ -287,16 +277,13 @@ href="#"
                             <div class="grid gap-4 pt-4">
                                 <div class="grid place-items-center">
                                     <div class="flex space-x-8 text-sm">
-                                        <a
-href="#"
+                                        <a href="#"
                                             class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Terms
                                             of Use</a>
-                                        <a
-href="#"
+                                        <a href="#"
                                             class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Privacy
                                             Policy</a>
-                                        <a
-href="#"
+                                        <a href="#"
                                             class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Help
                                             Center</a>
                                     </div>
