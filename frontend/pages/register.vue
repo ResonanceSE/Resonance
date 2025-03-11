@@ -1,5 +1,7 @@
 <script>
 // Registration form logic
+import { register } from '~/services/authService';
+
 export default {
     data() {
         return {
@@ -19,13 +21,12 @@ export default {
         }
     },
     methods: {
-        handleRegister() {
-            // Reset messages
+        async handleRegister() {
+
             this.errorMessage = '';
             this.successMessage = '';
             this.formSubmitted = true;
 
-            // Basic validation
             if (!this.firstName || !this.lastName || !this.email || !this.password || !this.confirmPassword) {
                 this.errorMessage = 'Please fill in all required fields';
                 return;
@@ -41,11 +42,26 @@ export default {
                 return;
             }
 
-            // If all validation passes, proceed with registration
-            this.successMessage = 'Registration successful! Redirecting to login...';
+            const userData = {
+                username: this.username || this.email, 
+                email: this.email,
+                password: this.password,
+                first_name: this.firstName,
+                last_name: this.lastName
+            };
 
-            // In a real app, you would send the data to your backend here
-            // Then redirect or show success message
+            try {
+                const user = await register(userData);
+                console.log('Registered user:', user);
+                this.successMessage = 'Registration successful! Redirecting to login...';
+
+                setTimeout(() => {
+                    this.$router.push('/login'); 
+                }, 2000);
+
+            } catch (error) {
+                this.errorMessage = error.message || 'Registration failed. Please try again.';
+            }
         },
         togglePasswordVisibility() {
             this.passwordVisible = !this.passwordVisible;
@@ -55,6 +71,7 @@ export default {
         }
     }
 }
+
 </script>
 
 <template>
@@ -62,18 +79,18 @@ export default {
     <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 relative overflow-hidden">
         <!-- Decorative circles -->
         <div
-            class="absolute top-20 left-10 w-64 h-64 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"/>
+            class="absolute top-20 left-10 w-64 h-64 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob" />
         <div
-            class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"/>
+            class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000" />
         <div
-            class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"/>
+            class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000" />
 
         <div class="flex flex-col justify-center items-center my-10 relative z-10">
             <!-- Enhanced header with icon -->
             <div class="flex items-center gap-2 mb-6">
                 <div
                     class="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full flex items-center justify-center">
-                    <div class="w-4 h-4 bg-white rounded-sm transform rotate-45"/>
+                    <div class="w-4 h-4 bg-white rounded-sm transform rotate-45" />
                 </div>
                 <h4 class="text-3xl font-bold">Create your account!</h4>
             </div>
@@ -83,7 +100,7 @@ export default {
                 class="relative mx-auto w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-sm">
                 <!-- Optional decorative side pattern -->
                 <div
-                    class="absolute left-0 top-0 h-full w-3 bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600"/>
+                    class="absolute left-0 top-0 h-full w-3 bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600" />
 
                 <div class="col-span-1 md:col-span-5 p-8 md:p-12 pl-10 rounded-3xl md:rounded-l-none">
                     <!-- Grid layout for the vertical sections -->
@@ -92,7 +109,7 @@ export default {
                         <div>
                             <div class="mb-8">
                                 <div class="flex items-center">
-                                    <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2"/>
+                                    <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2" />
                                     <span class="font-semibold text-gray-800 text-lg tracking-wide">Resonance</span>
                                 </div>
                             </div>
@@ -106,8 +123,7 @@ export default {
                                         class="bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">Resonance</span>
                                     <span class="relative">
                                         Website
-                                        <span
-                                            class="absolute -bottom-1 left-0 w-full h-1 bg-orange-400 rounded-full"/>
+                                        <span class="absolute -bottom-1 left-0 w-full h-1 bg-orange-400 rounded-full" />
                                     </span>
                                 </h1>
                             </div>
@@ -172,8 +188,7 @@ for="Username"
                                                 👤
                                             </span>
                                             <input
-id="username" v-model="username" type="text"
-                                                placeholder="Username"
+id="username" v-model="username" type="text" placeholder="Username"
                                                 class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !username }">
                                         </div>
@@ -276,7 +291,7 @@ href="#"
                                             @click="handleRegister">
                                             <div class="flex items-center justify-center">
                                                 <span>CREATE ACCOUNT</span>
-                                                <span class="arrow-right ml-2"/>
+                                                <span class="arrow-right ml-2" />
                                             </div>
                                         </button>
                                     </div>
