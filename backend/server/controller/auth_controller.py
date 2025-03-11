@@ -37,7 +37,6 @@ class RegisterAPI(APIView):
 
         # Create user
         try:
-            
             user = User.objects.create_user(
                 username=data["username"],
                 email=data["email"],
