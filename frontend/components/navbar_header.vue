@@ -1,7 +1,6 @@
 <script setup lang="ts">
 const navbar_left_placeholder = ref<string[]>([
   'Home',
-  'Catalog',
   'Products',
   'Contact'
 ]);
@@ -30,11 +29,9 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
 
 // State management
 const isMenuOpen = ref(false);
-// const isCatalogOpen = ref(false);
-// const searchQuery = ref('');
-const cartCount = ref(2); // Would be reactive from your cart store
+const cartCount = ref(2);
 
-// Get current route for active link highlighting
+
 const route = useRoute();
 
 const toggleMenu = () => {
@@ -45,16 +42,40 @@ const closeMenu = () => {
   isMenuOpen.value = false;
 };
 
-// Search functionality
-// const submitSearch = () => {
-//   if (searchQuery.value.trim()) {
-//     // Navigate to search results page
-//     navigateTo(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`);
-//     searchQuery.value = '';
-//   }
-// };
 
-// Check if route is active
+const closeProductsDropdown = () => {
+  // desktop dropdown
+  const desktopDropdowns = document.querySelectorAll('.desktop-dropdown');
+  desktopDropdowns.forEach(dropdown => {
+    dropdown.removeAttribute('open');
+  });
+  
+  // mobile dropdown
+  const mobileDropdowns = document.querySelectorAll('.mobile-dropdown');
+  mobileDropdowns.forEach(dropdown => {
+    dropdown.removeAttribute('open');
+  });
+};
+
+// Handle outside clicks for dropdowns
+onMounted(() => {
+  window.addEventListener('click', function(e) {
+    document.querySelectorAll('.dropdown').forEach(function(dropdown) {
+      const target = e.target as HTMLElement;
+      
+      if (!dropdown.contains(target)) {
+        dropdown.removeAttribute('open');
+      }
+    });
+  });
+});
+
+
+const shouldShowDropdown = (item: string): boolean => {
+  return item === 'Products';
+};
+
+
 const isActive = (path: string): boolean => {
   if (path === '') {
     return route.path === '/';
@@ -86,21 +107,31 @@ const isActive = (path: string): boolean => {
         <div class="flex">
           <ul class="menu menu-horizontal px-1 text-lg items-center">
             <li v-for="item in navbar_left_placeholder" :key="item">
-              <!-- Catalog Dropdown -->
-              <details v-if="item === 'Catalog'" class="dropdown dropdown-bottom">
-                <summary class="m-1 btn btn-ghost items-center">
+              <!-- Products Dropdown -->
+              <details 
+                v-if="shouldShowDropdown(item)" 
+                class="dropdown dropdown-bottom desktop-dropdown"
+              >
+                <summary class="m-1 btn btn-ghost items-center"
+                  :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''">
                   <div class="my-auto py-2">{{ item }}</div>
                 </summary>
                 <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
                   <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
-                    <NuxtLink :to="`/products/${catalog_item.slug}`">
+                    <NuxtLink 
+                      :to="`/products/${catalog_item.slug}`"
+                      @click="closeProductsDropdown"
+                    >
                       <Icon :name="catalog_item.icon" class="h-5 w-5" />
                       {{ catalog_item.name }}
                     </NuxtLink>
                   </li>
                   <div class="divider my-0"/>
                   <li>
-                    <NuxtLink to="/products">
+                    <NuxtLink 
+                      to="/products"
+                      @click="closeProductsDropdown"
+                    >
                       <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
                       All Categories
                     </NuxtLink>
@@ -122,48 +153,46 @@ const isActive = (path: string): boolean => {
         </div>
       </div>
         
-        <!-- Desktop Right Menu -->
+      <!-- Desktop Right Menu -->
       <div class="hidden lg:flex gap-2 ml-2">
-
-          <!-- User Menu -->
-          <div class="dropdown dropdown-end">
-            <label tabindex="0" class="btn btn-ghost btn-circle avatar">
-              <div class="w-10 rounded-full bg-neutral-content flex items-center justify-center">
-                <Icon name="heroicons:user-circle" class="h-10 w-10 text-neutral" />
-              </div>
-            </label>
-            <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-              <li v-for="item in navbar_right_placeholder" :key="item">
-                <NuxtLink to="/login">{{ item }}</NuxtLink>
-              </li>
-              <li><a>Settings</a></li>
-              <li><a>Logout</a></li>
-            </ul>
-          </div>
+        <!-- User Menu -->
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+            <div class="w-10 rounded-full bg-neutral-content flex items-center justify-center">
+              <Icon name="heroicons:user-circle" class="h-10 w-10 text-neutral" />
+            </div>
+          </label>
+          <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+            <li v-for="item in navbar_right_placeholder" :key="item">
+              <NuxtLink to="/login">{{ item }}</NuxtLink>
+            </li>
+            <li><a>Settings</a></li>
+            <li><a>Logout</a></li>
+          </ul>
+        </div>
           
-          <!-- Cart -->
-          <div class="dropdown dropdown-end">
-            <label tabindex="0" class="btn btn-ghost btn-circle">
-              <div class="indicator">
-                <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
-                <span class="badge badge-sm badge-primary indicator-item">{{ cartCount }}</span>
-              </div>
-            </label>
-            <div tabindex="0" class="mt-3 card card-compact dropdown-content w-52 bg-base-100 shadow-lg z-[1]">
-              <div class="card-body">
-                <span class="font-bold text-lg">{{ cartCount }} Items</span>
-                <span class="text-info">Subtotal: $999</span>
-                <div class="card-actions">
-                  <NuxtLink to="/cart" class="btn btn-primary btn-block">View cart</NuxtLink>
-                </div>
+        <!-- Cart -->
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-ghost btn-circle">
+            <div class="indicator">
+              <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
+              <span class="badge badge-sm badge-primary indicator-item">{{ cartCount }}</span>
+            </div>
+          </label>
+          <div tabindex="0" class="mt-3 card card-compact dropdown-content w-52 bg-base-100 shadow-lg z-[1]">
+            <div class="card-body">
+              <span class="font-bold text-lg">{{ cartCount }} Items</span>
+              <span class="text-info">Subtotal: $999</span>
+              <div class="card-actions">
+                <NuxtLink to="/cart" class="btn btn-primary btn-block">View cart</NuxtLink>
               </div>
             </div>
           </div>
         </div>
+      </div>
       
       <!-- Mobile Controls -->
       <div class="flex lg:hidden gap-2">
-        <!-- Mobile Search -->
         <!-- Mobile Cart Button -->
         <NuxtLink to="/cart" class="btn btn-ghost btn-circle">
           <div class="indicator">
@@ -197,24 +226,33 @@ const isActive = (path: string): boolean => {
         <ul class="menu p-4 text-base-content">
           <!-- Mobile Menu Items -->
           <li v-for="item in navbar_left_placeholder" :key="item">
-            <!-- Catalog in Mobile -->
-            <details v-if="item === 'Catalog'" class="collapse collapse-arrow bg-base-200 rounded-box">
+            <!-- Products in Mobile -->
+            <details 
+              v-if="shouldShowDropdown(item)" 
+              class="collapse collapse-arrow bg-base-200 rounded-box mobile-dropdown"
+            >
               <summary class="collapse-title flex flex-row items-center gap-2">
                 <div class="flex items-center space-x-2">
-                  <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
+                  <Icon name="heroicons:shopping-bag" class="h-5 w-5" />
                   <span class="text-center items-center">{{ item }} </span>
                 </div>
               </summary>
               <div class="collapse-content">
                 <ul class="menu menu-sm">
                   <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
-                    <NuxtLink :to="`/products/${catalog_item.slug}`" @click="closeMenu">
+                    <NuxtLink 
+                      :to="`/products/${catalog_item.slug}`" 
+                      @click="() => { closeMenu(); closeProductsDropdown(); }"
+                    >
                       <Icon :name="catalog_item.icon" class="h-5 w-5" />
                       {{ catalog_item.name }}
                     </NuxtLink>
                   </li>
                   <li>
-                    <NuxtLink to="/products" @click="closeMenu">
+                    <NuxtLink 
+                      to="/products" 
+                      @click="() => { closeMenu(); closeProductsDropdown(); }"
+                    >
                       <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
                       All Categories
                     </NuxtLink>
@@ -233,7 +271,6 @@ const isActive = (path: string): boolean => {
               <Icon 
                 :name="
                   item === 'Home' ? 'heroicons:home' : 
-                  item === 'Products' ? 'heroicons:shopping-bag' : 
                   item === 'Contact' ? 'heroicons:envelope' : 'heroicons:document-text'
                 " 
                 class="h-5 w-5" 
@@ -278,7 +315,7 @@ const isActive = (path: string): boolean => {
 </template>
 
 <style scoped>
-/* Smooth transition for mobile menu */
+
 .translate-x-full {
   transform: translateX(100%);
 }
