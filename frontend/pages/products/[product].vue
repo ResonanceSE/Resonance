@@ -1,243 +1,187 @@
 <script setup>
+// Use the product layout
+definePageMeta({
+  layout: 'product-layout'
+})
 
-// Access route params
+
 const route = useRoute();
-const productSlug = ref(route.params.product);
-const apiUrl = useRuntimeConfig().public.apiUrl
-const { data: product, error, pending } = useFetch(() => `${apiUrl}/api/products/${productSlug.value}`, {
-  method: 'GET',
-  immediate: true, //
-});
+const categorySlug = ref(route.params.product);
 
-const activeCategory = ref('Headphones'); 
-const activeFilter = ref('All');
-const searchQuery = ref('');
-const sortBy = ref('default');
 
-const filters = [
-  { name: 'All', active: true },
-  { name: 'Promotion', active: false },
-  { name: 'New', active: false },
-  { name: 'Popular', active: false },
-  { name: 'Recommend', active: false },
-];
-
-// Brand filter options
-const brands = ref([
-  { name: 'Sony', selected: false },
-  { name: 'Bose', selected: false },
-  { name: 'JBL', selected: false },
-  { name: 'Sonos', selected: false },
-  { name: 'Harman Kardon', selected: false },
-]);
-
-// Type filter options
-const types = ref([
-  { name: 'Portable', selected: false },
-  { name: 'Desktop', selected: false },
-  { name: 'Bookshelf', selected: false },
-  { name: 'Floor Standing', selected: false },
-]);
-
-// Connection filter options
-const connections = ref([
-  { name: 'Bluetooth', selected: false },
-  { name: 'Wireless', selected: false },
-  { name: 'Wired', selected: false },
-  { name: 'USB-C', selected: false },
-]);
-
-// Price range filter options
-const priceRanges = ref([
-  { name: 'Under $100', selected: false },
-  { name: '$100 - $300', selected: false },
-  { name: '$300 - $500', selected: false },
-  { name: 'Over $500', selected: false },
-]);
-
-// Handle filter click
-const setFilter = (filter) => {
-  activeFilter.value = filter;
+const categoryNames = {
+  'headphones': 'Headphones',
+  'speakers': 'Speakers',
+  'earphones': 'Earphones'
 };
 
-// Toggle collapsible sections
-const brandExpanded = ref(true);
-const typeExpanded = ref(true);
-const connectionExpanded = ref(true);
-const priceExpanded = ref(true);
+const pageTitle = computed(() => {
+  return categoryNames[categorySlug.value] || 'Products';
+});
+
+// Provide the category name to the layout
+provide('pageTitle', pageTitle);
+
+// Use the composable to fetch products for this specific category
+const apiUrl = useRuntimeConfig().public.apiUrl;
+const { data: products, error, pending } = useFetch(() => `${apiUrl}/api/products/${categorySlug.value}`, {
+  method: 'GET',
+  immediate: true,
+});
+
+// Get the applied filters from the layout
+const appliedFilters = inject('appliedFilters', computed(() => ({ 
+  activeFilter: 'All',
+  searchQuery: '',
+  sortBy: 'default',
+  brands: [], 
+  types: [], 
+  connections: [], 
+  priceRanges: [] 
+})));
 
 // Navigate to product detail
 const viewProductDetails = (productId) => {
-  route.push(`/products/${productSlug.value}/${productId}`);
+  navigateTo(`/products/${categorySlug.value}/${productId}`);
 };
 
-// Default Template
+// Mock products for fallback or development
 const mockProducts = [
-  { id: 1, name: 'Premium Bookshelf Speaker', detail: 'High-fidelity audio with deep bass', price: 299.99, image: '/placeholder.png' },
-  { id: 2, name: 'Portable Bluetooth Speaker', detail: 'Waterproof design with 20-hour battery', price: 149.99, image: '/placeholder.png' },
-  { id: 3, name: 'Wireless Surround System', detail: 'Complete 5.1 cinema experience', price: 599.99, image: '/placeholder.png' },
-  { id: 4, name: 'Desktop Gaming Speakers', detail: 'RGB lighting with powerful sound', price: 199.99, image: '/placeholder.png' },
-  { id: 5, name: 'Smart Home Speaker', detail: 'Voice control with premium sound', price: 249.99, image: '/placeholder.png' },
-  { id: 6, name: 'Outdoor Party Speaker', detail: 'Weather-resistant with LED lights', price: 329.99, image: '/placeholder.png' },
+  { 
+    id: 1, 
+    name: 'Premium Headphones', 
+    detail: 'Noise cancelling with crystal clear sound', 
+    price: 299.99, 
+    image: '/placeholder.png',
+    category: 'headphones',
+    brand: 'Sony',
+    type: 'Portable',
+    connection: 'Bluetooth',
+    tags: ['new', 'popular']
+  },
+  { 
+    id: 2, 
+    name: 'Wireless Earbuds', 
+    detail: 'Compact design with 24-hour battery life', 
+    price: 149.99, 
+    image: '/placeholder.png',
+    category: 'headphones',
+    brand: 'Bose',
+    type: 'Portable',
+    connection: 'Wireless',
+    tags: ['promotion']
+  },
 ];
 
+// Filter products based on user selections 
 const displayProducts = computed(() => {
-  return product.value || mockProducts;
+  let result = products.value || mockProducts;
+  
+  // Only show products for this category
+  result = result.filter(product => 
+    product.category === categorySlug.value || 
+    !categorySlug.value // If no category specified, show all
+  );
+  
+  // Apply search filter from layout
+  if (appliedFilters.value.searchQuery) {
+    const query = appliedFilters.value.searchQuery.toLowerCase();
+    result = result.filter(product => 
+      product.name.toLowerCase().includes(query) || 
+      product.detail.toLowerCase().includes(query)
+    );
+  }
+  
+  // Apply tag filters (promotion, new, popular, etc) from layout
+  if (appliedFilters.value.activeFilter !== 'All') {
+    result = result.filter(product => 
+      product.tags && product.tags.includes(appliedFilters.value.activeFilter.toLowerCase())
+    );
+  }
+  
+  // Apply sidebar filters from layout
+  if (appliedFilters.value.brands.length > 0) {
+    result = result.filter(product => 
+      appliedFilters.value.brands.includes(product.brand)
+    );
+  }
+  
+  if (appliedFilters.value.types.length > 0) {
+    result = result.filter(product => 
+      appliedFilters.value.types.includes(product.type)
+    );
+  }
+  
+  if (appliedFilters.value.connections.length > 0) {
+    result = result.filter(product => 
+      appliedFilters.value.connections.includes(product.connection)
+    );
+  }
+  
+  if (appliedFilters.value.priceRanges.length > 0) {
+    result = result.filter(product => {
+      if (appliedFilters.value.priceRanges.includes('Under $100') && product.price < 100) {
+        return true;
+      }
+      if (appliedFilters.value.priceRanges.includes('$100 - $300') && product.price >= 100 && product.price <= 300) {
+        return true;
+      }
+      if (appliedFilters.value.priceRanges.includes('$300 - $500') && product.price > 300 && product.price <= 500) {
+        return true;
+      }
+      if (appliedFilters.value.priceRanges.includes('Over $500') && product.price > 500) {
+        return true;
+      }
+      return appliedFilters.value.priceRanges.length === 0;
+    });
+  }
+  
+  // Apply sorting from layout
+  if (appliedFilters.value.sortBy === 'price-low') {
+    result = [...result].sort((a, b) => a.price - b.price);
+  } else if (appliedFilters.value.sortBy === 'price-high') {
+    result = [...result].sort((a, b) => b.price - a.price);
+  } else if (appliedFilters.value.sortBy === 'name') {
+    result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+  }
+  
+  return result;
 });
 </script>
 
 <template>
-  <div class="w-full bg-base-100">
-    <div class="container mx-auto px-4 py-8">
-      <!-- Category header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-center md:text-right">{{ activeCategory }}</h1>
-      </div>
+  <!-- Loading State -->
+  <div v-if="pending" class="flex items-center justify-center h-48">
+    <span class="loading loading-spinner loading-lg"/>
+  </div>
 
-      <!-- Main content area with sidebar and products -->
-      <div class="flex flex-col md:flex-row gap-8">
-        <!-- Sidebar with filters -->
-        <div class="w-full md:w-64 flex-shrink-0">
-          <div class="card bg-base-100 shadow-md">
-            <div class="card-body p-4">
-              <h2 class="text-xl font-bold mb-4">Filter</h2>
+  <!-- Error State -->
+  <div v-else-if="error" class="alert alert-error">
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    <span>Error: {{ error.message }}</span>
+  </div>
 
-              <!-- Brand filter -->
-              <div class="collapse collapse-arrow border-b">
-                <input v-model="brandExpanded" type="checkbox" >
-                <div class="collapse-title font-medium">
-                  Brand
-                </div>
-                <div class="collapse-content">
-                  <div v-for="(brand, index) in brands" :key="index" class="form-control">
-                    <label class="cursor-pointer label justify-start">
-                      <input v-model="brand.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
-                      <span class="label-text ml-2">{{ brand.name }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
+  <!-- No results state -->
+  <div v-else-if="displayProducts.length === 0" class="flex flex-col items-center justify-center h-48 text-center">
+    <Icon name="heroicons:face-frown" class="w-12 h-12 text-gray-400 mb-2" />
+    <h3 class="text-lg font-medium text-gray-500">No products found</h3>
+    <p class="text-gray-500 mt-1">Try changing your search or filter criteria</p>
+  </div>
 
-              <!-- Type filter -->
-              <div class="collapse collapse-arrow border-b">
-                <input v-model="typeExpanded" type="checkbox" >
-                <div class="collapse-title font-medium">
-                  Type <span class="text-xs text-gray-400">(Portable/Desktop)</span>
-                </div>
-                <div class="collapse-content">
-                  <div v-for="(type, index) in types" :key="index" class="form-control">
-                    <label class="cursor-pointer label justify-start">
-                      <input v-model="type.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
-                      <span class="label-text ml-2">{{ type.name }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Connection filter -->
-              <div class="collapse collapse-arrow border-b">
-                <input v-model="connectionExpanded" type="checkbox" >
-                <div class="collapse-title font-medium">
-                  Connection
-                </div>
-                <div class="collapse-content">
-                  <div v-for="(connection, index) in connections" :key="index" class="form-control">
-                    <label class="cursor-pointer label justify-start">
-                      <input v-model="connection.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
-                      <span class="label-text ml-2">{{ connection.name }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Price Range filter -->
-              <div class="collapse collapse-arrow">
-                <input v-model="priceExpanded" type="checkbox" >
-                <div class="collapse-title font-medium">
-                  Price Range
-                </div>
-                <div class="collapse-content">
-                  <div v-for="(range, index) in priceRanges" :key="index" class="form-control">
-                    <label class="cursor-pointer label justify-start">
-                      <input v-model="range.selected" type="checkbox" class="checkbox checkbox-sm checkbox-primary" >
-                      <span class="label-text ml-2">{{ range.name }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Products area -->
-        <div class="flex-1">
-          <!-- Filter tabs and search -->
-          <div class="flex flex-col md:flex-row gap-4 justify-between mb-6">
-            <div class="flex flex-wrap gap-2">
-              <button 
-                v-for="filter in filters" 
-                :key="filter.name" 
-                :class="[
-                  'btn btn-sm', 
-                  activeFilter === filter.name ? 'btn-warning' : 'btn-outline'
-                ]"
-                @click="setFilter(filter.name)"
-              >
-                {{ filter.name }}
-              </button>
-            </div>
-            <div class="flex gap-2 w-full md:w-auto">
-              <input v-model="searchQuery" type="text" placeholder="Search Products" class="input input-bordered w-full md:w-auto" >
-              <div class="dropdown dropdown-end">
-                <label tabindex="0" class="btn btn-sm btn-outline gap-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h- w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                  </svg>
-                  Sort by
-                </label>
-                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                  <li><a @click="sortBy = 'default'">Default</a></li>
-                  <li><a @click="sortBy = 'price-low'">Price: Low to High</a></li>
-                  <li><a @click="sortBy = 'price-high'">Price: High to Low</a></li>
-                  <li><a @click="sortBy = 'name'">Name</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Loading State -->
-          <div v-if="pending" class="flex items-center justify-center h-48">
-            <span class="loading loading-spinner loading-lg"/>
-          </div>
-
-          <!-- Error State -->
-          <div v-else-if="error" class="alert alert-error">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span>Error: {{ error.message }}</span>
-          </div>
-
-          <!-- Product grid -->
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="product in displayProducts" :key="product.id" class="card bg-base-100 shadow-xl">
-              <figure class="p-4 bg-base-200 h-48 flex items-center justify-center">
-                <NuxtImg src="" alt="placeholder" />
-              </figure>
-              <div class="card-body p-4">
-                <h2 class="card-title text-lg">{{ product.name }}</h2>
-                <p class="text-sm text-gray-600">{{ product.detail }}</p>
-                <div class="flex justify-between items-center mt-2">
-                  <div class="text-lg font-bold">${{ product.price }}</div>
-                  <button class="btn btn-primary btn-sm" @click="viewProductDetails(product.id)">Buy Now</button>
-                </div>
-              </div>
-            </div>
-          </div>
+  <!-- Product grid -->
+  <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div v-for="product in displayProducts" :key="product.id" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300">
+      <figure class="p-4 bg-base-200 h-48 flex items-center justify-center">
+        <img :src="product.image || '/placeholder.png'" :alt="product.name" class="max-h-full" >
+      </figure>
+      <div class="card-body p-4">
+        <h2 class="card-title text-lg">{{ product.name }}</h2>
+        <p class="text-sm text-gray-600">{{ product.detail }}</p>
+        <div class="flex justify-between items-center mt-2">
+          <div class="text-lg font-bold">${{ product.price.toFixed(2) }}</div>
+          <button class="btn btn-primary btn-sm" @click="viewProductDetails(product.id)">Buy Now</button>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>
