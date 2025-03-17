@@ -112,7 +112,8 @@ const isActive = (path: string): boolean => {
                 v-if="shouldShowDropdown(item)" 
                 class="dropdown dropdown-bottom desktop-dropdown"
               >
-                <summary class="m-1 btn btn-ghost items-center"
+                <summary
+class="m-1 btn btn-ghost items-center"
                   :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''">
                   <div class="my-auto py-2">{{ item }}</div>
                 </summary>

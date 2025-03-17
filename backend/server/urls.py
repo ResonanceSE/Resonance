@@ -18,7 +18,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from server.controller.product_controller import get_all_products, get_product_by_name
-from .controller.auth_controller import RegisterAPI, LoginAPI, LogoutAPI, UserAPI
+from .controller.auth_controller import (
+    RegisterAPI,
+    LoginAPI,
+    LogoutAPI,
+    UserAPI,
+    ValidatePasswordAPI,
+)
 from .views import home_view, keep_alive
 
 urlpatterns = [
@@ -32,4 +38,9 @@ urlpatterns = [
     path("api/auth/login/", LoginAPI.as_view()),
     path("api/auth/logout/", LogoutAPI.as_view()),
     path("api/auth/user/", UserAPI.as_view()),
+    path(
+        "api/auth/validate-password/",
+        ValidatePasswordAPI.as_view(),
+        name="validate_password",
+    ),
 ]

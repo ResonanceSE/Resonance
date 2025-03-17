@@ -1,6 +1,12 @@
 from .customer_controller import initializeController_Customer
 from .product_controller import initializeController_Product
-from .auth_controller import RegisterAPI, LoginAPI, LogoutAPI, UserAPI
+from .auth_controller import (
+    RegisterAPI,
+    LoginAPI,
+    LogoutAPI,
+    UserAPI,
+    ValidatePasswordAPI,
+)
 
 __all__ = [
     "initializeController_Customer",
@@ -9,4 +15,5 @@ __all__ = [
     "LoginAPI",
     "LogoutAPI",
     "UserAPI",
+    "ValidatePasswordAPI",
 ]

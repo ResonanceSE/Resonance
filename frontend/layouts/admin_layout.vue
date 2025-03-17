@@ -1,14 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { useRoute } from 'vue-router';
 
-// Drawer state
 const isDrawerOpen = ref(false);
 
-// Active route
 const route = useRoute();
-
-// Page title (based on route)
 const pageTitle = computed(() => {
   const path = route.path;
   if (path === '/admin') return 'Dashboard';
@@ -20,7 +14,6 @@ const pageTitle = computed(() => {
   return 'Admin Dashboard';
 });
 
-// Menu items with simple icon identifiers instead of component references
 const mainMenuItems = [
   { 
     title: 'Dashboard', 
@@ -41,6 +34,7 @@ const mainMenuItems = [
     title: 'Products', 
     path: '/admin/products', 
     icon: 'products'
+// Menu items with simple icon identifiers instead of component references
   },
   { 
     title: 'Orders', 
