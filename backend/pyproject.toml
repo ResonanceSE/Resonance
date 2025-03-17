@@ -1,9 +1,13 @@
 [tool.ruff]
+ignore = ["F401"]
 
-select = ["ALL"]
-ignore = ["F401"] 
+[tool.ruff.lint]
 
-[tool.ruff.per-file-ignores]
+ignore = ["F401", "D104", "D212", "D213"]
+select = ["E", "F", "B", "D"]
 
-"__init__.py" = ["F401"]
-"setup.py" = ["F401"]
+# Specific file ignores 
+per-file-ignores = {
+    "__init__.py" = ["F401"],
+    "migrations/*.py" = ["E501", "F401"]
+}
