@@ -1,6 +1,5 @@
 <script>
-// Registration form logic
-import { register } from '~/services/authService';
+import { register, validatePassword } from '~/services/authService';
 
 export default {
     data() {
@@ -17,12 +16,82 @@ export default {
             successMessage: '',
             passwordVisible: false,
             confirmPasswordVisible: false,
-            formSubmitted: false
+            formSubmitted: false,
+            passwordErrors: [],
+            isValidatingPassword: false,
+            passwordDebounceTimer: null,
+            passwordValidated: false,
+            passwordFocused: false
+        }
+    },
+    computed: {
+        passwordsMatch() {
+            return this.password === this.confirmPassword;
+        },
+
+        isPasswordValid() {
+            return this.passwordValidated && this.passwordErrors.length === 0;
+        }
+    },
+    watch: {
+        password(newValue) {
+            this.passwordValidated = false;
+            if (this.passwordDebounceTimer) {
+                clearTimeout(this.passwordDebounceTimer);
+            }
+            if (newValue && newValue.length >= 3) {
+                this.passwordDebounceTimer = setTimeout(() => {
+                    this.validatePasswordWithBackend();
+                }, 500);
+            } else {
+                this.passwordErrors = [];
+            }
         }
     },
     methods: {
-        async handleRegister() {
+        focusPassword() {
+            this.passwordFocused = true;
+        },
 
+        blurPassword() {
+            // Keep requirements visible if there are errors
+            this.passwordFocused = this.passwordErrors.length > 0;
+
+            // Validate immediately on blur if not already validated
+            if (this.password && !this.passwordValidated) {
+                this.validatePasswordWithBackend();
+            }
+        },
+
+        async validatePasswordWithBackend() {
+            if (!this.password || this.isValidatingPassword) return;
+
+            this.isValidatingPassword = true;
+
+            try {
+                const result = await validatePassword(this.password);
+
+                if (result.status === 'error') {
+                    // Handle array or string responses
+                    if (Array.isArray(result.message)) {
+                        this.passwordErrors = result.message;
+                    } else if (typeof result.message === 'string') {
+                        this.passwordErrors = [result.message];
+                    } else {
+                        this.passwordErrors = ['Invalid password'];
+                    }
+                } else {
+                    this.passwordErrors = [];
+                    this.passwordValidated = true;
+                }
+            } catch (error) {
+                this.passwordErrors = ['Failed to validate password'];
+            } finally {
+                this.isValidatingPassword = false;
+            }
+        },
+
+        async handleRegister() {
             this.errorMessage = '';
             this.successMessage = '';
             this.formSubmitted = true;
@@ -37,13 +106,22 @@ export default {
                 return;
             }
 
+            // Validate password one final time before submission
+            if (!this.passwordValidated) {
+                await this.validatePasswordWithBackend();
+                if (this.passwordErrors.length > 0) {
+                    this.errorMessage = 'Please fix the password errors before submitting';
+                    return;
+                }
+            }
+
             if (!this.agreeTerms) {
                 this.errorMessage = 'You must agree to the Terms of Service';
                 return;
             }
 
             const userData = {
-                username: this.username || this.email, 
+                username: this.username || this.email,
                 email: this.email,
                 password: this.password,
                 first_name: this.firstName,
@@ -56,22 +134,23 @@ export default {
                 this.successMessage = 'Registration successful! Redirecting to login...';
 
                 setTimeout(() => {
-                    this.$router.push('/login'); 
+                    this.$router.push('/login');
                 }, 2000);
 
             } catch (error) {
                 this.errorMessage = error.message || 'Registration failed. Please try again.';
             }
         },
+
         togglePasswordVisibility() {
             this.passwordVisible = !this.passwordVisible;
         },
+
         toggleConfirmPasswordVisibility() {
             this.confirmPasswordVisible = !this.confirmPasswordVisible;
         }
     }
 }
-
 </script>
 
 <template>
@@ -208,6 +287,7 @@ id="email" v-model="email" type="email" placeholder="Email address"
                                                 :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !email }">
                                         </div>
                                     </div>
+                                    <!-- Replace your existing password input with this version: -->
                                     <div>
                                         <label
 for="password"
@@ -222,7 +302,10 @@ id="password" v-model="password"
                                                 :type="passwordVisible ? 'text' : 'password'"
                                                 placeholder="Create password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
-                                                :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !password }">
+                                                :class="{
+                                                    'border-red-300 focus:ring-red-400': (formSubmitted && !password) || passwordErrors.length > 0,
+                                                    'border-green-300 focus:ring-green-400': passwordValidated && passwordErrors.length === 0 && password
+                                                }" @focus="focusPassword" @blur="blurPassword">
                                             <button
 type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
@@ -230,9 +313,42 @@ type="button"
                                                 <span v-if="!passwordVisible">👁</span>
                                                 <span v-else>👁‍🗨</span>
                                             </button>
+
+                                            <!-- Loading indicator while validating -->
+                                            <div
+v-if="isValidatingPassword"
+                                                class="absolute right-10 top-1/2 transform -translate-y-1/2">
+                                                <div
+                                                    class="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"/>
+                                            </div>
+                                        </div>
+
+                                        <!-- Password errors from Django -->
+                                        <div
+v-if="passwordFocused || passwordErrors.length > 0"
+                                            class="text-xs mt-1 bg-gray-50 p-3 rounded border border-gray-100 space-y-1.5 transition-all duration-200">
+                                            <div
+v-if="passwordErrors.length === 0 && password && passwordValidated"
+                                                class="flex items-center text-green-600">
+                                                <span class="mr-1">✓</span>
+                                                <span>Password meets requirements</span>
+                                            </div>
+
+                                            <div
+v-for="(error, index) in passwordErrors" :key="index"
+                                                class="flex items-start text-red-500">
+                                                <span class="mr-1 mt-0.5">•</span>
+                                                <span>{{ error }}</span>
+                                            </div>
+
+                                            <div v-if="!password && passwordFocused" class="text-gray-500">
+                                                <span>Enter a password that meets Django's validation
+                                                    requirements.</span>
+                                            </div>
                                         </div>
                                     </div>
 
+                                    <!-- Replace your existing confirmPassword input with this version: -->
                                     <div>
                                         <label
 for="confirmPassword"
@@ -248,7 +364,10 @@ id="confirmPassword" v-model="confirmPassword"
                                                 :type="confirmPasswordVisible ? 'text' : 'password'"
                                                 placeholder="Confirm password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
-                                                :class="{ 'border-red-300 focus:ring-red-400': formSubmitted && !confirmPassword }">
+                                                :class="{
+                                                    'border-red-300 focus:ring-red-400': (formSubmitted && !confirmPassword) || (!passwordsMatch && confirmPassword),
+                                                    'border-green-300 focus:ring-green-400': confirmPassword && passwordsMatch && password
+                                                }">
                                             <button
 type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
@@ -256,6 +375,18 @@ type="button"
                                                 <span v-if="!confirmPasswordVisible">👁</span>
                                                 <span v-else>👁‍🗨</span>
                                             </button>
+                                        </div>
+
+                                        <!-- Password match indicator -->
+                                        <div
+v-if="confirmPassword && !passwordsMatch"
+                                            class="mt-1 text-xs text-red-500">
+                                            Passwords do not match
+                                        </div>
+                                        <div
+v-else-if="confirmPassword && passwordsMatch && password"
+                                            class="mt-1 text-xs text-green-500">
+                                            Passwords match
                                         </div>
                                     </div>
 

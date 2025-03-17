@@ -1,5 +1,6 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, password_validation
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -21,7 +22,7 @@ class RegisterAPI(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check username/email uniqueness
+        # username/email uniqueness
         if User.objects.filter(username=data["username"]).exists():
             return Response(
                 {"status": "error", "message": "Username already exists"},
@@ -31,6 +32,34 @@ class RegisterAPI(APIView):
         if User.objects.filter(email=data["email"]).exists():
             return Response(
                 {"status": "error", "message": "Email already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # password validation
+        password = data["password"]
+        password_errors = []
+
+        # Check uppercase letter
+        if not any(char.isupper() for char in password):
+            password_errors.append(
+                "Password must contain at least one uppercase letter."
+            )
+
+        # Check  number
+        if not any(char.isdigit() for char in password):
+            password_errors.append("Password must contain at least one number.")
+
+        if password_errors:
+            return Response(
+                {"status": "error", "message": password_errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            password_validation.validate_password(data["password"])
+        except ValidationError as e:
+            return Response(
+                {"status": "error", "message": e.messages},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -124,4 +153,42 @@ class UserAPI(APIView):
                     "last_name": user.last_name,
                 },
             }
+        )
+
+
+class ValidatePasswordAPI(APIView):
+    def post(self, request):
+        data = request.data
+
+        if "password" not in data:
+            return Response(
+                {"status": "error", "message": "Password is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        password = data["password"]
+        password_errors = []
+
+        if not any(char.isupper() for char in password):
+            password_errors.append(
+                "Password must contain at least one uppercase letter."
+            )
+
+        if not any(char.isdigit() for char in password):
+            password_errors.append("Password must contain at least one number.")
+
+        try:
+            password_validation.validate_password(password)
+        except ValidationError as e:
+            password_errors.extend(e.messages)
+
+        if password_errors:
+            return Response(
+                {"status": "error", "message": password_errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {"status": "success", "message": "Password meets requirements"},
+            status=status.HTTP_200_OK,
         )

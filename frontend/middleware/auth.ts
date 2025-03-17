@@ -12,13 +12,10 @@ export interface User {
 
 export default defineNuxtRouteMiddleware((to) => {
   const router = useRouter()
-  
-  // Protected routes - add your protected routes here
   const protectedRoutes = ['/admin']
   const isProtected = protectedRoutes.some(route => to.path.startsWith(route))
   
   if (isProtected) {
-    // Check auth token
     const token = localStorage.getItem('auth_token')
     if (!token) {
       return router.push(`/login?redirect=${to.fullPath}`)

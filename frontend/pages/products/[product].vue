@@ -1,13 +1,11 @@
 <script setup>
-// Use the product layout
+
 definePageMeta({
   layout: 'product-layout'
 })
 
-
 const route = useRoute();
 const categorySlug = ref(route.params.product);
-
 
 const categoryNames = {
   'headphones': 'Headphones',
@@ -19,17 +17,16 @@ const pageTitle = computed(() => {
   return categoryNames[categorySlug.value] || 'Products';
 });
 
-// Provide the category name to the layout
 provide('pageTitle', pageTitle);
 
-// Use the composable to fetch products for this specific category
+// Use the composable to fetch products
 const apiUrl = useRuntimeConfig().public.apiUrl;
 const { data: products, error, pending } = useFetch(() => `${apiUrl}/api/products/${categorySlug.value}`, {
   method: 'GET',
   immediate: true,
 });
 
-// Get the applied filters from the layout
+// Get the appliedFilters from the layout - the layout handles all filtering UI
 const appliedFilters = inject('appliedFilters', computed(() => ({ 
   activeFilter: 'All',
   searchQuery: '',
@@ -45,7 +42,7 @@ const viewProductDetails = (productId) => {
   navigateTo(`/products/${categorySlug.value}/${productId}`);
 };
 
-// Mock products for fallback or development
+// Fallback data in case API fails (for development)
 const mockProducts = [
   { 
     id: 1, 
@@ -65,7 +62,7 @@ const mockProducts = [
     detail: 'Compact design with 24-hour battery life', 
     price: 149.99, 
     image: '/placeholder.png',
-    category: 'headphones',
+    category: 'earphones',
     brand: 'Bose',
     type: 'Portable',
     connection: 'Wireless',
@@ -73,53 +70,63 @@ const mockProducts = [
   },
 ];
 
-// Filter products based on user selections 
+// FIXED: Safe filter operations with proper checks
 const displayProducts = computed(() => {
-  let result = products.value || mockProducts;
+  // Start with either the API data or fallback to mockProducts
+  // Ensure we're always working with an array
+  let result = Array.isArray(products.value) ? products.value : mockProducts;
   
-  // Only show products for this category
-  result = result.filter(product => 
-    product.category === categorySlug.value || 
-    !categorySlug.value // If no category specified, show all
-  );
+  // Category filter - with safety check
+  if (categorySlug.value) {
+    result = result.filter(product => 
+      product?.category === categorySlug.value
+    );
+  }
   
-  // Apply search filter from layout
+  // Apply search filter - with safety check
   if (appliedFilters.value.searchQuery) {
     const query = appliedFilters.value.searchQuery.toLowerCase();
     result = result.filter(product => 
-      product.name.toLowerCase().includes(query) || 
-      product.detail.toLowerCase().includes(query)
+      (product?.name?.toLowerCase()?.includes(query)) || 
+      (product?.detail?.toLowerCase()?.includes(query))
     );
   }
   
-  // Apply tag filters (promotion, new, popular, etc) from layout
+  // Apply tag filters - with safety check
   if (appliedFilters.value.activeFilter !== 'All') {
+    const filterLower = appliedFilters.value.activeFilter.toLowerCase();
     result = result.filter(product => 
-      product.tags && product.tags.includes(appliedFilters.value.activeFilter.toLowerCase())
+      product?.tags && Array.isArray(product.tags) && 
+      product.tags.includes(filterLower)
     );
   }
   
-  // Apply sidebar filters from layout
-  if (appliedFilters.value.brands.length > 0) {
+  // Apply brand filters - with safety check
+  if (appliedFilters.value.brands && appliedFilters.value.brands.length > 0) {
     result = result.filter(product => 
-      appliedFilters.value.brands.includes(product.brand)
+      product?.brand && appliedFilters.value.brands.includes(product.brand)
     );
   }
   
-  if (appliedFilters.value.types.length > 0) {
+  // Apply type filters - with safety check
+  if (appliedFilters.value.types && appliedFilters.value.types.length > 0) {
     result = result.filter(product => 
-      appliedFilters.value.types.includes(product.type)
+      product?.type && appliedFilters.value.types.includes(product.type)
     );
   }
   
-  if (appliedFilters.value.connections.length > 0) {
+  // Apply connection filters - with safety check
+  if (appliedFilters.value.connections && appliedFilters.value.connections.length > 0) {
     result = result.filter(product => 
-      appliedFilters.value.connections.includes(product.connection)
+      product?.connection && appliedFilters.value.connections.includes(product.connection)
     );
   }
   
-  if (appliedFilters.value.priceRanges.length > 0) {
+  // Apply price range filters - with safety check
+  if (appliedFilters.value.priceRanges && appliedFilters.value.priceRanges.length > 0) {
     result = result.filter(product => {
+      if (!product?.price) return false;
+      
       if (appliedFilters.value.priceRanges.includes('Under $100') && product.price < 100) {
         return true;
       }
@@ -132,17 +139,19 @@ const displayProducts = computed(() => {
       if (appliedFilters.value.priceRanges.includes('Over $500') && product.price > 500) {
         return true;
       }
-      return appliedFilters.value.priceRanges.length === 0;
+      return false;
     });
   }
   
-  // Apply sorting from layout
-  if (appliedFilters.value.sortBy === 'price-low') {
-    result = [...result].sort((a, b) => a.price - b.price);
-  } else if (appliedFilters.value.sortBy === 'price-high') {
-    result = [...result].sort((a, b) => b.price - a.price);
-  } else if (appliedFilters.value.sortBy === 'name') {
-    result = [...result].sort((a, b) => a.name.localeCompare(b.name));
+  // Apply sorting - with safety check
+  if (appliedFilters.value.sortBy) {
+    if (appliedFilters.value.sortBy === 'price-low') {
+      result = [...result].sort((a, b) => (a?.price || 0) - (b?.price || 0));
+    } else if (appliedFilters.value.sortBy === 'price-high') {
+      result = [...result].sort((a, b) => (b?.price || 0) - (a?.price || 0));
+    } else if (appliedFilters.value.sortBy === 'name') {
+      result = [...result].sort((a, b) => (a?.name || '').localeCompare(b?.name || ''));
+    }
   }
   
   return result;
@@ -163,7 +172,9 @@ const displayProducts = computed(() => {
 
   <!-- No results state -->
   <div v-else-if="displayProducts.length === 0" class="flex flex-col items-center justify-center h-48 text-center">
-    <Icon name="heroicons:face-frown" class="w-12 h-12 text-gray-400 mb-2" />
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
     <h3 class="text-lg font-medium text-gray-500">No products found</h3>
     <p class="text-gray-500 mt-1">Try changing your search or filter criteria</p>
   </div>

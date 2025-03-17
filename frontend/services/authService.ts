@@ -20,7 +20,6 @@ interface RegisterData {
 //   data?: any;
 // }
 
-// Get the backend URL from environment or use a default
 const getBaseUrl = (): string => {
   const config = useRuntimeConfig();
   console.log('API URL:', config.public.apiUrl);
@@ -185,4 +184,35 @@ export function isAuthenticated(): boolean {
     return !!localStorage.getItem('auth_token');
   }
   return false;
+}
+export async function validatePassword(password: string) {
+  try {
+    const response = await fetch(`${getBaseUrl()}/api/auth/validate-password/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ password }),
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Password validation failed:', errorData);
+      return { 
+        status: 'error', 
+        message: Array.isArray(errorData.message) ? errorData.message : [errorData.message || 'Invalid password'] 
+      };
+    }
+    
+    const data = await response.json();
+    console.log('Password validation response:', data);
+    return data;
+  } catch (error) {
+    console.error('Password validation error:', error);
+    return { 
+      status: 'error', 
+      message: ['Failed to validate password. Please check your connection.']
+    };
+  }
 }
