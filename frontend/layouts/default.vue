@@ -4,10 +4,10 @@
 
 <template>
     <div class="min-h-screen flex flex-col">
-        <navbar_header />
+        <NavbarHeader/>
         <main class="flex-grow">
             <slot />
         </main>
-        <footer_section />
+        <FooterSection />
     </div>
 </template>

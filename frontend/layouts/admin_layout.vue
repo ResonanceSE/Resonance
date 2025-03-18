@@ -34,7 +34,6 @@ const mainMenuItems = [
     title: 'Products', 
     path: '/admin/products', 
     icon: 'products'
-// Menu items with simple icon identifiers instead of component references
   },
   { 
     title: 'Orders', 
