@@ -64,9 +64,30 @@ const isActive = (path: string): boolean => {
 // Handle logout flow with modals
 const openLogoutModal = () => {
   showLogoutModal.value = true;
-  closeMenu(); // Close mobile menu if open
+  closeMenu();
 };
-
+const closeProductsDropdown = () => {
+  const desktopDropdowns = document.querySelectorAll('.desktop-dropdown');
+  desktopDropdowns.forEach(dropdown => {
+    dropdown.removeAttribute('open');
+  });
+  
+  const mobileDropdowns = document.querySelectorAll('.mobile-dropdown');
+  mobileDropdowns.forEach(dropdown => {
+    dropdown.removeAttribute('open');
+  });
+};
+onMounted(() => {
+  window.addEventListener('click', function(e) {
+    document.querySelectorAll('.dropdown').forEach(function(dropdown) {
+      const target = e.target as HTMLElement;
+      
+      if (!dropdown.contains(target)) {
+        dropdown.removeAttribute('open');
+      }
+    });
+  });
+});
 const closeLogoutModal = () => {
   showLogoutModal.value = false;
 };
@@ -75,24 +96,17 @@ const handleLogout = async () => {
   try {
     isLoggingOut.value = true;
     
-    // Close the confirmation modal and wait for animation
     showLogoutModal.value = false;
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Perform logout
     await authStore.logout();
-    
-    // Show success modal
+  
     showLogoutSuccessModal.value = true;
-    
-    // Wait a moment before redirecting (if needed)
     setTimeout(() => {
       showLogoutSuccessModal.value = false;
       
-      // Wait for modal close animation before redirecting
       setTimeout(() => {
-        // Optional: redirect to another page like login or home
-        router.push('/login');
+        router.push('/');
       }, 300);
     }, 1500);
   } catch (error) {
@@ -140,6 +154,7 @@ const handleLogout = async () => {
                   <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
                     <NuxtLink 
                       :to="`/products/${catalog_item.slug}`"
+                      @click="closeProductsDropdown"
                     >
                       <Icon :name="catalog_item.icon" class="h-5 w-5" />
                       {{ catalog_item.name }}
@@ -149,6 +164,7 @@ const handleLogout = async () => {
                   <li>
                     <NuxtLink 
                       to="/products"
+                      @click="closeProductsDropdown"
                     >
                       <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
                       All Categories
