@@ -1,13 +1,12 @@
-<script setup lang="ts">
+\<script setup lang="ts">
+import { useAuthStore } from '~/stores/useAuth';
+
 const navbar_left_placeholder = ref<string[]>([
   'Home',
   'Products',
   'Contact'
 ]);
 
-const navbar_right_placeholder = ref<string[]>([
-  "Log In",
-]);
 
 const catalog_placeholder = reactive<{ slug: string; name: string; icon: string }[]>([
   {
@@ -30,9 +29,18 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
 // State management
 const isMenuOpen = ref(false);
 const cartCount = ref(2);
-
-
 const route = useRoute();
+const router = useRouter();
+
+// Use our auth store
+const authStore = useAuthStore();
+const isLogin = computed(() => authStore.isLoggedIn);
+const username = computed(() => authStore.user?.username || "User Log In");
+
+// Logout related states
+const showLogoutModal = ref(false);
+const isLoggingOut = ref(false);
+const showLogoutSuccessModal = ref(false);
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -42,45 +50,56 @@ const closeMenu = () => {
   isMenuOpen.value = false;
 };
 
-
-const closeProductsDropdown = () => {
-  // desktop dropdown
-  const desktopDropdowns = document.querySelectorAll('.desktop-dropdown');
-  desktopDropdowns.forEach(dropdown => {
-    dropdown.removeAttribute('open');
-  });
-  
-  // mobile dropdown
-  const mobileDropdowns = document.querySelectorAll('.mobile-dropdown');
-  mobileDropdowns.forEach(dropdown => {
-    dropdown.removeAttribute('open');
-  });
-};
-
-// Handle outside clicks for dropdowns
-onMounted(() => {
-  window.addEventListener('click', function(e) {
-    document.querySelectorAll('.dropdown').forEach(function(dropdown) {
-      const target = e.target as HTMLElement;
-      
-      if (!dropdown.contains(target)) {
-        dropdown.removeAttribute('open');
-      }
-    });
-  });
-});
-
-
 const shouldShowDropdown = (item: string): boolean => {
   return item === 'Products';
 };
-
 
 const isActive = (path: string): boolean => {
   if (path === '') {
     return route.path === '/';
   }
   return route.path.includes(path.toLowerCase());
+};
+
+// Handle logout flow with modals
+const openLogoutModal = () => {
+  showLogoutModal.value = true;
+  closeMenu(); // Close mobile menu if open
+};
+
+const closeLogoutModal = () => {
+  showLogoutModal.value = false;
+};
+
+const handleLogout = async () => {
+  try {
+    isLoggingOut.value = true;
+    
+    // Close the confirmation modal and wait for animation
+    showLogoutModal.value = false;
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Perform logout
+    await authStore.logout();
+    
+    // Show success modal
+    showLogoutSuccessModal.value = true;
+    
+    // Wait a moment before redirecting (if needed)
+    setTimeout(() => {
+      showLogoutSuccessModal.value = false;
+      
+      // Wait for modal close animation before redirecting
+      setTimeout(() => {
+        // Optional: redirect to another page like login or home
+        router.push('/login');
+      }, 300);
+    }, 1500);
+  } catch (error) {
+    console.error('Logout failed:', error);
+  } finally {
+    isLoggingOut.value = false;
+  }
 };
 </script>
 
@@ -113,7 +132,7 @@ const isActive = (path: string): boolean => {
                 class="dropdown dropdown-bottom desktop-dropdown"
               >
                 <summary
-class="m-1 btn btn-ghost items-center"
+                  class="m-1 btn btn-ghost items-center"
                   :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''">
                   <div class="my-auto py-2">{{ item }}</div>
                 </summary>
@@ -121,7 +140,6 @@ class="m-1 btn btn-ghost items-center"
                   <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
                     <NuxtLink 
                       :to="`/products/${catalog_item.slug}`"
-                      @click="closeProductsDropdown"
                     >
                       <Icon :name="catalog_item.icon" class="h-5 w-5" />
                       {{ catalog_item.name }}
@@ -131,7 +149,6 @@ class="m-1 btn btn-ghost items-center"
                   <li>
                     <NuxtLink 
                       to="/products"
-                      @click="closeProductsDropdown"
                     >
                       <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
                       All Categories
@@ -157,6 +174,7 @@ class="m-1 btn btn-ghost items-center"
       <!-- Desktop Right Menu -->
       <div class="hidden lg:flex gap-2 ml-2">
         <!-- User Menu -->
+        <div v-if="isLogin" class="text-neutral">{{ username }}</div>
         <div class="dropdown dropdown-end">
           <label tabindex="0" class="btn btn-ghost btn-circle avatar">
             <div class="w-10 rounded-full bg-neutral-content flex items-center justify-center">
@@ -164,11 +182,9 @@ class="m-1 btn btn-ghost items-center"
             </div>
           </label>
           <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
-            <li v-for="item in navbar_right_placeholder" :key="item">
-              <NuxtLink to="/login">{{ item }}</NuxtLink>
-            </li>
-            <li><a>Settings</a></li>
-            <li><a>Logout</a></li>
+            <li v-if="!isLogin"><NuxtLink to="/login">Log In</NuxtLink></li>
+            <li v-if="isLogin"><a>Settings</a></li>
+            <li v-if="isLogin"><a @click="openLogoutModal">Logout</a></li>
           </ul>
         </div>
           
@@ -243,7 +259,7 @@ class="m-1 btn btn-ghost items-center"
                   <li v-for="catalog_item in catalog_placeholder" :key="catalog_item.slug">
                     <NuxtLink 
                       :to="`/products/${catalog_item.slug}`" 
-                      @click="() => { closeMenu(); closeProductsDropdown(); }"
+                      @click="closeMenu"
                     >
                       <Icon :name="catalog_item.icon" class="h-5 w-5" />
                       {{ catalog_item.name }}
@@ -252,7 +268,7 @@ class="m-1 btn btn-ghost items-center"
                   <li>
                     <NuxtLink 
                       to="/products" 
-                      @click="() => { closeMenu(); closeProductsDropdown(); }"
+                      @click="closeMenu"
                     >
                       <Icon name="heroicons:squares-2x2" class="h-5 w-5" />
                       All Categories
@@ -283,11 +299,17 @@ class="m-1 btn btn-ghost items-center"
           <div class="divider">Account</div>
           
           <!-- Mobile Account Items -->
-          <li v-for="item in navbar_right_placeholder" :key="item">
+          <li v-if="!isLogin">
             <NuxtLink to="/login" class="flex items-center gap-2 py-2" @click="closeMenu">
               <Icon name="heroicons:user-circle" class="h-5 w-5" />
-              {{ item }}
+              Log In
             </NuxtLink>
+          </li>
+          <li v-if="isLogin">
+            <a class="flex items-center gap-2 py-2" @click="openLogoutModal">
+              <Icon name="heroicons:arrow-right-on-rectangle" class="h-5 w-5" />
+              Logout
+            </a>
           </li>
           <li>
             <NuxtLink to="/cart" class="flex items-center gap-2 py-2" @click="closeMenu">
@@ -296,32 +318,77 @@ class="m-1 btn btn-ghost items-center"
               <span v-if="cartCount > 0" class="badge badge-sm badge-primary ml-2">{{ cartCount }}</span>
             </NuxtLink>
           </li>
-          
-          <!-- Contact Info in Mobile Menu -->
-          <div class="mt-auto pt-6">
-            <div class="text-sm opacity-50 mb-2">Contact Us</div>
-            <a href="tel:+1234567890" class="flex items-center gap-2 py-1">
-              <Icon name="heroicons:phone" class="h-4 w-4" />
-              (123) 456-7890
-            </a>
-            <a href="mailto:info@resonance.com" class="flex items-center gap-2 py-1">
-              <Icon name="heroicons:envelope" class="h-4 w-4" />
-              info@resonance.com
-            </a>
-          </div>
         </ul>
       </div>
     </div>
+    
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" class="fixed inset-0 flex items-center justify-center z-50">
+      <div
+class="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-200" 
+           @click="closeLogoutModal"/>
+      
+      <div class="bg-white rounded-lg shadow-xl w-80 p-6 transform transition-all duration-300 scale-100 opacity-100">
+        <div class="text-center">
+          <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-orange-100 mb-4">
+            <Icon name="heroicons:question-mark-circle" class="h-6 w-6 text-orange-600" />
+          </div>
+          
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Logout</h3>
+          
+          <p class="text-sm text-gray-500 mb-6">
+            Are you sure you want to logout of your account?
+          </p>
+          
+          <div class="flex justify-between gap-4">
+            <button 
+              class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+              @click="closeLogoutModal"
+            >
+              Cancel
+            </button>
+            <button 
+              class="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
+              :disabled="isLoggingOut"
+              @click="handleLogout"
+            >
+              <span v-if="isLoggingOut" class="flex items-center justify-center">
+                <span class="spinner-white mr-2"/>
+                <span>Logging Out...</span>
+              </span>
+              <span v-else>Yes, Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Logout Success Modal -->
+    <LogoutModal :show="showLogoutSuccessModal" />
   </div>
 </template>
 
 <style scoped>
-
 .translate-x-full {
   transform: translateX(100%);
 }
 
 .translate-x-0 {
   transform: translateX(0);
+}
+
+/* Add spinner style for loading state */
+.spinner-white {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

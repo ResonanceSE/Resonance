@@ -1,4 +1,6 @@
 <script setup>
+import { FooterSection, NavbarHeader } from '#components';
+
 // Shared layout state
 const pageTitle = inject('pageTitle', ref('Products'));
 
@@ -166,7 +168,7 @@ provide('appliedFilters', appliedFilters);
 
 <template>
   <div class="w-full bg-base-100">
-    <navbar_header/>
+    <NavbarHeader/>
     <div class="container mx-auto px-4 py-8">
       <!-- Category header -->
       <div class="mb-6">
@@ -525,7 +527,7 @@ provide('appliedFilters', appliedFilters);
       <label class="modal-backdrop" @click="filterModalOpen = false"/>
     </div>
     
-    <footer_section />
+    <FooterSection />
   </div>
 </template>
 

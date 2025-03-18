@@ -72,7 +72,6 @@ export default {
                 const result = await validatePassword(this.password);
 
                 if (result.status === 'error') {
-                    // Handle array or string responses
                     if (Array.isArray(result.message)) {
                         this.passwordErrors = result.message;
                     } else if (typeof result.message === 'string') {

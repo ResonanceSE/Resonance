@@ -1,11 +1,9 @@
-<script setup >
-
-import { login } from '~/services/authService';
+<script setup>
+import { useAuthStore } from '~/stores/useAuth'
 
 definePageMeta({
   layout: 'false'
 })
-
 
 const username_or_email = ref('')
 const password = ref('');
@@ -13,29 +11,46 @@ const router = useRouter();
 const passwordVisible = ref(false);
 const errorMessage = ref('');
 const formSubmitted = ref(false);
+const authStore = useAuthStore();
 
 
+const showSuccessModal = ref(false);
+const isLoggingIn = ref(false);
 
 const handleLogin = async () => {
   formSubmitted.value = true;
   errorMessage.value = '';
   console.log('Form submitted:', { username_or_email: username_or_email.value, password: password.value });
-  const credentials = { username : username_or_email.value, password: password.value };
+  
+  // Set loading state
+  isLoggingIn.value = true;
+  
+  const credentials = { username: username_or_email.value, password: password.value };
   try {
-    await login(credentials);
-    console.log('Logging in:', username_or_email.value);
-    router.push('/');
+    await authStore.login(credentials);
+    console.log('Logged in as:', authStore.user?.username);
+    
+    showSuccessModal.value = true;
+    
+    setTimeout(() => {
+      showSuccessModal.value = false;
+      setTimeout(() => {
+        router.push('/');
+      }, 300);
+    }, 1500);
+    
   } catch (error) {
     errorMessage.value = error.message || 'Login failed';
     console.error('Login error:', error);
   } finally {
+    isLoggingIn.value = false;
     console.log("Log in attempted")
   }
 };
+
 const togglePasswordVisibility = () => {
   passwordVisible.value = !passwordVisible.value;
 };
-
 </script>
 
 <template>
@@ -66,7 +81,7 @@ const togglePasswordVisibility = () => {
             </h2>
           </div>
           
-          <!-- Registration CTA with improved styling -->
+          <!-- Registration CTA  -->
           <div class="absolute inset-0 flex flex-col items-center justify-center">
             <p class="text-white text-2xl mb-6 font-semibold drop-shadow-md">New to Resonance?</p>
             <NuxtLink 
@@ -75,13 +90,12 @@ const togglePasswordVisibility = () => {
             >
               <div class="flex items-center justify-center gap-2">
                 <span class="text-lg">Register Here!</span>
-                <!-- Arrow using CSS triangle instead of SVG -->
                 <div class="arrow-right"/>
               </div>
             </NuxtLink>
           </div>
           
-          <!-- Decorative wave pattern using pure CSS instead of SVG -->
+          <!-- Decorative wave pattern -->
           <div class="absolute bottom-0 left-0 right-0 h-24 overflow-hidden">
             <div class="wave"/>
           </div>
@@ -175,16 +189,17 @@ const togglePasswordVisibility = () => {
                   <a href="#" class="text-sm text-orange-500 hover:text-orange-600 hover:underline">Forgot password?</a>
                 </div>
                 
-                <!-- Enhanced login button -->
+                <!-- Enhanced login button with loading state -->
                 <div class="pt-2">
                   <button
                     class="w-full py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium rounded-xl transition-all shadow-md hover:shadow-lg active:shadow-sm transform hover:-translate-y-0.5 active:translate-y-0 duration-150"
+                    :disabled="isLoggingIn"
                     @click="handleLogin"
                   >
                     <div class="flex items-center justify-center">
-                      <span>LOG IN</span>
-                      <!-- Arrow using CSS instead of SVG -->
-                      <span class="arrow-login ml-2"/>
+                      <div v-if="isLoggingIn" class="spinner-white mr-2"/>
+                      <span>{{ isLoggingIn ? 'LOGGING IN...' : 'LOG IN' }}</span>
+                      <span v-if="!isLoggingIn" class="arrow-login ml-2"/>
                     </div>
                   </button>
                 </div>
@@ -231,132 +246,28 @@ const togglePasswordVisibility = () => {
         </div>
       </div>
     </div>
+    
+    <!--LoginSuccessModal -->
+    <LoginModal 
+      :show="showSuccessModal" 
+      :username="authStore.user?.username || username_or_email" 
+    />
   </div>
 </template>
 
 <style scoped>
-/* Animation keyframes */
-.animate-blob {
-  animation: blob-bounce 7s infinite;
-}
 
-.animation-delay-2000 {
-  animation-delay: 2s;
-}
-
-.animation-delay-4000 {
-  animation-delay: 4s;
-}
-
-@keyframes blob-bounce {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-
-.animate-float-delay {
-  animation: float 8s ease-in-out infinite;
-  animation-delay: 2s;
-}
-
-@keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-20px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
-.animate-spin-slow {
-  animation: spin 15s linear infinite;
+.spinner-white {
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(45deg);
-  }
-  to {
-    transform: rotate(405deg);
-  }
-}
-
-/* Custom CSS for components without SVG */
-.arrow-right {
-  width: 0;
-  height: 0;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-  border-left: 10px solid currentColor;
-  display: inline-block;
-}
-
-.arrow-login {
-  position: relative;
-  display: inline-block;
-  width: 14px;
-  height: 2px;
-  background-color: currentColor;
-}
-
-.arrow-login:after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: -3px;
-  width: 8px;
-  height: 8px;
-  border-top: 2px solid currentColor;
-  border-right: 2px solid currentColor;
-  transform: rotate(45deg);
-}
-
-/* CSS wave effect instead of SVG */
-.wave {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 100%);
-  transform: scaleY(0.3);
-  border-radius: 100% 100% 0 0;
-}
-
-.divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: #9ca3af;
-}
-
-.divider::before, .divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.divider::before {
-  margin-right: 0.5em;
-}
-
-.divider::after {
-  margin-left: 0.5em;
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>

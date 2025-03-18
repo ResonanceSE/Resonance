@@ -14,15 +14,8 @@ interface RegisterData {
   last_name?: string;
 }
 
-// interface ApiResponse {
-//   status: string;
-//   message?: string;
-//   data?: any;
-// }
-
 const getBaseUrl = (): string => {
   const config = useRuntimeConfig();
-  console.log('API URL:', config.public.apiUrl);
   return config.public.apiUrl || 'http://127.0.0.1:8000';
 };
 
@@ -57,10 +50,9 @@ export async function login(credentials: LoginCredentials): Promise<User> {
       user = {
         token: data.token || data.key,
         username: credentials.username,
-        ...data.user, // If the response includes user info
+        ...data.user,
       };
     } else {
-      // Assume the response is the user object itself
       user = {
         ...data,
         token: data.token,
@@ -128,7 +120,6 @@ export async function register(userData: RegisterData): Promise<User> {
       throw new Error('No authentication token received');
     }
     
-    // Store token and user data
     localStorage.setItem('auth_token', user.token);
     localStorage.setItem('user', JSON.stringify(user));
     
@@ -150,7 +141,7 @@ export async function logout(): Promise<void> {
       await fetch(`${getBaseUrl()}/api/auth/logout/`, {
         method: 'POST',
         headers: {
-          'Authorization': `Token ${token}` // Django typically uses Token auth
+          'Authorization': `Token ${token}`
         },
         credentials: 'include',
       });
@@ -159,7 +150,6 @@ export async function logout(): Promise<void> {
     }
   }
   
-  // Clear storage regardless of server response
   localStorage.removeItem('auth_token');
   localStorage.removeItem('user');
 }
