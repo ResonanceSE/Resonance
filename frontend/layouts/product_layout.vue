@@ -163,7 +163,15 @@ const clearAllFilters = () => {
   filterModalOpen.value = false;
 };
 
+const closeSortDropdown = () => {
+  document.activeElement.blur();
+  const dropdownElements = document.querySelectorAll('.sort-dropdown [tabindex="0"]');
+  dropdownElements.forEach(el => {
+    el.blur();
+  });
+};
 provide('appliedFilters', appliedFilters);
+
 </script>
 
 <template>
@@ -339,7 +347,7 @@ provide('appliedFilters', appliedFilters);
               </button>
               
               <!-- Sort dropdown -->
-              <div class="dropdown dropdown-end">
+              <div class="dropdown dropdown-end sort-dropdown">
                 <label tabindex="0" class="btn btn-outline gap-2 hover:bg-orange-500 hover:border-orange-500">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
@@ -347,10 +355,10 @@ provide('appliedFilters', appliedFilters);
                   Sort: {{ getSortLabel }}
                 </label>
                 <ul tabindex="0" class="dropdown-content z-10 menu p-2 shadow bg-base-100 rounded-box w-52 mt-1">
-                  <li><a :class="{'font-bold text-orange-500': sortBy === 'default'}" @click="sortBy = 'default'">Default</a></li>
-                  <li><a :class="{'font-bold text-orange-500': sortBy === 'price-low'}" @click="sortBy = 'price-low'">Price: Low to High</a></li>
-                  <li><a :class="{'font-bold text-orange-500': sortBy === 'price-high'}" @click="sortBy = 'price-high'">Price: High to Low</a></li>
-                  <li><a :class="{'font-bold text-orange-500': sortBy === 'name'}" @click="sortBy = 'name'">Name</a></li>
+                  <li><a :class="{'font-bold text-orange-500': sortBy === 'default'}" @click="sortBy = 'default', closeSortDropdown()">Default</a></li>
+                  <li><a :class="{'font-bold text-orange-500': sortBy === 'price-low'}" @click="sortBy = 'price-low',closeSortDropdown()">Price: Low to High</a></li>
+                  <li><a :class="{'font-bold text-orange-500': sortBy === 'price-high'}" @click="sortBy = 'price-high',closeSortDropdown()">Price: High to Low</a></li>
+                  <li><a :class="{'font-bold text-orange-500': sortBy === 'name'}" @click="sortBy = 'name',closeSortDropdown()">Name</a></li>
                 </ul>
               </div>
             </div>
