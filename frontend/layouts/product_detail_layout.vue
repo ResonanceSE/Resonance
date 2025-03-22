@@ -218,7 +218,7 @@ provide('formatCurrency', formatCurrency);
       <!-- Loading state -->
       <div v-if="isLoading" class="container mx-auto px-4 py-24 text-center">
         <div class="flex flex-col items-center justify-center">
-          <div class="loading-spinner"></div>
+          <div class="loading-spinner"/>
           <p class="mt-4 text-gray-500">Loading product details...</p>
         </div>
       </div>
@@ -247,7 +247,8 @@ provide('formatCurrency', formatCurrency);
         <!-- Breadcrumbs -->
         <div class="mb-6 hidden md:block">
           <div class="flex items-center text-sm text-gray-500">
-            <NuxtLink v-for="(crumb, index) in breadcrumbs.slice(0, -1)" :key="index" :to="crumb.path" 
+            <NuxtLink
+v-for="(crumb, index) in breadcrumbs.slice(0, -1)" :key="index" :to="crumb.path" 
               class="hover:text-orange-500 transition-colors">
               {{ crumb.name }}
               <span v-if="index < breadcrumbs.length - 2" class="mx-2">/</span>
@@ -360,8 +361,8 @@ provide('formatCurrency', formatCurrency);
                   <div class="join border border-gray-300 rounded-lg">
                     <button 
                       class="join-item btn btn-sm btn-ghost text-gray-700 px-3" 
-                      @click="decreaseQuantity"
                       :disabled="quantity <= 1"
+                      @click="decreaseQuantity"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
@@ -372,8 +373,8 @@ provide('formatCurrency', formatCurrency);
                     </div>
                     <button 
                       class="join-item btn btn-sm btn-ghost text-gray-700 px-3" 
-                      @click="increaseQuantity"
                       :disabled="quantity >= 10"
+                      @click="increaseQuantity"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -385,8 +386,8 @@ provide('formatCurrency', formatCurrency);
                 <!-- Add to cart button -->
                 <button 
                   class="btn btn-primary btn-lg w-full group"
-                  @click="handleAddToCart"
                   :disabled="layoutProps.stock <= 0"
+                  @click="handleAddToCart"
                 >
                   <span class="flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -421,7 +422,7 @@ provide('formatCurrency', formatCurrency);
         </div>
         
         <div class="mt-12">
-          <slot></slot>
+          <slot/>
         </div>
       </div>
       
@@ -456,8 +457,8 @@ provide('formatCurrency', formatCurrency);
         </div>
         <button 
           class="btn btn-primary"
-          @click="handleAddToCart"
           :disabled="layoutProps.stock <= 0"
+          @click="handleAddToCart"
         >
           Add to Cart
         </button>

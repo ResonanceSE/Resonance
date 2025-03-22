@@ -57,7 +57,8 @@ const product = inject('product', ref(null));
     <div v-if="categoryContent.useCases" class="mt-8">
       <h3 class="text-xl font-semibold mb-4">Perfect For</h3>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div v-for="(useCase, index) in categoryContent.useCases" :key="index" 
+        <div
+v-for="(useCase, index) in categoryContent.useCases" :key="index" 
             class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
           <div class="font-medium text-lg mb-2">{{ useCase.title }}</div>
           <p class="text-sm text-gray-600">{{ useCase.description }}</p>
