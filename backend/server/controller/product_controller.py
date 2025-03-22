@@ -17,6 +17,13 @@ def get_all_products(request):
     products = Product.objects.all()
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
+
+@api_view(["GET"])
+def get_product_by_category(request, category):
+    products = Product.objects.filter(category=category)
+    serializer = ProductSerializer(products, many=True)
+    return Response(serializer.data)
+
 @api_view(["GET"])
 def get_product_detailed(request, id):
     product = get_object_or_404(Product, pk=id)
@@ -69,16 +76,9 @@ def get_product_filters(request):
     
     # Product types (you could extend your model to include a 'type' field)
     # For now, let's return some default types based on product descriptions
-    types = [
-        {"name": "Portable", "count": Product.objects.filter(description__icontains="portable").count()},
-        {"name": "Desktop", "count": Product.objects.filter(description__icontains="desktop").count()},
-        {"name": "Bookshelf", "count": Product.objects.filter(description__icontains="bookshelf").count()},
-        {"name": "Floor Standing", "count": Product.objects.filter(description__icontains="floor").count()}
-    ]
     
     return Response({
         "brands": list(brands),
         "connections": list(connections),
-        "types": types,
         "price_ranges": price_ranges
     })
