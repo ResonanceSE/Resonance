@@ -17,7 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-from server.controller.product_controller import get_all_products, get_product_by_name
+from server.controller.product_controller import (
+    get_product_detailed_single_route,
+    get_all_products,
+    get_product_filters,
+    get_product_by_category,
+    get_product_detailed,
+)
 from .controller.auth_controller import (
     RegisterAPI,
     LoginAPI,
@@ -31,8 +37,16 @@ urlpatterns = [
     path("", home_view),
     path("keepalive/", keep_alive),
     path("admin/", admin.site.urls),
+    # Product api urls
+    path("api/products/filters/", get_product_filters, name="product-filters"),
+    path("api/products/<str:category>/", get_product_by_category, name="category"),
+    path("api/products/<int:id>/", get_product_detailed_single_route, name="product"),
+    path(
+        "api/products/<str:category>/<int:id>/",
+        get_product_detailed,
+        name="product-detail",
+    ),
     path("api/products/", get_all_products, name="all-products"),
-    path("api/products/<str:name>/", get_product_by_name, name="product-by-name"),
     # Auth api urls
     path("api/auth/register/", RegisterAPI.as_view()),
     path("api/auth/login/", LoginAPI.as_view()),

@@ -30,7 +30,7 @@ const appliedFilters = inject('appliedFilters', computed(() => ({
 
 // Navigate to product detail
 const viewProductDetails = (productId) => {
-  navigateTo(`/products/detail/${productId}`);
+  window.location.href = `/products/${productId}`;
 };
 
 // Mock products for development or when API is unavailable

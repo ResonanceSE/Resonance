@@ -1,5 +1,5 @@
 <script setup>
-import { FooterSection, NavbarHeader } from '#components';
+
 
 // Shared layout state
 const pageTitle = inject('pageTitle', ref('Products'));
@@ -7,6 +7,107 @@ const pageTitle = inject('pageTitle', ref('Products'));
 // Mobile filter modal state
 const filterModalOpen = ref(false);
 
+const apiUrl = useRuntimeConfig().public.apiUrl;
+
+// Fetch filter options from API instead of using hardcoded values
+const isLoadingFilters = ref(true);
+const filtersError = ref(null);
+
+// Filter data that will be populated from the API
+const brands = ref([]);
+const types = ref([]);
+const connections = ref([]);
+const priceRanges = ref([]);
+
+// Fetch filters from API
+const fetchFilters = async () => {
+  isLoadingFilters.value = true;
+  filtersError.value = null;
+  
+  try {
+    const response = await fetch(`${apiUrl}/api/products/filters/`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch filters: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Convert API response to the format our UI needs
+    brands.value = data.brands.map(brand => ({
+      name: brand.brand,
+      selected: false,
+      count: brand.count
+    }));
+    
+    types.value = data.types.map(type => ({
+      name: type.name,
+      selected: false,
+      count: type.count
+    }));
+    
+    connections.value = data.connections.map(conn => ({
+      name: conn.connections,
+      selected: false,
+      count: conn.count
+    }));
+    
+    priceRanges.value = data.price_ranges.map(range => ({
+      name: range.name,
+      selected: false,
+      count: range.count,
+      min: range.min,
+      max: range.max
+    }));
+    
+  } catch (error) {
+    console.error('Error fetching filters:', error);
+    filtersError.value = error.message;
+    
+    if (brands.value.length === 0) {
+      brands.value = [
+        { name: 'Sony', selected: false },
+        { name: 'Bose', selected: false },
+        { name: 'JBL', selected: false },
+        { name: 'Sonos', selected: false },
+        { name: 'Harman Kardon', selected: false },
+      ];
+    }
+    
+    if (types.value.length === 0) {
+      types.value = [
+        { name: 'Portable', selected: false },
+        { name: 'Desktop', selected: false },
+        { name: 'Bookshelf', selected: false },
+        { name: 'Floor Standing', selected: false },
+      ];
+    }
+    
+    if (connections.value.length === 0) {
+      connections.value = [
+        { name: 'Bluetooth', selected: false },
+        { name: 'Wireless', selected: false },
+        { name: 'Wired', selected: false },
+        { name: 'USB-C', selected: false },
+      ];
+    }
+    
+    if (priceRanges.value.length === 0) {
+      priceRanges.value = [
+        { name: 'Under $100', selected: false },
+        { name: '$100 - $300', selected: false },
+        { name: '$300 - $500', selected: false },
+        { name: 'Over $500', selected: false },
+      ];
+    }
+  } finally {
+    isLoadingFilters.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchFilters();
+});
 // Expandable sections state in the modal
 const modalBrandExpanded = ref(true);
 const modalTypeExpanded = ref(true);
@@ -43,36 +144,7 @@ const getSortLabel = computed(() => {
   }
 });
 
-// Brand filter options
-const brands = ref([
-  { name: 'Sony', selected: false },
-  { name: 'Bose', selected: false },
-  { name: 'JBL', selected: false },
-  { name: 'Sonos', selected: false },
-  { name: 'Harman Kardon', selected: false },
-]);
 
-// Type filter options
-const types = ref([
-  { name: 'Portable', selected: false },
-  { name: 'Desktop', selected: false },
-  { name: 'Bookshelf', selected: false },
-  { name: 'Floor Standing', selected: false },
-]);
-
-const connections = ref([
-  { name: 'Bluetooth', selected: false },
-  { name: 'Wireless', selected: false },
-  { name: 'Wired', selected: false },
-  { name: 'USB-C', selected: false },
-]);
-
-const priceRanges = ref([
-  { name: 'Under $100', selected: false },
-  { name: '$100 - $300', selected: false },
-  { name: '$300 - $500', selected: false },
-  { name: 'Over $500', selected: false },
-]);
 
 // Helper getters for active filters display
 const getSelectedBrands = computed(() => 
