@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: true,
   modules: ['@nuxt/eslint', '@nuxt/icon',
             '@nuxt/image'],
   css: ['~/assets/css/main.css',],  

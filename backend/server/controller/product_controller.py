@@ -20,12 +20,19 @@ def get_all_products(request):
 
 @api_view(["GET"])
 def get_product_by_category(request, category):
-    products = Product.objects.filter(category=category)
+    print(category)
+    products = Product.objects.filter(category="DefaultType")
     serializer = ProductSerializer(products, many=True)
     return Response(serializer.data)
 
 @api_view(["GET"])
-def get_product_detailed(request, id):
+def get_product_detailed(request, category, id):
+    product = get_object_or_404(Product, pk=id)
+    serializer = ProductSerializer(product)
+    return Response(serializer.data)
+
+@api_view(["GET"])
+def get_product_detailed_single_route(request, id):
     product = get_object_or_404(Product, pk=id)
     serializer = ProductSerializer(product)
     return Response(serializer.data)
@@ -80,5 +87,6 @@ def get_product_filters(request):
     return Response({
         "brands": list(brands),
         "connections": list(connections),
+        "types": [],
         "price_ranges": price_ranges
     })

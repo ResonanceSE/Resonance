@@ -5,7 +5,7 @@ definePageMeta({
 })
 
 const route = useRoute();
-const categorySlug = ref(route.params.product);
+const categorySlug = ref(route.params.category);
 
 const categoryNames = {
   'headphones': 'Headphones',
@@ -21,6 +21,7 @@ provide('pageTitle', pageTitle);
 
 // Use the composable to fetch products
 const apiUrl = useRuntimeConfig().public.apiUrl;
+
 const { data: products, error, pending } = useFetch(() => `${apiUrl}/api/products/${categorySlug.value}`, {
   method: 'GET',
   immediate: true,
@@ -39,7 +40,7 @@ const appliedFilters = inject('appliedFilters', computed(() => ({
 
 // Navigate to product detail
 const viewProductDetails = (productId) => {
-  navigateTo(`/products/${categorySlug.value}/${productId}`);
+  window.location.href = `/products/${categorySlug.value}/${productId}`
 };
 
 // Fallback data in case API fails (for development)
@@ -70,19 +71,17 @@ const mockProducts = [
   },
 ];
 
-// FIXED: Safe filter operations with proper checks
+
 const displayProducts = computed(() => {
-  // Start with either the API data or fallback to mockProducts
-  // Ensure we're always working with an array
   let result = Array.isArray(products.value) ? products.value : mockProducts;
   
   // Category filter - with safety check
   if (categorySlug.value) {
     result = result.filter(product => 
-      product?.category === categorySlug.value
+      product?.category === categorySlug.value || "DefaultType"
     );
   }
-  
+  console.log(result);
   // Apply search filter - with safety check
   if (appliedFilters.value.searchQuery) {
     const query = appliedFilters.value.searchQuery.toLowerCase();
@@ -189,7 +188,7 @@ const displayProducts = computed(() => {
         <h2 class="card-title text-lg">{{ product.name }}</h2>
         <p class="text-sm text-gray-600">{{ product.detail }}</p>
         <div class="flex justify-between items-center mt-2">
-          <div class="text-lg font-bold">${{ product.price.toFixed(2) }}</div>
+          <div class="text-lg font-bold">${{ product.price}}</div>
           <button class="btn btn-primary btn-sm" @click="viewProductDetails(product.id)">Buy Now</button>
         </div>
       </div>

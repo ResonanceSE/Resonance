@@ -33,9 +33,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Product api urls
     path("api/products/filters/", get_product_filters, name="product-filters"),
-    path("api/products/", get_all_products, name="all-products"),
-    path("api/products/<int:id>/", get_product_detailed, name="product"),
     path("api/products/<str:category>/", get_product_by_category, name="category"),
+    path("api/products/<int:id>/", get_product_detailed_single_route, name="product"),
+    path("api/products/<str:category>/<int:id>/", get_product_detailed, name="product-detail"),
+    path("api/products/", get_all_products, name="all-products"),
     # Auth api urls
     path("api/auth/register/", RegisterAPI.as_view()),
     path("api/auth/login/", LoginAPI.as_view()),
