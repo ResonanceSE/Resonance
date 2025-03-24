@@ -264,7 +264,8 @@ export default {
                             </div>
 
                             <!-- Missing requirements indicator -->
-                            <div v-if="!isFormValid && formSubmitted" 
+                            <div
+v-if="!isFormValid && formSubmitted" 
                                 class="bg-amber-50 border-l-4 border-amber-400 text-amber-700 p-4 rounded-r-md">
                                 <div class="font-medium mb-1">Please complete the following:</div>
                                 <ul class="list-disc pl-5 space-y-1">
@@ -286,24 +287,28 @@ export default {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input id="firstName" v-model="firstName" type="text"
+                                            <input
+id="firstName" v-model="firstName" type="text"
                                                 placeholder="First Name"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(firstNameStatus)">
                                             
                                             <!-- Status indicator icon -->
-                                            <span v-if="firstNameStatus === 'valid'" 
+                                            <span
+v-if="firstNameStatus === 'valid'" 
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
-                                            <span v-else-if="firstNameStatus === 'error'" 
+                                            <span
+v-else-if="firstNameStatus === 'error'" 
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label for="lastName" 
+                                        <label
+for="lastName" 
                                             class="block text-sm font-medium text-gray-700 mb-1">
                                             Last Name <span class="text-red-500">*</span>
                                         </label>
@@ -312,17 +317,20 @@ export default {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input id="lastName" v-model="lastName" type="text" 
+                                            <input
+id="lastName" v-model="lastName" type="text" 
                                                 placeholder="Last Name"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(lastNameStatus)">
                                             
                                             <!-- Status indicator icon -->
-                                            <span v-if="lastNameStatus === 'valid'" 
+                                            <span
+v-if="lastNameStatus === 'valid'" 
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
-                                            <span v-else-if="lastNameStatus === 'error'" 
+                                            <span
+v-else-if="lastNameStatus === 'error'" 
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
@@ -337,13 +345,15 @@ export default {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input id="username" v-model="username" type="text" 
+                                            <input
+id="username" v-model="username" type="text" 
                                                 placeholder="Username (optional)"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(usernameStatus)">
                                             
                                             <!-- Status indicator icon -->
-                                            <span v-if="usernameStatus === 'valid'" 
+                                            <span
+v-if="usernameStatus === 'valid'" 
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
@@ -360,17 +370,20 @@ export default {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 ✉
                                             </span>
-                                            <input id="email" v-model="email" type="email" 
+                                            <input
+id="email" v-model="email" type="email" 
                                                 placeholder="Email address"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(emailStatus)">
                                             
                                             <!-- Status indicator icon -->
-                                            <span v-if="emailStatus === 'valid'" 
+                                            <span
+v-if="emailStatus === 'valid'" 
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
-                                            <span v-else-if="emailStatus === 'error'" 
+                                            <span
+v-else-if="emailStatus === 'error'" 
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
@@ -388,7 +401,8 @@ export default {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 🔒
                                             </span>
-                                            <input id="password" v-model="password"
+                                            <input
+id="password" v-model="password"
                                                 :type="passwordVisible ? 'text' : 'password'"
                                                 placeholder="Create password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
@@ -396,7 +410,8 @@ export default {
                                                     'border-red-300 focus:ring-red-400': (formSubmitted && !password) || passwordErrors.length > 0,
                                                     'border-green-300 focus:ring-green-400': passwordValidated && passwordErrors.length === 0 && password
                                                 }" @focus="focusPassword" @blur="blurPassword">
-                                            <button type="button"
+                                            <button
+type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                                                 @click="togglePasswordVisibility">
                                                 <span v-if="!passwordVisible">👁</span>
@@ -404,7 +419,8 @@ export default {
                                             </button>
 
                                             <!-- Loading indicator while validating -->
-                                            <div v-if="isValidatingPassword"
+                                            <div
+v-if="isValidatingPassword"
                                                 class="absolute right-10 top-1/2 transform -translate-y-1/2">
                                                 <div
                                                     class="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"/>
@@ -412,15 +428,18 @@ export default {
                                         </div>
 
                                         <!-- Password errors from Django -->
-                                        <div v-if="passwordFocused || passwordErrors.length > 0"
+                                        <div
+v-if="passwordFocused || passwordErrors.length > 0"
                                             class="text-xs mt-1 bg-gray-50 p-3 rounded border border-gray-100 space-y-1.5 transition-all duration-200">
-                                            <div v-if="passwordErrors.length === 0 && password && passwordValidated"
+                                            <div
+v-if="passwordErrors.length === 0 && password && passwordValidated"
                                                 class="flex items-center text-green-600">
                                                 <span class="mr-1">✓</span>
                                                 <span>Password meets requirements</span>
                                             </div>
 
-                                            <div v-for="(error, index) in passwordErrors" :key="index"
+                                            <div
+v-for="(error, index) in passwordErrors" :key="index"
                                                 class="flex items-start text-red-500">
                                                 <span class="mr-1 mt-0.5">•</span>
                                                 <span>{{ error }}</span>
@@ -435,7 +454,8 @@ export default {
 
                                     <!-- Updated confirm password input -->
                                     <div>
-                                        <label for="confirmPassword"
+                                        <label
+for="confirmPassword"
                                             class="block text-sm font-medium text-gray-700 mb-1">
                                             Confirm Password <span class="text-red-500">*</span>
                                         </label>
@@ -444,7 +464,8 @@ export default {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 🔒
                                             </span>
-                                            <input id="confirmPassword" v-model="confirmPassword"
+                                            <input
+id="confirmPassword" v-model="confirmPassword"
                                                 :type="confirmPasswordVisible ? 'text' : 'password'"
                                                 placeholder="Confirm password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
@@ -452,7 +473,8 @@ export default {
                                                     'border-red-300 focus:ring-red-400': (formSubmitted && !confirmPassword) || (!passwordsMatch && confirmPassword),
                                                     'border-green-300 focus:ring-green-400': confirmPassword && passwordsMatch && password
                                                 }">
-                                            <button type="button"
+                                            <button
+type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                                                 @click="toggleConfirmPasswordVisibility">
                                                 <span v-if="!confirmPasswordVisible">👁</span>
@@ -461,11 +483,13 @@ export default {
                                         </div>
 
                                         <!-- Password match indicator -->
-                                        <div v-if="confirmPassword && !passwordsMatch"
+                                        <div
+v-if="confirmPassword && !passwordsMatch"
                                             class="mt-1 text-xs text-red-500">
                                             Passwords do not match
                                         </div>
-                                        <div v-else-if="confirmPassword && passwordsMatch && password"
+                                        <div
+v-else-if="confirmPassword && passwordsMatch && password"
                                             class="mt-1 text-xs text-green-500">
                                             Passwords match
                                         </div>
@@ -476,17 +500,20 @@ export default {
                                         <div class="flex items-center">
                                             <div class="relative flex items-start">
                                                 <div class="flex items-center h-5">
-                                                    <input id="agreeTerms" v-model="agreeTerms" type="checkbox"
+                                                    <input
+id="agreeTerms" v-model="agreeTerms" type="checkbox"
                                                         class="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 transition-colors"
                                                         :class="{ 'border-red-300': formSubmitted && !agreeTerms }">
                                                 </div>
                                                 <label for="agreeTerms" class="ml-3 text-sm">
                                                     <span class="text-gray-700">I agree to the </span>
-                                                    <a href="#"
+                                                    <a
+href="#"
                                                         class="text-orange-500 hover:text-orange-600 font-medium hover:underline">Terms
                                                         of Service</a>
                                                     <span class="text-gray-700"> and </span>
-                                                    <a href="#"
+                                                    <a
+href="#"
                                                         class="text-orange-500 hover:text-orange-600 font-medium hover:underline">Privacy
                                                         Policy</a>
                                                     <span class="text-red-500">*</span>
@@ -502,8 +529,8 @@ export default {
                                             :class="isFormValid 
                                                 ? 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white hover:shadow-lg active:shadow-sm hover:-translate-y-0.5 active:translate-y-0' 
                                                 : 'from-gray-300 to-gray-400 text-gray-100 cursor-not-allowed'"
-                                            @click="isFormValid && handleRegister()"
-                                            :disabled="!isFormValid">
+                                            :disabled="!isFormValid"
+                                            @click="isFormValid && handleRegister()">
                                             <div class="flex items-center justify-center">
                                                 <span>CREATE ACCOUNT</span>
                                                 <span class="arrow-right ml-2" />
@@ -516,13 +543,16 @@ export default {
                             <div class="grid gap-4 pt-4">
                                 <div class="grid place-items-center">
                                     <div class="flex space-x-8 text-sm">
-                                        <a href="#"
+                                        <a
+href="#"
                                             class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Terms
                                             of Use</a>
-                                        <a href="#"
+                                        <a
+href="#"
                                             class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Privacy
                                             Policy</a>
-                                        <a href="#"
+                                        <a
+href="#"
                                             class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Help
                                             Center</a>
                                     </div>
