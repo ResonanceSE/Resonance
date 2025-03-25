@@ -1,11 +1,11 @@
 from django.contrib.auth import authenticate, password_validation
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from ..models.auth_model import Token
+from ..models.customer_model import Customer
 
 
 class RegisterAPI(APIView):
@@ -23,13 +23,13 @@ class RegisterAPI(APIView):
             )
 
         # username/email uniqueness
-        if User.objects.filter(username=data["username"]).exists():
+        if Customer.objects.filter(username=data["username"]).exists():
             return Response(
                 {"status": "error", "message": "Username already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if User.objects.filter(email=data["email"]).exists():
+        if Customer.objects.filter(email=data["email"]).exists():
             return Response(
                 {"status": "error", "message": "Email already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -65,12 +65,18 @@ class RegisterAPI(APIView):
 
         # Create user
         try:
-            user = User.objects.create_user(
+            user = Customer.objects.create_user(
                 username=data["username"],
                 email=data["email"],
                 password=data["password"],
                 first_name=data.get("first_name", ""),
                 last_name=data.get("last_name", ""),
+                phone_number=data.get("phone_number", ""),
+                address=data.get("address", ""),
+                city=data.get("city", ""),
+                state=data.get("state", ""),
+                postal_code=data.get("postal_code", ""),
+                country=data.get("country", ""),
             )
 
             token = Token.objects.create(user=user)
@@ -83,6 +89,8 @@ class RegisterAPI(APIView):
                         "username": user.username,
                         "email": user.email,
                         "token": token.key,
+                        "phone_number": user.phone_number,
+                        "address": user.get_full_address(),
                     },
                 },
                 status=status.HTTP_201_CREATED,
@@ -119,6 +127,8 @@ class LoginAPI(APIView):
                         "username": user.username,
                         "email": user.email,
                         "token": token.key,
+                        "phone_number": user.phone_number,
+                        "address": user.get_full_address(),
                     },
                 }
             )
@@ -151,6 +161,8 @@ class UserAPI(APIView):
                     "email": user.email,
                     "first_name": user.first_name,
                     "last_name": user.last_name,
+                    "phone_number": user.phone_number,
+                    "address": user.get_full_address(),
                 },
             }
         )

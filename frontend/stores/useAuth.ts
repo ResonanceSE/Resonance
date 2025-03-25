@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { 
   login as apiLogin, 
   logout as apiLogout, 
+  register as apiRegister,
   getUser,
   getToken 
 } from '~/services/authService'
@@ -33,6 +34,7 @@ export const useAuthStore = defineStore('auth', {
   getters: {
     currentUser: (state) => state.user,
     isAuthenticated: (state) => state.isLoggedIn,
+    isAdmin: (state) => state.user?.is_admin === true,
     loginDuration: (state) => {
       if (!state.loginTime) return 0;
       return new Date().getTime() - state.loginTime.getTime();
@@ -69,20 +71,11 @@ export const useAuthStore = defineStore('auth', {
       this.error = null;
       
       try {
-        const response = await fetch(`/api/auth/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(userData)
-        });
+        const user = await apiRegister(userData);
+        this.user = user;
+        this.token = user.token;
+        this.isLoggedIn = true;
         
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `Registration failed with status ${response.status}`);
-        }
-        
-        // After registration, automatically log in
         return this.login({
           username: userData.username,
           password: userData.password
