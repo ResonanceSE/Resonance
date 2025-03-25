@@ -1,140 +1,188 @@
 <script setup>
-
+// Import the product filtering composable
+import { useProductFiltering } from '~/composables/useProductFiltering';
 
 // Shared layout state
 const pageTitle = inject('pageTitle', ref('Products'));
+const route = useRoute();
+const currentCategory = inject('currentCategory', ref(''));
+currentCategory.value = route.params.category || '';
 
 // Mobile filter modal state
 const filterModalOpen = ref(false);
 
-const apiUrl = useRuntimeConfig().public.apiUrl;
+// Use the product filtering composable
+const {
+  products,
+  filteredProducts,
+  filters,
+  isLoading,
+  error,
+  fetchProducts,
+  fetchFilters: fetchFilterOptions,
+  applyFilters,
+  updateFilters
+} = useProductFiltering();
 
-// Fetch filter options from API instead of using hardcoded values
+// IMPORTANT: Define all reactive variables BEFORE using them in watchers
+// Filter data structures that will be populated from the API
+const brands = ref([]);
+const connections = ref([]);
+const priceRanges = ref([]);
+const searchQuery = ref('');
+const sortBy = ref('default');
+
+// Expandable sections state in the sidebar (desktop)
+const brandExpanded = ref(true);
+const connectionExpanded = ref(true);
+const priceExpanded = ref(true);
+
+// Expandable sections state in the modal (mobile)
+const modalBrandExpanded = ref(true);
+const modalConnectionExpanded = ref(true);
+const modalPriceExpanded = ref(true);
+
+// Initial loading state for filters
 const isLoadingFilters = ref(true);
 const filtersError = ref(null);
 
-// Filter data that will be populated from the API
-const brands = ref([]);
-const types = ref([]);
-const connections = ref([]);
-const priceRanges = ref([]);
+// AFTER all variables are defined, set up watchers
+// Watch for route changes and update category accordingly
+watch(
+  () => route.params.category,
+  (newCategory) => {
+    console.log("Route category changed to:", newCategory);
+    const category = newCategory || '';
+    currentCategory.value = category;
+    
+    // Update filter state with new category
+    updateFilters({ 
+      category: category,
+      // Reset other filters when changing categories
+      brands: [],
+      connections: [],
+      priceRanges: [],
+      searchQuery: '',
+      sortBy: 'default'
+    });
+    
+    // Fetch products for new category
+    fetchProducts(category);
+    
+    // Reset UI state when category changes
+    searchQuery.value = '';
+    sortBy.value = 'default';
+    brands.value.forEach(b => b.selected = false);
+    connections.value.forEach(c => c.selected = false);
+    priceRanges.value.forEach(p => p.selected = false);
+  },
+  { immediate: true }
+);
 
-// Fetch filters from API
-const fetchFilters = async () => {
-  isLoadingFilters.value = true;
-  filtersError.value = null;
-  
+// Convert API filter data to UI-compatible format
+const convertFiltersForUI = (apiFilterData) => {
   try {
-    const response = await fetch(`${apiUrl}/api/products/filters/`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch filters: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    // Convert API response to the format our UI needs
-    brands.value = data.brands.map(brand => ({
+    // Map brands to UI format
+    brands.value = (apiFilterData.brands || []).map(brand => ({
       name: brand.brand,
-      selected: false,
+      selected: filters.brands.includes(brand.brand),
       count: brand.count
     }));
     
-    types.value = data.types.map(type => ({
-      name: type.name,
-      selected: false,
-      count: type.count
-    }));
-    
-    connections.value = data.connections.map(conn => ({
+    connections.value = (apiFilterData.connections || []).map(conn => ({
       name: conn.connections,
-      selected: false,
+      selected: filters.connections.includes(conn.connections),
       count: conn.count
     }));
     
-    priceRanges.value = data.price_ranges.map(range => ({
+
+    priceRanges.value = (apiFilterData.price_ranges || []).map(range => ({
       name: range.name,
-      selected: false,
+      selected: filters.priceRanges.includes(range.name),
       count: range.count,
       min: range.min,
       max: range.max
     }));
-    
   } catch (error) {
-    console.error('Error fetching filters:', error);
+    console.error('Error converting filters for UI:', error);
+    setDefaultFilters();
+  }
+};
+
+// Set default filters if API fails
+const setDefaultFilters = () => {
+  if (brands.value.length === 0) {
+    brands.value = [
+      { name: 'Sony', selected: false },
+      { name: 'Bose', selected: false },
+      { name: 'JBL', selected: false },
+      { name: 'Sonos', selected: false },
+      { name: 'Harman Kardon', selected: false },
+    ];
+  }
+  
+  if (connections.value.length === 0) {
+    connections.value = [
+      { name: 'Bluetooth', selected: false },
+      { name: 'Wireless', selected: false },
+      { name: 'Wired', selected: false },
+      { name: 'USB-C', selected: false },
+    ];
+  }
+  
+  if (priceRanges.value.length === 0) {
+    priceRanges.value = [
+      { name: 'Under $100', selected: false },
+      { name: '$100 - $300', selected: false },
+      { name: '$300 - $500', selected: false },
+      { name: 'Over $500', selected: false },
+    ];
+  }
+};
+
+// Load filters from the API
+const loadFilters = async () => {
+  isLoadingFilters.value = true;
+  filtersError.value = null;
+  
+  try {
+    const apiFilterData = await fetchFilterOptions();
+    convertFiltersForUI(apiFilterData);
+  } catch (error) {
+    console.error('Error loading filters:', error);
     filtersError.value = error.message;
-    
-    if (brands.value.length === 0) {
-      brands.value = [
-        { name: 'Sony', selected: false },
-        { name: 'Bose', selected: false },
-        { name: 'JBL', selected: false },
-        { name: 'Sonos', selected: false },
-        { name: 'Harman Kardon', selected: false },
-      ];
-    }
-    
-    if (types.value.length === 0) {
-      types.value = [
-        { name: 'Portable', selected: false },
-        { name: 'Desktop', selected: false },
-        { name: 'Bookshelf', selected: false },
-        { name: 'Floor Standing', selected: false },
-      ];
-    }
-    
-    if (connections.value.length === 0) {
-      connections.value = [
-        { name: 'Bluetooth', selected: false },
-        { name: 'Wireless', selected: false },
-        { name: 'Wired', selected: false },
-        { name: 'USB-C', selected: false },
-      ];
-    }
-    
-    if (priceRanges.value.length === 0) {
-      priceRanges.value = [
-        { name: 'Under $100', selected: false },
-        { name: '$100 - $300', selected: false },
-        { name: '$300 - $500', selected: false },
-        { name: 'Over $500', selected: false },
-      ];
-    }
+    setDefaultFilters();
   } finally {
     isLoadingFilters.value = false;
   }
 };
 
-onMounted(() => {
-  fetchFilters();
+watch(brands, (newBrands) => {
+  const selectedBrands = newBrands.filter(b => b.selected).map(b => b.name);
+  updateFilters({ brands: selectedBrands });
+}, { deep: true });
+
+watch(connections, (newConnections) => {
+  const selectedConnections = newConnections.filter(c => c.selected).map(c => c.name);
+  updateFilters({ connections: selectedConnections });
+}, { deep: true });
+
+
+watch(priceRanges, (newPriceRanges) => {
+  const selectedPriceRanges = newPriceRanges.filter(p => p.selected).map(p => p.name);
+  updateFilters({ priceRanges: selectedPriceRanges });
+}, { deep: true });
+
+
+watch(searchQuery, (newQuery) => {
+  updateFilters({ searchQuery: newQuery });
 });
-// Expandable sections state in the modal
-const modalBrandExpanded = ref(true);
-const modalTypeExpanded = ref(true);
-const modalConnectionExpanded = ref(true);
-const modalPriceExpanded = ref(true);
 
-// Top filter tabs
-const activeFilter = ref('All');
-const filters = [
-  { name: 'All', active: true },
-  { name: 'Promotion', active: false },
-  { name: 'New', active: false },
-  { name: 'Popular', active: false },
-  { name: 'Recommend', active: false },
-];
 
-const setFilter = (filter) => {
-  activeFilter.value = filter;
-};
+watch(sortBy, (newSortBy) => {
+  updateFilters({ sortBy: newSortBy });
+});
 
-// Search functionality
-const searchQuery = ref('');
-
-// Sort functionality
-const sortBy = ref('default');
-
-// Get sort label for display
 const getSortLabel = computed(() => {
   switch(sortBy.value) {
     case 'price-low': return 'Price: Low to High';
@@ -144,15 +192,8 @@ const getSortLabel = computed(() => {
   }
 });
 
-
-
-// Helper getters for active filters display
 const getSelectedBrands = computed(() => 
   brands.value.filter(b => b.selected).map(b => b.name)
-);
-
-const getSelectedTypes = computed(() => 
-  types.value.filter(t => t.selected).map(t => t.name)
 );
 
 const getSelectedConnections = computed(() => 
@@ -163,38 +204,22 @@ const getSelectedPrices = computed(() =>
   priceRanges.value.filter(p => p.selected).map(p => p.name)
 );
 
-// Counter for active filters badge
 const activeFilterCount = computed(() => {
   let count = 0;
-  if (activeFilter.value !== 'All') count++;
   if (searchQuery.value) count++;
   count += getSelectedBrands.value.length;
-  count += getSelectedTypes.value.length;
   count += getSelectedConnections.value.length;
   count += getSelectedPrices.value.length;
   return count;
 });
 
-// Has active filters for conditional displays
 const hasActiveFilters = computed(() => activeFilterCount.value > 0);
 
-// Collapse state for sidebar sections (desktop)
-const brandExpanded = ref(true);
-const typeExpanded = ref(true);
-const connectionExpanded = ref(true);
-const priceExpanded = ref(true);
-
-// Method to unselect a specific filter
 const unselectFilter = (filterType, value) => {
   switch(filterType) {
     case 'brand': {
       const brandIndex = brands.value.findIndex(b => b.name === value);
       if (brandIndex >= 0) brands.value[brandIndex].selected = false;
-      break;
-    }
-    case 'type': {
-      const typeIndex = types.value.findIndex(t => t.name === value);
-      if (typeIndex >= 0) types.value[typeIndex].selected = false;
       break;
     }
     case 'connection': {
@@ -210,29 +235,23 @@ const unselectFilter = (filterType, value) => {
   }
 };
 
-// Get the applied filters for filtering in pages
-const appliedFilters = computed(() => {
-  return {
-    activeFilter: activeFilter.value,
-    searchQuery: searchQuery.value,
-    sortBy: sortBy.value,
-    brands: getSelectedBrands.value,
-    types: getSelectedTypes.value,
-    connections: getSelectedConnections.value,
-    priceRanges: getSelectedPrices.value
-  };
-});
-
-// Clear all filters
 const clearAllFilters = () => {
   brands.value.forEach(b => b.selected = false);
-  types.value.forEach(t => t.selected = false);
   connections.value.forEach(c => c.selected = false);
   priceRanges.value.forEach(p => p.selected = false);
-  activeFilter.value = 'All';
   searchQuery.value = '';
   sortBy.value = 'default';
   filterModalOpen.value = false;
+  
+  const currentCat = currentCategory.value;
+  updateFilters({
+    searchQuery: '',
+    brands: [],
+    priceRanges: [],
+    connections: [],
+    sortBy: 'default',
+    category: currentCat
+  });
 };
 
 const closeSortDropdown = () => {
@@ -242,8 +261,14 @@ const closeSortDropdown = () => {
     el.blur();
   });
 };
-provide('appliedFilters', appliedFilters);
 
+onMounted(async () => {
+  await loadFilters();
+});
+
+provide('filteredProducts', filteredProducts);
+provide('isLoadingProducts', isLoading);
+provide('productsError', error);
 </script>
 
 <template>
@@ -281,29 +306,6 @@ provide('appliedFilters', appliedFilters);
                     <label class="flex items-center gap-2 cursor-pointer hover:text-orange-500">
                       <input v-model="brand.selected" type="checkbox" class="checkbox checkbox-sm checkbox-orange border-gray-300" >
                       <span class="label-text">{{ brand.name }}</span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Type filter -->
-              <div class="border-b pb-2 mb-3">
-                <div class="flex justify-between items-center mb-2 cursor-pointer" @click="typeExpanded = !typeExpanded">
-                  <h3 class="font-medium">Type</h3>
-                  <button class="text-gray-500">
-                    <svg v-if="typeExpanded" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
-                    </svg>
-                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
-                <div v-if="typeExpanded" class="space-y-2 pl-1">
-                  <div v-for="(type, index) in types" :key="index" class="form-control">
-                    <label class="flex items-center gap-2 cursor-pointer hover:text-orange-500">
-                      <input v-model="type.selected" type="checkbox" class="checkbox checkbox-sm checkbox-orange border-gray-300" >
-                      <span class="label-text">{{ type.name }}</span>
                     </label>
                   </div>
                 </div>
@@ -372,21 +374,6 @@ provide('appliedFilters', appliedFilters);
         <div class="flex-1">
           <!-- Top filter bar -->
           <div class="mb-6 space-y-4">
-            <!-- Filter tabs -->
-            <div class="flex flex-wrap gap-2">
-              <button 
-                v-for="filter in filters" 
-                :key="filter.name" 
-                :class="[
-                  'btn btn-sm', 
-                  activeFilter === filter.name ? 'bg-orange-500 text-white border-orange-500 hover:bg-orange-600' : 'btn-outline hover:bg-orange-500 hover:border-orange-500'
-                ]"
-                @click="setFilter(filter.name)"
-              >
-                {{ filter.name }}
-              </button>
-            </div>
-            
             <!-- Search, Filter Button, and Sort -->
             <div class="flex flex-col md:flex-row gap-4">
               <!-- Search bar -->
@@ -440,9 +427,6 @@ provide('appliedFilters', appliedFilters);
               <div v-if="getSelectedBrands.length > 0" class="badge badge-sm bg-orange-100 text-orange-800 p-2">
                 Brand: {{ getSelectedBrands.join(', ') }}
               </div>
-              <div v-if="getSelectedTypes.length > 0" class="badge badge-sm bg-orange-100 text-orange-800 p-2">
-                Type: {{ getSelectedTypes.join(', ') }}
-              </div>
               <div v-if="getSelectedConnections.length > 0" class="badge badge-sm bg-orange-100 text-orange-800 p-2">
                 Connection: {{ getSelectedConnections.join(', ') }}
               </div>
@@ -453,11 +437,6 @@ provide('appliedFilters', appliedFilters);
             
             <!-- Active filters display (Desktop) -->
             <div v-if="hasActiveFilters" class="hidden md:flex flex-wrap gap-2">
-              <div v-if="activeFilter !== 'All'" class="badge bg-orange-500 text-white border-orange-500 gap-1 p-3">
-                {{ activeFilter }}
-                <button class="ml-1" @click="setFilter('All')">×</button>
-              </div>
-              
               <div v-if="searchQuery" class="badge bg-orange-100 text-orange-800 border-orange-200 gap-1 p-3">
                 "{{ searchQuery }}"
                 <button class="ml-1" @click="searchQuery = ''">×</button>
@@ -467,13 +446,6 @@ provide('appliedFilters', appliedFilters);
                 <div class="badge bg-gray-100 text-gray-800 gap-1 p-3">
                   Brand: {{ brand }}
                   <button class="ml-1" @click="unselectFilter('brand', brand)">×</button>
-                </div>
-              </template>
-              
-              <template v-for="type in getSelectedTypes" :key="'type-'+type">
-                <div class="badge bg-gray-100 text-gray-800 gap-1 p-3">
-                  Type: {{ type }}
-                  <button class="ml-1" @click="unselectFilter('type', type)">×</button>
                 </div>
               </template>
               
@@ -497,8 +469,28 @@ provide('appliedFilters', appliedFilters);
             </div>
           </div>
           
+          <!-- Loading state -->
+          <div v-if="isLoading" class="flex justify-center items-center py-12">
+            <div class="loading loading-spinner loading-lg text-orange-500"></div>
+          </div>
+          
+          <!-- Error state -->
+          <div v-else-if="error" class="alert alert-error">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>{{ error }}</span>
+          </div>
+          
+          <!-- No products found -->
+          <div v-else-if="filteredProducts.length === 0" class="flex flex-col items-center justify-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="mt-4 text-lg font-medium">No products found</h3>
+            <p class="mt-1 text-gray-500">Try adjusting your filters or search query</p>
+          </div>
+          
           <!-- Slot for page content (products) -->
-          <slot />
+          <slot v-else />
         </div>
       </div>
     </div>
@@ -526,25 +518,6 @@ provide('appliedFilters', appliedFilters);
                   <label class="flex items-center gap-3 cursor-pointer">
                     <input v-model="brand.selected" type="checkbox" class="checkbox checkbox-sm checkbox-orange border-gray-300" >
                     <span class="label-text">{{ brand.name }}</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Type Section - Expandable -->
-          <div class="collapse collapse-arrow border-b">
-            <input v-model="modalTypeExpanded" type="checkbox" class="min-h-0" > 
-            <div class="collapse-title font-medium py-3 flex items-center justify-between">
-              <span>Type</span>
-              <span v-if="getSelectedTypes.length > 0" class="badge badge-sm badge-primary ml-2">{{ getSelectedTypes.length }}</span>
-            </div>
-            <div class="collapse-content">
-              <div class="space-y-2 pt-2">
-                <div v-for="(type, index) in types" :key="index" class="form-control">
-                  <label class="flex items-center gap-3 cursor-pointer">
-                    <input v-model="type.selected" type="checkbox" class="checkbox checkbox-sm checkbox-orange border-gray-300" >
-                    <span class="label-text">{{ type.name }}</span>
                   </label>
                 </div>
               </div>
@@ -610,7 +583,6 @@ provide('appliedFilters', appliedFilters);
     <FooterSection />
   </div>
 </template>
-
 
 <style scoped>
 :deep(.checkbox-orange:checked) {

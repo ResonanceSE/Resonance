@@ -77,10 +77,10 @@ class Review(models.Model):
         return f"Review for {self.product.name} by {self.user.username}"
 
 class Wishlist(models.Model):
-    user = models.OneToOneField('Customer', on_delete=models.CASCADE, related_name='wishlist')
-    products = models.ManyToManyField('Product', related_name='wishlisted_by')
+    user = models.ForeignKey('Customer', on_delete=models.CASCADE, related_name='wishlists')
+    product = models.ForeignKey('Product', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Wishlist of {self.user.username}" 
+        return f"Wishlist for {self.user.username}"
