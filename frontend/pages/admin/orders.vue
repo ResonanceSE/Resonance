@@ -1,6 +1,7 @@
 //frontend/pages/admin/orders.vue
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/useAuth';
+import { definePageMeta } from '#imports'
 
 definePageMeta({
   layout: 'admin'
