@@ -246,13 +246,13 @@ onMounted(fetchOrders);
 
     <!-- Loading state -->
     <div v-if="loading" class="flex justify-center my-12">
-      <div class="loader animate-spin h-12 w-12 border-4 border-gray-300 rounded-full border-t-blue-600"></div>
+      <div class="loader animate-spin h-12 w-12 border-4 border-gray-300 rounded-full border-t-blue-600"/>
     </div>
 
     <!-- Error state -->
     <div v-else-if="error" class="bg-red-100 p-4 rounded-lg mb-6">
       <p class="text-red-700">{{ error }}</p>
-      <button @click="fetchOrders" class="mt-2 text-blue-600 hover:text-blue-800">Try again</button>
+      <button class="mt-2 text-blue-600 hover:text-blue-800" @click="fetchOrders">Try again</button>
     </div>
 
     <!-- Empty state -->
@@ -290,8 +290,8 @@ onMounted(fetchOrders);
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <button
-                @click="viewOrderDetails(order)"
                 class="text-blue-600 hover:text-blue-900"
+                @click="viewOrderDetails(order)"
               >
                 View Details
               </button>
@@ -309,8 +309,8 @@ onMounted(fetchOrders);
             Order #{{ selectedOrder.order_number }}
           </h2>
           <button 
-            @click="selectedOrder = null" 
-            class="text-gray-500 hover:text-gray-700"
+            class="text-gray-500 hover:text-gray-700" 
+            @click="selectedOrder = null"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -342,8 +342,8 @@ onMounted(fetchOrders);
                     <div class="mt-1">
                       <select
                         v-model="selectedOrder.status"
-                        @change="updateOrderStatus(selectedOrder)"
                         class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                        @change="updateOrderStatus(selectedOrder)"
                       >
                         <option v-for="status in orderStatuses" :key="status" :value="status">
                           {{ status }}
@@ -397,8 +397,8 @@ onMounted(fetchOrders);
           <!-- Order Actions -->
           <div class="flex justify-end space-x-3">
             <button
-              @click="selectedOrder = null"
               class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              @click="selectedOrder = null"
             >
               Close
             </button>
@@ -408,15 +408,15 @@ onMounted(fetchOrders);
               disabled
             >
               <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
               </svg>
               Updating...
             </button>
             <button
               v-else
-              @click="printOrderDetails"
               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              @click="printOrderDetails"
             >
               Print
             </button>

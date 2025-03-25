@@ -129,6 +129,7 @@ class LoginAPI(APIView):
                         "token": token.key,
                         "phone_number": user.phone_number,
                         "address": user.get_full_address(),
+                        "is_admin": user.is_superuser,
                     },
                 }
             )
@@ -163,6 +164,7 @@ class UserAPI(APIView):
                     "last_name": user.last_name,
                     "phone_number": user.phone_number,
                     "address": user.get_full_address(),
+                    "is_admin": user.is_superuser,
                 },
             }
         )

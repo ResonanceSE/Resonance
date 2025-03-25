@@ -20,8 +20,8 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
     icon: "heroicons:speaker-wave"
   },
   {
-    slug: "earphones",
-    name: "Earphones",
+    slug: "earbuds",
+    name: "Earbuds",
     icon: "heroicons:musical-note"
   }
 ]);

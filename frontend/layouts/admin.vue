@@ -74,7 +74,7 @@ definePageMeta({
 <template>
   <div class="drawer lg:drawer-open min-h-screen bg-gray-100">
     <!-- Mobile drawer toggle -->
-    <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
+    <input id="admin-drawer" type="checkbox" class="drawer-toggle" >
     
     <!-- Page content -->
     <div class="drawer-content flex flex-col">
@@ -85,7 +85,7 @@ definePageMeta({
           <div class="flex-none lg:hidden">
             <label for="admin-drawer" class="btn btn-square btn-ghost">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
             </label>
           </div>
@@ -97,7 +97,7 @@ definePageMeta({
           
           <!-- Logout button -->
           <div class="flex-none">
-            <button @click="logout" class="btn btn-ghost text-red-600 hover:text-red-800">
+            <button class="btn btn-ghost text-red-600 hover:text-red-800" @click="logout">
               Logout
             </button>
           </div>
@@ -127,7 +127,7 @@ definePageMeta({
     
     <!-- Sidebar -->
     <div class="drawer-side z-20">
-      <label for="admin-drawer" class="drawer-overlay"></label>
+      <label for="admin-drawer" class="drawer-overlay"/>
       <aside class="w-64 bg-slate-200 min-h-screen">
         <!-- Logo -->
         <div class="flex items-center justify-center h-16 bg-gray-900">
@@ -174,7 +174,7 @@ definePageMeta({
         
         <!-- Logout button (mobile only) -->
         <div class="absolute bottom-0 w-full p-4 bg-gray-900 lg:hidden">
-          <button @click="logout" class="btn btn-block btn-sm text-red-400 hover:text-red-300">
+          <button class="btn btn-block btn-sm text-red-400 hover:text-red-300" @click="logout">
             Logout
           </button>
         </div>
