@@ -16,7 +16,6 @@ Including another URLconf
 """
 
 from django.urls import path
-from django.contrib import admin
 from server.controller.product_controller import (
     get_product_detailed_single_route,
     get_all_products,
@@ -58,11 +57,29 @@ urlpatterns = [
         name="validate_password",
     ),
     # Staff api endpoints
-    path('api/staff/stats/', admin_controller.get_admin_stats, name='staff-stats'),
-    path('api/staff/products/', admin_controller.manage_products, name='staff-products'),
-    path('api/staff/products/<int:product_id>/', admin_controller.manage_products, name='staff-product-detail'),
-    path('api/staff/orders/', admin_controller.manage_orders, name='staff-orders'),
-    path('api/staff/orders/<int:order_id>/', admin_controller.manage_orders, name='staff-order-detail'),
-    path('api/staff/support/', admin_controller.manage_support_queries, name='staff-support'),
-    path('api/staff/support/<int:query_id>/', admin_controller.manage_support_queries, name='staff-support-detail'),
+    path("api/staff/stats/", admin_controller.get_admin_stats, name="staff-stats"),
+    path(
+        "api/staff/products/", admin_controller.manage_products, name="staff-products"
+    ),
+    path(
+        "api/staff/products/<int:product_id>/",
+        admin_controller.manage_products,
+        name="staff-product-detail",
+    ),
+    path("api/staff/orders/", admin_controller.manage_orders, name="staff-orders"),
+    path(
+        "api/staff/orders/<int:order_id>/",
+        admin_controller.manage_orders,
+        name="staff-order-detail",
+    ),
+    path(
+        "api/staff/support/",
+        admin_controller.manage_support_queries,
+        name="staff-support",
+    ),
+    path(
+        "api/staff/support/<int:query_id>/",
+        admin_controller.manage_support_queries,
+        name="staff-support-detail",
+    ),
 ]

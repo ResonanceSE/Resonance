@@ -7,11 +7,17 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
     description = models.TextField()
-    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True, related_name='products')
+    category = models.ForeignKey(
+        "Category", on_delete=models.SET_NULL, null=True, related_name="products"
+    )
     brand = models.CharField(max_length=255)
     connections = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal('0.01'))])
-    sale_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
+    )
+    sale_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
     stock = models.PositiveIntegerField(default=0)
     sku = models.CharField(max_length=50, unique=True)
     weight = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
@@ -24,7 +30,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return self.name

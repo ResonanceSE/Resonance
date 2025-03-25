@@ -471,7 +471,7 @@ provide('productsError', error);
           
           <!-- Loading state -->
           <div v-if="isLoading" class="flex justify-center items-center py-12">
-            <div class="loading loading-spinner loading-lg text-orange-500"></div>
+            <div class="loading loading-spinner loading-lg text-orange-500"/>
           </div>
           
           <!-- Error state -->

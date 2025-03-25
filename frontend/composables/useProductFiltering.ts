@@ -79,7 +79,7 @@ interface Product {
       error.value = null;
       console.log("Fetching products for category:", category);
       try {
-        let url = category 
+        const url = category 
           ? `${apiUrl}/api/products/${category}/` 
           : `${apiUrl}/api/products/`;
           
@@ -95,9 +95,9 @@ interface Product {
         applyFilters();
         
         return data;
-      } catch (err: any) {
+      } catch (err) {
         console.error('Error fetching products:', err);
-        error.value = err.message;
+        error.value = err instanceof Error ? err.message : 'Failed to load products data';
         products.value = [];
         filteredProducts.value = [];
         return [];

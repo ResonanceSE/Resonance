@@ -111,7 +111,7 @@ onMounted(fetchStats);
     <h1> Admin status : {{ authStore.isAdmin }}</h1>
     <!-- Loading state -->
     <div v-if="loading" class="flex justify-center my-8">
-      <div class="loading loading-spinner loading-lg text-primary"></div>
+      <div class="loading loading-spinner loading-lg text-primary"/>
     </div>
     
     <!-- Error state -->
@@ -121,7 +121,7 @@ onMounted(fetchStats);
         <span>{{ error }}</span>
       </div>
       <div class="flex-none">
-        <button @click="fetchStats" class="btn btn-sm">Try again</button>
+        <button class="btn btn-sm" @click="fetchStats">Try again</button>
       </div>
     </div>
     
@@ -207,8 +207,9 @@ onMounted(fetchStats);
                 {{ orderStore.countByStatus.pending }}
               </span>
               <div class="w-24 bg-gray-200 rounded-full h-2">
-                <div class="bg-yellow-500 h-2 rounded-full" 
-                     :style="`width: ${getPercentage(orderStore.countByStatus.pending, stats.total_orders)}%`"></div>
+                <div
+class="bg-yellow-500 h-2 rounded-full" 
+                     :style="`width: ${getPercentage(orderStore.countByStatus.pending, stats.total_orders)}%`"/>
               </div>
             </div>
           </div>
@@ -220,8 +221,9 @@ onMounted(fetchStats);
                 {{ orderStore.countByStatus.processing }}
               </span>
               <div class="w-24 bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-500 h-2 rounded-full" 
-                     :style="`width: ${getPercentage(orderStore.countByStatus.processing, stats.total_orders)}%`"></div>
+                <div
+class="bg-blue-500 h-2 rounded-full" 
+                     :style="`width: ${getPercentage(orderStore.countByStatus.processing, stats.total_orders)}%`"/>
               </div>
             </div>
           </div>
@@ -233,8 +235,9 @@ onMounted(fetchStats);
                 {{ orderStore.countByStatus.shipped }}
               </span>
               <div class="w-24 bg-gray-200 rounded-full h-2">
-                <div class="bg-purple-500 h-2 rounded-full" 
-                     :style="`width: ${getPercentage(orderStore.countByStatus.shipped, stats.total_orders)}%`"></div>
+                <div
+class="bg-purple-500 h-2 rounded-full" 
+                     :style="`width: ${getPercentage(orderStore.countByStatus.shipped, stats.total_orders)}%`"/>
               </div>
             </div>
           </div>
@@ -246,8 +249,9 @@ onMounted(fetchStats);
                 {{ orderStore.countByStatus.delivered }}
               </span>
               <div class="w-24 bg-gray-200 rounded-full h-2">
-                <div class="bg-green-500 h-2 rounded-full" 
-                     :style="`width: ${getPercentage(orderStore.countByStatus.delivered, stats.total_orders)}%`"></div>
+                <div
+class="bg-green-500 h-2 rounded-full" 
+                     :style="`width: ${getPercentage(orderStore.countByStatus.delivered, stats.total_orders)}%`"/>
               </div>
             </div>
           </div>
@@ -259,8 +263,9 @@ onMounted(fetchStats);
                 {{ orderStore.countByStatus.cancelled }}
               </span>
               <div class="w-24 bg-gray-200 rounded-full h-2">
-                <div class="bg-red-500 h-2 rounded-full" 
-                     :style="`width: ${getPercentage(orderStore.countByStatus.cancelled, stats.total_orders)}%`"></div>
+                <div
+class="bg-red-500 h-2 rounded-full" 
+                     :style="`width: ${getPercentage(orderStore.countByStatus.cancelled, stats.total_orders)}%`"/>
               </div>
             </div>
           </div>
@@ -305,7 +310,7 @@ onMounted(fetchStats);
               <span class="text-green-600">Operational</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-green-500 h-2 rounded-full w-full"></div>
+              <div class="bg-green-500 h-2 rounded-full w-full"/>
             </div>
           </div>
           
@@ -315,7 +320,7 @@ onMounted(fetchStats);
               <span class="text-green-600">Operational</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-green-500 h-2 rounded-full w-full"></div>
+              <div class="bg-green-500 h-2 rounded-full w-full"/>
             </div>
           </div>
           
@@ -325,7 +330,7 @@ onMounted(fetchStats);
               <span class="text-green-600">Operational</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-green-500 h-2 rounded-full w-full"></div>
+              <div class="bg-green-500 h-2 rounded-full w-full"/>
             </div>
           </div>
           

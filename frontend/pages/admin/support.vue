@@ -305,7 +305,7 @@ onMounted(fetchQueries);
             placeholder="Search by customer name or subject..."
             class="input input-bordered w-full"
             @input="handleSearch"
-          />
+          >
         </div>
         <div class="flex-1 flex gap-4">
           <select
@@ -334,7 +334,7 @@ onMounted(fetchQueries);
 
     <!-- Loading State -->
     <div v-if="loading" class="flex justify-center my-8">
-      <div class="loading loading-spinner loading-lg text-primary"></div>
+      <div class="loading loading-spinner loading-lg text-primary"/>
     </div>
 
     <!-- Error State -->
@@ -344,7 +344,7 @@ onMounted(fetchQueries);
         <span>{{ error }}</span>
       </div>
       <div class="flex-none">
-        <button @click="fetchQueries" class="btn btn-sm">Retry</button>
+        <button class="btn btn-sm" @click="fetchQueries">Retry</button>
       </div>
     </div>
 
@@ -374,8 +374,8 @@ onMounted(fetchQueries);
             <td class="px-6 py-4">{{ formatDate(query.created_at) }}</td>
             <td class="px-6 py-4">
               <button
-                @click="viewQueryDetails(query)"
                 class="btn btn-sm btn-ghost text-blue-600 hover:text-blue-800"
+                @click="viewQueryDetails(query)"
               >
                 View Details
               </button>
@@ -402,8 +402,8 @@ onMounted(fetchQueries);
           <button 
             v-for="page in totalPages" 
             :key="page" 
-            @click="currentPage = page"
             :class="['join-item btn btn-sm', currentPage === page ? 'btn-active' : '']"
+            @click="currentPage = page"
           >
             {{ page }}
           </button>
@@ -430,7 +430,7 @@ onMounted(fetchQueries);
         {{ searchTerm || statusFilter ? 'Try adjusting your filters' : 'All support queries will appear here' }}
       </p>
       <div class="mt-6">
-        <button @click="resetFilters" class="btn btn-primary">
+        <button class="btn btn-primary" @click="resetFilters">
           Reset Filters
         </button>
       </div>
@@ -443,7 +443,7 @@ onMounted(fetchQueries);
           <h2 class="text-xl font-semibold">
             Support Query #{{ selectedQuery.id }}
           </h2>
-          <button @click="closeQueryDetails" class="btn btn-sm btn-circle">
+          <button class="btn btn-sm btn-circle" @click="closeQueryDetails">
             ✕
           </button>
         </div>
@@ -454,8 +454,8 @@ onMounted(fetchQueries);
               <h3 class="font-medium text-gray-700">Status</h3>
               <select
                 v-model="selectedQuery.status"
-                @change="updateQueryStatus(selectedQuery)"
                 class="select select-bordered w-full mt-1"
+                @change="updateQueryStatus(selectedQuery)"
               >
                 <option value="open">Open</option>
                 <option value="in_progress">In Progress</option>
@@ -518,16 +518,16 @@ onMounted(fetchQueries);
               rows="4"
               class="textarea textarea-bordered w-full"
               placeholder="Type your reply..."
-            ></textarea>
+            />
             <div class="mt-2 flex justify-between">
               <div class="flex items-center">
-                <span class="text-sm text-gray-500" v-if="replySending">Sending...</span>
-                <span class="text-sm text-green-500" v-if="replySent">Reply sent successfully!</span>
+                <span v-if="replySending" class="text-sm text-gray-500">Sending...</span>
+                <span v-if="replySent" class="text-sm text-green-500">Reply sent successfully!</span>
               </div>
               <button
-                @click="sendReply"
                 class="btn btn-primary"
                 :disabled="!replyMessage.trim() || replySending"
+                @click="sendReply"
               >
                 Send Reply
               </button>
