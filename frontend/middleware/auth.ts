@@ -1,5 +1,6 @@
 // /frontend/middleware/auth.ts
-import { defineNuxtRouteMiddleware, useRouter } from 'nuxt/app'
+import { defineNuxtRouteMiddleware, navigateTo } from 'nuxt/app'
+import { useAuthStore } from '~/stores/useAuth'
 
 export interface User {
   id: number;
@@ -8,17 +9,30 @@ export interface User {
   first_name?: string;
   last_name?: string;
   token: string;
+  is_admin: boolean;
 }
 
 export default defineNuxtRouteMiddleware((to) => {
-  const router = useRouter()
+  if (process.server) {
+    return
+  }
+  const authStore = useAuthStore()
   const protectedRoutes = ['/admin']
   const isProtected = protectedRoutes.some(route => to.path.startsWith(route))
   
   if (isProtected) {
-    const token = localStorage.getItem('auth_token')
-    if (!token) {
-      return router.push(`/login?redirect=${to.fullPath}`)
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        return navigateTo(`/login?redirect=${to.fullPath}`)
+      }
+      
+      if (to.path.startsWith('/admin') && !authStore.currentUser?.is_admin) {
+        return navigateTo('/')
+      }
+    } catch (error) {
+      console.error('Error in auth middleware:', error)
+      return navigateTo('/login')
     }
   }
 })

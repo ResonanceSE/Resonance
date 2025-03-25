@@ -2,7 +2,7 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from server.models import Product
+from server.models import Product, Category
 from server.serializers import ProductSerializer
 
 
@@ -21,10 +21,13 @@ def get_all_products(request):
 
 @api_view(["GET"])
 def get_product_by_category(request, category):
-    print(category)
-    products = Product.objects.filter(category="DefaultType")
-    serializer = ProductSerializer(products, many=True)
-    return Response(serializer.data)
+    try:
+        category_obj = Category.objects.get(slug=category)
+        products = Product.objects.filter(category=category_obj)
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data)
+    except Category.DoesNotExist:
+        return Response({"error": "Category not found"}, status=404)
 
 
 @api_view(["GET"])
