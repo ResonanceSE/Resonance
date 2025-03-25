@@ -139,21 +139,18 @@ const newAddress = reactive({
     line2: ''
 })
 
-// Payment methods
-const paymentMethods = ref([
-    { id: 1, name: 'Credit/Debit Card', icon: 'credit-card' },
-    { id: 2, name: 'PayPal', icon: 'paypal' },
-    { id: 3, name: 'Bank Transfer', icon: 'building' }
-])
-const selectedPaymentMethod = ref(paymentMethods.value[0])
+// Bank information for payment
+const bankInfo = {
+    bankName: 'Bangkok Bank',
+    accountName: 'Resonance Co., Ltd.',
+    accountNumber: '123-4-56789-0',
+    swiftCode: 'BKKBTHBK',
+    branch: 'Main Branch'
+}
 
-// Payment details
-const cardDetails = reactive({
-    number: '',
-    name: '',
-    expiry: '',
-    cvv: ''
-})
+// Order information
+const orderNumber = ref('')
+const orderDate = ref('')
 
 // Apply voucher code
 const applyVoucher = () => {
@@ -211,13 +208,6 @@ const processCheckout = () => {
         }
         currentStep.value = 'payment'
     } else if (currentStep.value === 'payment') {
-        // Validate payment info
-        if (selectedPaymentMethod.value.id === 1 &&
-            (!cardDetails.number || !cardDetails.name || !cardDetails.expiry || !cardDetails.cvv)) {
-            // Show validation error
-            return
-        }
-
         // Submit order
         submitOrder()
     }
@@ -234,25 +224,37 @@ const previousStep = () => {
 const submitOrder = () => {
     isLoading.value = true
 
-    // Simulate API request
+    // Simulate API request to your backend
     setTimeout(() => {
+        // Generate random order number
+        orderNumber.value = 'ORD-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+        orderDate.value = new Date().toLocaleDateString()
+
         // Order successful
         currentStep.value = 'confirmation'
         isLoading.value = false
-
-        // In a real app, you would store the order ID and details
     }, 1500)
 }
 
 const goToProductPage = () => {
     router.push('/products')
 }
+
+// Copy bank details to clipboard
+const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text)
+    // Show a success message or notification
+    alert('Copied to clipboard')
+}
+
+// Generate payment reference
+const paymentReference = computed(() => {
+    return orderNumber.value ? orderNumber.value : 'Your order number will be your payment reference'
+})
 </script>
 
 <template>
     <div class="min-h-screen bg-gray-50">
-        <!-- Header and progress indicator would go here -->
-
         <div class="container max-w-6xl mx-auto px-4 py-8">
             <!-- Page title -->
             <div class="mb-8">
@@ -260,7 +262,7 @@ const goToProductPage = () => {
                     <span class="text-blue-600">Checkout</span>
                     <span class="text-gray-800"> Page</span>
                 </h1>
-                <div class="h-1 w-24 bg-orange-500 mt-2" />
+                <div class="h-1 w-24 bg-orange-500 mt-2"></div>
             </div>
 
             <!-- Checkout steps -->
@@ -274,7 +276,8 @@ const goToProductPage = () => {
                         <span class="text-sm">Cart</span>
                     </div>
 
-                    <div class="flex-1 h-1 mx-4" :class="currentStep === 'cart' ? 'bg-gray-200' : 'bg-orange-500'" />
+                    <div class="flex-1 h-1 mx-4" :class="currentStep === 'cart' ? 'bg-gray-200' : 'bg-orange-500'">
+                    </div>
 
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center mb-2"
@@ -284,14 +287,15 @@ const goToProductPage = () => {
                         <span class="text-sm">Shipping</span>
                     </div>
 
-                    <div class="flex-1 h-1 mx-4" :class="currentStep === 'payment' ? 'bg-orange-500' : 'bg-gray-200'" />
+                    <div class="flex-1 h-1 mx-4" :class="currentStep === 'payment' ? 'bg-orange-500' : 'bg-gray-200'">
+                    </div>
 
                     <div class="flex flex-col items-center">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center mb-2"
                             :class="currentStep === 'payment' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'">
                             3
                         </div>
-                        <span class="text-sm">Payment</span>
+                        <span class="text-sm">Review & Pay</span>
                     </div>
                 </div>
             </div>
@@ -326,7 +330,7 @@ const goToProductPage = () => {
                                 </div>
 
                                 <!-- Product image -->
-                                <div class="w-16 h-16 bg-gray-100 rounded-md mr-4" />
+                                <div class="w-16 h-16 bg-gray-100 rounded-md mr-4"></div>
 
                                 <!-- Product details -->
                                 <div class="flex-grow">
@@ -351,7 +355,7 @@ const goToProductPage = () => {
                                 <!-- Total price -->
                                 <div class="text-right">
                                     <p class="font-semibold text-orange-500">{{ formatPrice(item.price * item.quantity)
-                                    }}</p>
+                                        }}</p>
                                     <button class="text-sm text-red-500 hover:text-red-700"
                                         @click="removeItem(item.id)">
                                         Remove
@@ -519,7 +523,7 @@ const goToProductPage = () => {
                         <div class="space-y-4 mb-6">
                             <div v-for="item in cartItems.filter(i => selectedItems[i.id])" :key="item.id"
                                 class="flex items-center">
-                                <div class="w-12 h-12 bg-gray-100 rounded-md mr-3 flex-shrink-0" />
+                                <div class="w-12 h-12 bg-gray-100 rounded-md mr-3 flex-shrink-0"></div>
                                 <div class="flex-grow">
                                     <p class="text-sm font-medium text-gray-800">{{ item.name }}</p>
                                     <p class="text-xs text-gray-500">Qty: {{ item.quantity }}</p>
@@ -554,76 +558,85 @@ const goToProductPage = () => {
                     </div>
                 </div>
             </div>
-            <!-- Payment Step -->
+
+            <!-- Payment Step - Now showing Bank Transfer Info -->
             <div v-if="currentStep === 'payment'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <!-- Payment Information -->
                 <div class="lg:col-span-2">
                     <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4">Payment Method</h2>
+                        <h2 class="text-xl font-semibold mb-4">Payment Information</h2>
 
-                        <!-- Payment Options -->
-                        <div class="space-y-3 mb-6">
-                            <div v-for="method in paymentMethods" :key="method.id"
-                                class="border border-gray-400 rounded-md p-4 cursor-pointer"
-                                :class="{ 'border-orange-500 bg-orange-50': selectedPaymentMethod.id === method.id }"
-                                @click="selectedPaymentMethod = method">
-                                <div class="flex items-center">
-                                    <input type="radio" :checked="selectedPaymentMethod.id === method.id"
-                                        class="w-4 h-4 text-orange-500 focus:ring-orange-500 border-gray-400">
-                                    <span class="ml-2 font-medium text-gray-800">{{ method.name }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Credit Card Form (shown when credit card is selected) -->
-                        <div v-if="selectedPaymentMethod.id === 1" class="mt-6 border-t border-gray-200 pt-6">
-                            <h3 class="text-lg font-medium mb-4">Card Details</h3>
-
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-                                    <input v-model="cardDetails.number" type="text"
-                                        class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                        placeholder="1234 5678 9012 3456">
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Cardholder Name</label>
-                                    <input v-model="cardDetails.name" type="text"
-                                        class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                        placeholder="John Doe">
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiry Date</label>
-                                        <input v-model="cardDetails.expiry" type="text"
-                                            class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                            placeholder="MM/YY">
+                        <!-- Payment Method - Bank Transfer Only -->
+                        <div class="mb-6">
+                            <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
+                                <div class="flex items-start">
+                                    <div class="bg-blue-100 p-3 rounded-full mr-3">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                                        <input v-model="cardDetails.cvv" type="text"
-                                            class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                            placeholder="123">
+                                        <p class="font-medium text-blue-800">Payment by Bank Transfer</p>
+                                        <p class="text-sm text-blue-700 mt-1">
+                                            After reviewing your order, you'll receive our bank details to complete your
+                                            payment.
+                                            Your order will be processed once payment is confirmed.
+                                        </p>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- PayPal instructions -->
-                        <div v-if="selectedPaymentMethod.id === 2" class="mt-6 border-t border-gray-200 pt-6">
-                            <p class="text-gray-600">
-                                You will be redirected to PayPal to complete your payment after reviewing your order.
-                            </p>
-                        </div>
+                            <div class="border border-gray-200 rounded-md p-5">
+                                <h3 class="text-lg font-medium mb-4">Order Review</h3>
 
-                        <!-- Bank Transfer instructions -->
-                        <div v-if="selectedPaymentMethod.id === 3" class="mt-6 border-t border-gray-200 pt-6">
-                            <p class="text-gray-600">
-                                After placing your order, you will receive bank details to complete the transfer.
-                                Your order will be processed once payment is confirmed.
-                            </p>
+                                <!-- Order Items -->
+                                <div class="space-y-3 mb-6">
+                                    <div v-for="item in cartItems.filter(i => selectedItems[i.id])" :key="item.id"
+                                        class="flex justify-between py-2 border-b border-gray-100">
+                                        <div>
+                                            <p class="font-medium">{{ item.name }} <span class="text-gray-500">x{{
+                                                    item.quantity }}</span></p>
+                                            <p class="text-sm text-gray-500">{{ item.category }}</p>
+                                        </div>
+                                        <p class="font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Shipping Address -->
+                                <div class="mb-6">
+                                    <h4 class="font-medium text-gray-700 mb-2">Shipping To:</h4>
+                                    <div class="bg-gray-50 p-3 rounded-md border border-gray-200">
+                                        <p class="font-medium">{{ customerInfo.firstName }} {{ customerInfo.lastName }}
+                                        </p>
+                                        <p>{{ selectedAddress.line1 }}</p>
+                                        <p>{{ selectedAddress.line2 }}</p>
+                                        <p class="mt-1">Email: {{ customerInfo.email }}</p>
+                                        <p v-if="customerInfo.phone">Phone: {{ customerInfo.phone }}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Order Totals -->
+                                <div class="space-y-2 mb-6">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Subtotal:</span>
+                                        <span>{{ formatPrice(getItemsPrice) }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Shipping:</span>
+                                        <span>{{ formatPrice(shippingFee) }}</span>
+                                    </div>
+                                    <div v-if="discount > 0" class="flex justify-between text-green-600">
+                                        <span>Discount:</span>
+                                        <span>-{{ formatPrice(discount) }}</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold text-lg pt-2 border-t border-gray-200">
+                                        <span>Total:</span>
+                                        <span class="text-orange-500">{{ formatPrice(totalPrice) }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Navigation buttons -->
@@ -634,9 +647,7 @@ const goToProductPage = () => {
                             </button>
 
                             <button class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                                :disabled="selectedPaymentMethod.id === 1 && (!cardDetails.number || !cardDetails.name || !cardDetails.expiry || !cardDetails.cvv)"
-                                :class="{ 'opacity-50 cursor-not-allowed': selectedPaymentMethod.id === 1 && (!cardDetails.number || !cardDetails.name || !cardDetails.expiry || !cardDetails.cvv) }"
-                                @click="processCheckout">
+                                @click="submitOrder">
                                 Place Order
                             </button>
                         </div>
@@ -648,33 +659,8 @@ const goToProductPage = () => {
                     <div class="bg-white rounded-lg shadow-sm p-6">
                         <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
 
-                        <!-- Order Details Summary -->
-                        <div class="mb-4">
-                            <h3 class="font-medium text-gray-700 mb-2">Customer</h3>
-                            <p class="text-gray-600">{{ customerInfo.firstName }} {{ customerInfo.lastName }}</p>
-                            <p class="text-gray-600">{{ customerInfo.email }}</p>
-                            <p v-if="customerInfo.phone" class="text-gray-600">{{ customerInfo.phone }}</p>
-                        </div>
-
-                        <div class="mb-4">
-                            <h3 class="font-medium text-gray-700 mb-2">Shipping Address</h3>
-                            <p class="text-gray-600">{{ selectedAddress.recipient }}</p>
-                            <p class="text-gray-600">{{ selectedAddress.line1 }}</p>
-                            <p class="text-gray-600">{{ selectedAddress.line2 }}</p>
-                        </div>
-
-                        <!-- Cart Items Summary -->
-                        <div class="space-y-3 mb-4 border-t border-gray-200 pt-4">
-                            <h3 class="font-medium text-gray-700 mb-2">Items</h3>
-                            <div v-for="item in cartItems.filter(i => selectedItems[i.id])" :key="item.id"
-                                class="flex justify-between text-sm">
-                                <span class="text-gray-600">{{ item.name }} (x{{ item.quantity }})</span>
-                                <span class="font-medium">{{ formatPrice(item.price * item.quantity) }}</span>
-                            </div>
-                        </div>
-
                         <!-- Summary Details -->
-                        <div class="space-y-3 border-t border-gray-200 pt-4">
+                        <div class="space-y-3 mb-6">
                             <div class="flex justify-between text-gray-700">
                                 <span>Subtotal</span>
                                 <span>{{ formatPrice(getItemsPrice) }}</span>
@@ -694,63 +680,374 @@ const goToProductPage = () => {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Payment Method Info -->
+                        <div class="bg-orange-50 p-4 rounded-md border border-orange-100">
+                            <h3 class="font-medium text-orange-800 mb-2">Bank Transfer Payment</h3>
+                            <p class="text-sm text-orange-700 mb-2">
+                                After placing your order, please transfer the total amount to our bank account.
+                                Include your order number as the payment reference.
+                            </p>
+                            <p class="text-sm text-orange-700 mb-2">
+                                After placing your order, please transfer the total amount to our bank account.
+                                Include your order number as the payment reference.
+                            </p>
+                            <p class="text-sm font-medium text-orange-800">
+                                Your order will be processed once payment is confirmed.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Order Confirmation -->
-            <div v-if="currentStep === 'confirmation'" class="max-w-2xl mx-auto">
-                <div class="bg-white rounded-lg shadow-sm p-8 text-center">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
+            <!-- Order Confirmation with Bank Transfer Information -->
+            <div v-if="currentStep === 'confirmation'" class="max-w-3xl mx-auto">
+                <div class="bg-white rounded-lg shadow-sm p-8">
+                    <div class="text-center mb-8">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Thank You For Your Order!</h2>
+                        <p class="text-gray-600">
+                            Your order has been received and is pending payment.
+                            Please complete the bank transfer to process your order.
+                        </p>
                     </div>
 
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Thank You For Your Order!</h2>
-                    <p class="text-gray-600 mb-6">Your order has been placed successfully.</p>
-
-                    <div class="bg-gray-50 rounded-md p-6 mb-6 border border-gray-300">
+                    <!-- Order Information -->
+                    <div class="bg-gray-50 rounded-md p-6 mb-8 border border-gray-200">
                         <div class="flex justify-between mb-2">
                             <span class="font-medium text-gray-700">Order Number:</span>
-                            <span>ORD-{{ Math.floor(Math.random() * 10000).toString().padStart(4, '0') }}</span>
+                            <span>{{ orderNumber }}</span>
                         </div>
                         <div class="flex justify-between">
                             <span class="font-medium text-gray-700">Order Date:</span>
-                            <span>{{ new Date().toLocaleDateString() }}</span>
+                            <span>{{ orderDate }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-medium text-gray-700">Order Total:</span>
+                            <span class="font-bold text-orange-500">{{ formatPrice(totalPrice) }}</span>
                         </div>
                     </div>
 
-                    <div class="space-y-3 mb-6">
-                        <h3 class="text-lg font-medium text-gray-800 text-left">Order Summary</h3>
-                        <div class="space-y-3 border-t border-gray-200 pt-4">
+                    <!-- Bank Transfer Details -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">Complete Your Payment</h3>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-md p-6 mb-6">
+                            <h4 class="font-medium text-blue-800 mb-4">Bank Transfer Information</h4>
+
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
+                                    <span class="text-gray-600">Bank Name:</span>
+                                    <div class="flex items-center">
+                                        <span class="font-medium mr-2">{{ bankInfo.bankName }}</span>
+                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
+                                            @click="copyToClipboard(bankInfo.bankName)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
+                                    <span class="text-gray-600">Account Name:</span>
+                                    <div class="flex items-center">
+                                        <span class="font-medium mr-2">{{ bankInfo.accountName }}</span>
+                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
+                                            @click="copyToClipboard(bankInfo.accountName)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
+                                    <span class="text-gray-600">Account Number:</span>
+                                    <div class="flex items-center">
+                                        <span class="font-medium mr-2">{{ bankInfo.accountNumber }}</span>
+                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
+                                            @click="copyToClipboard(bankInfo.accountNumber)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
+                                    <span class="text-gray-600">Branch:</span>
+                                    <div class="flex items-center">
+                                        <span class="font-medium mr-2">{{ bankInfo.branch }}</span>
+                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
+                                            @click="copyToClipboard(bankInfo.branch)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
+                                    <span class="text-gray-600">Swift Code:</span>
+                                    <div class="flex items-center">
+                                        <span class="font-medium mr-2">{{ bankInfo.swiftCode }}</span>
+                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
+                                            @click="copyToClipboard(bankInfo.swiftCode)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
+                                    <span class="text-gray-600">Amount to Transfer:</span>
+                                    <span class="font-bold text-blue-800">{{ formatPrice(totalPrice) }}</span>
+                                </div>
+
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Payment Reference:</span>
+                                    <div class="flex items-center">
+                                        <span class="font-medium mr-2">{{ orderNumber }}</span>
+                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
+                                            @click="copyToClipboard(orderNumber)">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-md p-5">
+                            <h4 class="font-medium text-yellow-800 mb-3">Important Instructions</h4>
+                            <ul class="list-disc pl-5 space-y-2 text-yellow-700">
+                                <li>Please transfer the exact amount shown above.</li>
+                                <li>Include your order number as the payment reference to help us identify your payment.
+                                </li>
+                                <li>After making the transfer, save a copy of the payment receipt.</li>
+                                <li>Your order will be processed once we confirm your payment.</li>
+                                <li>You can view your order status in the "My Orders" section of your account.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Transfer Instructions Section -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-md p-6 mt-6">
+                        <h3 class="text-lg font-medium text-blue-800 mb-4">
+                            How to Transfer Payment
+                        </h3>
+
+                        <div class="space-y-6">
+                            <!-- Bank Information -->
+                            <div class="bg-white rounded-md p-4 border border-blue-100">
+                                <h4 class="font-medium text-gray-800 mb-3">Our Bank Details</h4>
+
+                                <div class="space-y-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Bank Name:</span>
+                                        <span class="font-medium">Bangkok Bank</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Account Name:</span>
+                                        <span class="font-medium">Resonance Co., Ltd.</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Account Number:</span>
+                                        <span class="font-medium">123-4-56789-0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Branch:</span>
+                                        <span class="font-medium">Main Branch</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Swift Code:</span>
+                                        <span class="font-medium">BKKBTHBK</span>
+                                    </div>
+                                    <div class="flex justify-between font-bold">
+                                        <span>Amount to Transfer:</span>
+                                        <span class="text-orange-500">{{ formatPrice(totalPrice) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Transfer Methods -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 mb-3">Ways to Transfer Money</h4>
+
+                                <div class="space-y-4">
+                                    <!-- Method 1: Mobile Banking -->
+                                    <div class="bg-white rounded-md p-4 border border-blue-100">
+                                        <h5 class="font-medium text-gray-700 mb-2">Mobile Banking</h5>
+                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
+                                            <li>Log in to your mobile banking application</li>
+                                            <li>Select "Transfer" or "Pay" option</li>
+                                            <li>Choose "Transfer to another bank"</li>
+                                            <li>Enter our bank name (Bangkok Bank)</li>
+                                            <li>Enter our account number (123-4-56789-0)</li>
+                                            <li>Enter the amount: {{ formatPrice(totalPrice) }}</li>
+                                            <li>In the reference/note field, enter your Order Number</li>
+                                            <li>Confirm and complete the transfer</li>
+                                            <li>Save the transaction receipt or take a screenshot</li>
+                                        </ol>
+                                    </div>
+
+                                    <!-- Method 2: Internet Banking -->
+                                    <div class="bg-white rounded-md p-4 border border-blue-100">
+                                        <h5 class="font-medium text-gray-700 mb-2">Internet Banking</h5>
+                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
+                                            <li>Log in to your internet banking portal</li>
+                                            <li>Navigate to "Transfers" or "Payments" section</li>
+                                            <li>Select "Transfer to another bank"</li>
+                                            <li>Enter our bank name (Bangkok Bank)</li>
+                                            <li>Enter our account number (123-4-56789-0)</li>
+                                            <li>Enter the recipient name (Resonance Co., Ltd.)</li>
+                                            <li>Enter the amount: {{ formatPrice(totalPrice) }}</li>
+                                            <li>Add your Order Number in the reference field</li>
+                                            <li>Confirm the transaction and save the receipt</li>
+                                        </ol>
+                                    </div>
+
+                                    <!-- Method 3: Bank Counter -->
+                                    <div class="bg-white rounded-md p-4 border border-blue-100">
+                                        <h5 class="font-medium text-gray-700 mb-2">Bank Counter</h5>
+                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
+                                            <li>Visit any bank branch</li>
+                                            <li>Fill out a bank transfer form</li>
+                                            <li>Provide our bank name (Bangkok Bank)</li>
+                                            <li>Provide our account number (123-4-56789-0)</li>
+                                            <li>Provide the account name (Resonance Co., Ltd.)</li>
+                                            <li>Enter the transfer amount: {{ formatPrice(totalPrice) }}</li>
+                                            <li>Include your Order Number in the reference section</li>
+                                            <li>Complete the transfer with the bank teller</li>
+                                            <li>Keep the receipt provided by the bank</li>
+                                        </ol>
+                                    </div>
+
+                                    <!-- Method 4: ATM -->
+                                    <div class="bg-white rounded-md p-4 border border-blue-100">
+                                        <h5 class="font-medium text-gray-700 mb-2">ATM</h5>
+                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
+                                            <li>Insert your ATM card and enter your PIN</li>
+                                            <li>Select "Transfer" from the main menu</li>
+                                            <li>Select "Other Bank Transfer" option</li>
+                                            <li>Enter the bank code for Bangkok Bank</li>
+                                            <li>Enter our account number (123-4-56789-0)</li>
+                                            <li>Enter the amount: {{ formatPrice(totalPrice) }}</li>
+                                            <li>Confirm the transaction</li>
+                                            <li>Keep the transaction receipt</li>
+                                            <li>Note your Order Number on the receipt</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- What to do after transfer -->
+                            <div class="bg-yellow-50 rounded-md p-4 border border-yellow-200">
+                                <h4 class="font-medium text-yellow-800 mb-2">After Your Transfer</h4>
+                                <ol class="list-decimal pl-5 text-sm text-yellow-700 space-y-2">
+                                    <li>Keep your transfer receipt or screenshot as proof of payment</li>
+                                    <li>Your order will be processed once payment is confirmed (usually within 1
+                                        business day)</li>
+                                    <li>You'll receive a confirmation email when your payment is verified</li>
+                                    <li>You can check your order status anytime in your account dashboard</li>
+                                </ol>
+                            </div>
+
+                            <!-- Contact for assistance -->
+                            <div class="bg-orange-50 rounded-md p-4 border border-orange-200">
+                                <h4 class="font-medium text-orange-800 mb-2">Need Assistance?</h4>
+                                <p class="text-sm text-orange-700">
+                                    If you encounter any issues with your payment or have questions, please contact our
+                                    customer support:
+                                </p>
+                                <div class="mt-2 text-sm">
+                                    <div class="flex items-center text-orange-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                        <span>support@resonance.com</span>
+                                    </div>
+                                    <div class="flex items-center mt-1 text-orange-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                        </svg>
+                                        <span>+66 2 123 4567</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Order Details Summary -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">Order Details</h3>
+
+                        <div class="space-y-3 mb-6 border-b border-gray-200 pb-6">
                             <div v-for="item in cartItems.filter(i => selectedItems[i.id])" :key="item.id"
                                 class="flex justify-between">
                                 <span>{{ item.name }} (x{{ item.quantity }})</span>
                                 <span>{{ formatPrice(item.price * item.quantity) }}</span>
                             </div>
-                            <div class="border-t border-gray-200 pt-3 mt-3">
-                                <div class="flex justify-between font-bold">
+
+                            <div class="pt-3 border-t border-gray-200">
+                                <div class="flex justify-between text-gray-700">
+                                    <span>Subtotal</span>
+                                    <span>{{ formatPrice(getItemsPrice) }}</span>
+                                </div>
+                                <div class="flex justify-between text-gray-700">
+                                    <span>Shipping</span>
+                                    <span>{{ formatPrice(shippingFee) }}</span>
+                                </div>
+                                <div v-if="discount > 0" class="flex justify-between text-green-600">
+                                    <span>Discount</span>
+                                    <span>-{{ formatPrice(discount) }}</span>
+                                </div>
+                                <div class="flex justify-between font-bold text-orange-500 mt-2">
                                     <span>Total</span>
                                     <span>{{ formatPrice(totalPrice) }}</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="space-y-3 mb-8 text-left">
-                        <h3 class="text-lg font-medium text-gray-800">Shipping Details</h3>
-                        <div class="bg-gray-50 rounded-md p-4 border border-gray-300">
-                            <p class="font-medium">{{ customerInfo.firstName }} {{ customerInfo.lastName }}</p>
-                            <p class="text-gray-600">{{ selectedAddress.line1 }}</p>
-                            <p class="text-gray-600">{{ selectedAddress.line2 }}</p>
-                            <p class="text-gray-600">Email: {{ customerInfo.email }}</p>
-                            <p v-if="customerInfo.phone" class="text-gray-600">Phone: {{ customerInfo.phone }}</p>
+                        <!-- Shipping Information -->
+                        <div>
+                            <h4 class="font-medium text-gray-700 mb-2">Shipping To:</h4>
+                            <div class="bg-gray-50 p-3 rounded-md border border-gray-200">
+                                <p class="font-medium">{{ customerInfo.firstName }} {{ customerInfo.lastName }}</p>
+                                <p>{{ selectedAddress.line1 }}</p>
+                                <p>{{ selectedAddress.line2 }}</p>
+                                <p class="mt-1">Email: {{ customerInfo.email }}</p>
+                                <p v-if="customerInfo.phone">Phone: {{ customerInfo.phone }}</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex gap-4 justify-center">
+                    <div class="flex justify-center">
                         <button class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
                             @click="goToProductPage">
                             Continue Shopping
@@ -759,6 +1056,7 @@ const goToProductPage = () => {
                 </div>
             </div>
         </div>
+
         <!-- Address Modal -->
         <div v-if="showAddressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 max-w-md w-full">
