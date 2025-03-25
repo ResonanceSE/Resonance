@@ -42,7 +42,7 @@ else:
     }
     SECRET_KEY = os.getenv("DJANGO_KEY", "fallback-secret-key")
     DEBUG = True
-    ALLOWED_HOSTS = ["localhost:", "127.0.0.1"]
+    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 # Default settings
 INSTALLED_APPS = [
