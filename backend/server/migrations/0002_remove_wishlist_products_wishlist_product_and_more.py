@@ -6,25 +6,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('server', '0001_initial'),
+        ("server", "0001_initial"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='wishlist',
-            name='products',
+            model_name="wishlist",
+            name="products",
         ),
         migrations.AddField(
-            model_name='wishlist',
-            name='product',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='server.product'),
+            model_name="wishlist",
+            name="product",
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="server.product",
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
-            model_name='wishlist',
-            name='user',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='wishlists', to=settings.AUTH_USER_MODEL),
+            model_name="wishlist",
+            name="user",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="wishlists",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]
