@@ -11,7 +11,7 @@ from .admin_controller import (
     get_admin_stats,
     manage_products,
     manage_orders,
-    manage_support_queries
+    manage_support_queries,
 )
 
 __all__ = [
@@ -22,8 +22,8 @@ __all__ = [
     "LogoutAPI",
     "UserAPI",
     "ValidatePasswordAPI",
-    'get_admin_stats',
-    'manage_products',
-    'manage_orders',
-    'manage_support_queries'
+    "get_admin_stats",
+    "manage_products",
+    "manage_orders",
+    "manage_support_queries",
 ]
