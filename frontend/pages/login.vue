@@ -22,22 +22,28 @@ const handleLogin = async () => {
   errorMessage.value = '';
   console.log('Form submitted:', { username_or_email: username_or_email.value, password: password.value });
   
-  // Set loading state
   isLoggingIn.value = true;
   
   const credentials = { username: username_or_email.value, password: password.value };
   try {
     await authStore.login(credentials);
-    console.log('Logged in as:', authStore.user?.username);
-    
+    console.log('Logged in as:', authStore.user?.username , 'with token:', authStore.token ,
+      'as admin:',authStore.user?.is_admin);
+
     showSuccessModal.value = true;
-    
-    setTimeout(() => {
-      showSuccessModal.value = false;
+    if (authStore.user?.is_admin) {
       setTimeout(() => {
-        router.push('/');
-      }, 300);
-    }, 1500);
+        router.push('/admin/');
+      }, 1500);
+    }
+    else{
+      setTimeout(() => {
+        showSuccessModal.value = false;
+        setTimeout(() => {
+          router.push('/');
+        }, 300);
+      }, 1500);
+    }
     
   } catch (error) {
     errorMessage.value = error.message || 'Login failed';

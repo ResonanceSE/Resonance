@@ -1,7 +1,114 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { useAuthStore } from '~/stores/useAuth';
+import { useOrderStore } from '~/stores/useOrderStore';
+
+// Set page layout
+definePageMeta({
+  layout: 'admin'
+});
+
+interface Stats {
+  total_sales: number;
+  total_orders: number;
+  pending_orders: number;
+  low_stock_products: number;
+}
+
+// Initialize stores
+const authStore = useAuthStore();
+const orderStore = useOrderStore();
+
+// State
+const stats = ref<Stats>({
+  total_sales: 0,
+  total_orders: 0,
+  pending_orders: 0,
+  low_stock_products: 0
+});
+const loading = ref(true);
+const error = ref<string | null>(null);
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl || 'http://localhost:8000';
+
+// Fetch stats on component mount
+const fetchStats = async () => {
+  loading.value = true;
+  error.value = null;
+  
+  try {
+    // Fetch orders first (this will populate orderStore.orders)
+    await orderStore.fetchOrders();
+    
+    // Fetch additional stats that aren't in the order store
+    const response = await fetch(`${apiUrl}/api/staff/stats/`, {
+      headers: {
+        'Authorization': `Token ${authStore.token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch stats: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    if (data.status === 'success') {
+      stats.value = data.data;
+    } else {
+      stats.value = data; // Fallback in case your API doesn't wrap in {status, data}
+    }
+  } catch (err) {
+    console.error('Error fetching stats:', err);
+    error.value = err instanceof Error ? err.message : 'Failed to load dashboard data';
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Format date
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+// Format status for display
+const formatStatus = (status: string) => {
+  return status.charAt(0).toUpperCase() + status.slice(1);
+};
+
+// Get status class for coloring
+const getStatusClass = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'processing':
+      return 'bg-blue-100 text-blue-800';
+    case 'shipped':
+      return 'bg-purple-100 text-purple-800';
+    case 'delivered':
+      return 'bg-green-100 text-green-800';
+    case 'cancelled':
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
+
+const getPercentage = (value: number, total: number) => {
+  if (total === 0) return 0;
+  return Math.round((value / total) * 100);
+};
+
+onMounted(fetchStats);
+</script>
+
 <template>
   <div>
     <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
-    
+    <h1> Admin status : {{ authStore.isAdmin }}</h1>
     <!-- Loading state -->
     <div v-if="loading" class="flex justify-center my-8">
       <div class="loading loading-spinner loading-lg text-primary"></div>
@@ -231,109 +338,5 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useAuthStore } from '~/stores/useAuth';
-import { useOrderStore } from '~/stores/useOrderStore';
-
-// Set page layout
-definePageMeta({
-  layout: 'admin'
-});
-
-interface Stats {
-  total_sales: number;
-  total_orders: number;
-  pending_orders: number;
-  low_stock_products: number;
-}
-
-// Initialize stores
-const authStore = useAuthStore();
-const orderStore = useOrderStore();
-
-// State
-const stats = ref<Stats>({
-  total_sales: 0,
-  total_orders: 0,
-  pending_orders: 0,
-  low_stock_products: 0
-});
-const loading = ref(true);
-const error = ref<string | null>(null);
-const config = useRuntimeConfig();
-const apiUrl = config.public.apiUrl || 'http://localhost:8000';
-
-// Fetch stats on component mount
-const fetchStats = async () => {
-  loading.value = true;
-  error.value = null;
-  
-  try {
-    // Fetch orders first (this will populate orderStore.orders)
-    await orderStore.fetchOrders();
-    
-    // Fetch additional stats that aren't in the order store
-    const response = await fetch(`${apiUrl}/api/staff/stats/`, {
-      headers: {
-        'Authorization': `Token ${authStore.token}`
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch stats: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    if (data.status === 'success') {
-      stats.value = data.data;
-    } else {
-      stats.value = data; // Fallback in case your API doesn't wrap in {status, data}
-    }
-  } catch (err) {
-    console.error('Error fetching stats:', err);
-    error.value = err instanceof Error ? err.message : 'Failed to load dashboard data';
-  } finally {
-    loading.value = false;
-  }
-};
-
-// Format date
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
-};
-
-// Format status for display
-const formatStatus = (status: string) => {
-  return status.charAt(0).toUpperCase() + status.slice(1);
-};
-
-// Get status class for coloring
-const getStatusClass = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'processing':
-      return 'bg-blue-100 text-blue-800';
-    case 'shipped':
-      return 'bg-purple-100 text-purple-800';
-    case 'delivered':
-      return 'bg-green-100 text-green-800';
-    case 'cancelled':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
-
-const getPercentage = (value: number, total: number) => {
-  if (total === 0) return 0;
-  return Math.round((value / total) * 100);
-};
-
-onMounted(fetchStats);
-</script>
+<style scoped>
+</style>

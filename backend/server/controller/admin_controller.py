@@ -1,17 +1,22 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Count, Sum
+from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Product, Order, OrderItem, Customer
+from ..models import Product, Order
 from ..serializers import ProductSerializer
 
 @api_view(['GET'])
-@permission_classes([IsAdminUser])
 def get_admin_stats(request):
     """Get sales statistics and analytics for admin dashboard"""
+    # Custom permission check
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+    
     # Get date range (default: last 30 days)
     days = int(request.GET.get('days', 30))
     start_date = timezone.now() - timedelta(days=days)
@@ -30,9 +35,15 @@ def get_admin_stats(request):
     return Response({"status": "success", "data": stats})
 
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
-@permission_classes([IsAdminUser])
 def manage_products(request, product_id=None):
     """Manage product listings - CRUD operations"""
+    # Custom permission check
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+    
     if request.method == 'GET':
         if product_id:
             try:
@@ -82,9 +93,15 @@ def manage_products(request, product_id=None):
             )
 
 @api_view(['GET', 'PUT'])
-@permission_classes([IsAdminUser])
 def manage_orders(request, order_id=None):
     """Access and process orders"""
+    # Custom permission check
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+    
     if request.method == 'GET':
         if order_id:
             try:
@@ -141,9 +158,15 @@ def manage_orders(request, order_id=None):
             )
 
 @api_view(['GET', 'POST', 'PUT'])
-@permission_classes([IsAdminUser])
 def manage_support_queries(request, query_id=None):
     """Handle customer support queries"""
+    # Custom permission check
+    if not request.user.is_authenticated:
+        return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    if not (request.user.is_staff or request.user.is_superuser):
+        return Response({"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN)
+    
     # This would integrate with your customer support system
     # For now, return a placeholder response
     return Response({

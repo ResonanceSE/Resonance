@@ -11,12 +11,6 @@ provide('pageTitle', pageTitle);
 // API URL from runtime config
 const apiUrl = useRuntimeConfig().public.apiUrl;
 
-// Fetch all products
-const { data: products, error, pending } = useFetch(() => `${apiUrl}/api/products`, {
-  method: 'GET',
-  immediate: true,
-});
-
 // Get the applied filters from the layout
 const appliedFilters = inject('appliedFilters', computed(() => ({ 
   activeFilter: 'All',
@@ -27,6 +21,12 @@ const appliedFilters = inject('appliedFilters', computed(() => ({
   connections: [], 
   priceRanges: [] 
 })));
+
+// Fetch all products
+const { data: products, error, pending } = useFetch(() => `${apiUrl}/api/products`, {
+  method: 'GET',
+  immediate: true,
+});
 
 // Navigate to product detail
 const viewProductDetails = (productId) => {

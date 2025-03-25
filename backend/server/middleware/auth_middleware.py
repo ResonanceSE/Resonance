@@ -7,7 +7,7 @@ class TokenAuthentication(BaseAuthentication):
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
 
-        if not auth_header.startswith("Bearer "):
+        if not auth_header.startswith("Token "):
             return None
 
         token = auth_header.split(" ")[1]
