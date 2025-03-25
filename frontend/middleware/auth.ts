@@ -13,7 +13,7 @@ export interface User {
 }
 
 export default defineNuxtRouteMiddleware((to) => {
-  if (process.server) {
+  if (import.meta.server) {
     return
   }
   const authStore = useAuthStore()
