@@ -16,7 +16,6 @@ Including another URLconf
 """
 
 from django.urls import path
-from django.contrib import admin
 from server.controller.product_controller import (
     get_product_detailed_single_route,
     get_all_products,

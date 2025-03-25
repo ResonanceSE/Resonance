@@ -2,10 +2,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
-from django.db.models import Count, Sum
+from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Product, Order, OrderItem, Customer
+from ..models import Product, Order
 from ..serializers import ProductSerializer
 
 
