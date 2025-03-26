@@ -40,9 +40,13 @@ else:
             "PORT": os.getenv("DB_PORT"),
         }
     }
-    SECRET_KEY = os.getenv("DJANGO_KEY", "fallback-secret-key")
+    SECRET_KEY = os.getenv("DJANGO_KEY")
     DEBUG = True
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+    ALLOWED_HOSTS = [
+        host.strip()
+        for host in os.getenv("ALLOWED_HOSTS", "").split(",")
+        if host.strip()
+    ]
 
 # Default settings
 INSTALLED_APPS = [
