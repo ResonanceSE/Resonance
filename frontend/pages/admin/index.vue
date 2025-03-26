@@ -6,7 +6,8 @@ import { definePageMeta } from '#imports'
 
 // Set page layout
 definePageMeta({
-  layout: 'admin'
+  layout: 'admin',
+  middleware: ['auth']
 });
 
 interface Stats {

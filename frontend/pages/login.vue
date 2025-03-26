@@ -7,6 +7,7 @@ definePageMeta({
 
 const username_or_email = ref('')
 const password = ref('');
+const route = useRoute();
 const router = useRouter();
 const passwordVisible = ref(false);
 const errorMessage = ref('');
@@ -27,24 +28,29 @@ const handleLogin = async () => {
   const credentials = { username: username_or_email.value, password: password.value };
   try {
     await authStore.login(credentials);
-    console.log('Logged in as:', authStore.user?.username , 'with token:', authStore.token ,
-      'as admin:',authStore.user?.is_admin);
-
+    
     showSuccessModal.value = true;
+    const redirectPath = route.query.redirect ? route.query.redirect.toString() : null;
     if (authStore.user?.is_admin) {
       setTimeout(() => {
-        router.push('/admin/');
+        if (redirectPath && redirectPath.startsWith('/admin')) {
+          router.push(redirectPath);
+        } else {
+          router.push('/admin/');
+        }
       }, 1500);
-    }
-    else{
+    } else {
       setTimeout(() => {
         showSuccessModal.value = false;
         setTimeout(() => {
-          router.push('/');
+          if (redirectPath && !redirectPath.startsWith('/admin')) {
+            router.push(redirectPath);
+          } else {
+            router.push('/');
+          }
         }, 300);
       }, 1500);
     }
-    
   } catch (error) {
     errorMessage.value = error.message || 'Login failed';
     console.error('Login error:', error);

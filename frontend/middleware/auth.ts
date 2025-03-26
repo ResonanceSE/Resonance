@@ -13,21 +13,36 @@ export interface User {
 }
 
 export default defineNuxtRouteMiddleware((to) => {
+  // Handle server-side rendering
   if (import.meta.server) {
+    // For admin routes on server side, redirect to login page to prevent flash
+    if (to.path.startsWith('/admin')) {
+      return navigateTo('/login')
+    }
     return
   }
+  
   const authStore = useAuthStore()
   const protectedRoutes = ['/admin']
   const isProtected = protectedRoutes.some(route => to.path.startsWith(route))
   
   if (isProtected) {
     try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) {
+      // Check if auth store is initialized
+      if (!authStore || typeof authStore.isAuthenticated === 'undefined') {
+        console.log("Auth store not initialized, redirecting to login")
         return navigateTo(`/login?redirect=${to.fullPath}`)
       }
       
-      if (to.path.startsWith('/admin') && !authStore.currentUser?.is_admin) {
+      // Check if user is authenticated
+      if (!authStore.isAuthenticated) {
+        console.log("User not authenticated, redirecting to login")
+        return navigateTo(`/login?redirect=${to.fullPath}`)
+      }
+      
+      // For admin routes, check if user is admin
+      if (to.path.startsWith('/admin') && !authStore.isAdmin) {
+        console.log("User is not admin, redirecting to home")
         return navigateTo('/')
       }
     } catch (error) {
