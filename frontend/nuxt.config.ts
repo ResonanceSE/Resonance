@@ -11,11 +11,7 @@ export default defineNuxtConfig({
       autoprefixer: {},
     },
   },
-  routeRules: {
-    '/admin/**': { ssr: false, redirect: '/login' },
-  },
   compatibilityDate: '2025-01-07',
-
   runtimeConfig: {
     public: {
       apiUrl: process.env.API_URL,

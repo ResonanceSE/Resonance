@@ -64,11 +64,9 @@ const checkAuth = () => {
 };
 
 onBeforeMount(() => {
-  // Run immediately to prevent flash
   checkAuth();
 });
 
-// Double-check on mounted for extra security
 onMounted(() => {
   checkAuth();
 });

@@ -5,7 +5,8 @@ import { useOrderStore } from '~/stores/useOrderStore';
 
 // Set page layout
 definePageMeta({
-  layout: 'admin'
+  layout: 'admin',
+  middleware: ['auth']
 });
 
 interface Stats {

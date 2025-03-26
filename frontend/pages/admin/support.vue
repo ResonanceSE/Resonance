@@ -2,7 +2,8 @@
 import { useAuthStore } from '~/stores/useAuth';
 
 definePageMeta({
-  layout: 'admin'
+  layout: 'admin',
+  middleware: ['auth']
 });
 
 
