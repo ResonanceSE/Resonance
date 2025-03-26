@@ -5,20 +5,13 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 
-// User information
-const userName = ref('Admin User');
-const userInitials = computed(() => {
-  const names = userName.value.split(' ');
-  if (names.length >= 2) {
-    return `${names[0][0]}${names[1][0]}`;
-  }
-  return userName.value.substring(0, 2).toUpperCase();
-});
+// Add loading state
+const isLoading = ref(true);
 
+const userName = ref('Admin User');
 // Current route information
 const currentRoute = computed(() => route.path);
 const formattedRouteName = computed(() => {
-  // Extract the last part of the route and format it
   const parts = route.path.split('/');
   const lastPart = parts[parts.length - 1];
   return lastPart.charAt(0).toUpperCase() + lastPart.slice(1);
@@ -36,16 +29,13 @@ const pageTitle = computed(() => {
   return routeMap[route.path] || 'Admin Panel';
 });
 
-// Check if route is active
 const getActiveClass = (path: string) => {
-  // Exact match for dashboard, prefix match for others
   if (path === '/admin') {
-    return route.path === path ? 'active bg-gray-700' : '';
+    return route.path === path ? 'active bg-orange-600' : '';
   }
   return route.path.startsWith(path) ? 'active bg-gray-700' : '';
 };
 
-// Logout function
 const logout = async () => {
   try {
     await authStore.logout();
@@ -55,22 +45,39 @@ const logout = async () => {
   }
 };
 
-// Fetch user data on mount
-onMounted(async () => {
-  try {
-    // If you have a user profile endpoint, fetch the user data here
-    // const userData = await authStore.getUserProfile();
-    // userName.value = userData.name;
-  } catch (error) {
-    console.error('Failed to load user profile:', error);
+// Improved auth check that runs immediately
+const checkAuth = () => {
+  isLoading.value = true;
+  
+  if (!authStore.isAuthenticated) {
+    router.push('/login');
+    return false;
   }
+  
+  if (!authStore.isAdmin) {
+    router.push('/');
+    return false;
+  }
+  
+  isLoading.value = false;
+  return true;
+};
+
+onBeforeMount(() => {
+  // Run immediately to prevent flash
+  checkAuth();
 });
 
-// Middleware to check if user is admin
+// Double-check on mounted for extra security
+onMounted(() => {
+  checkAuth();
+});
+
 definePageMeta({
-  middleware: 'admin'
+  middleware: ['auth']
 });
 </script>
+
 <template>
   <div class="drawer lg:drawer-open min-h-screen bg-gray-100">
     <!-- Mobile drawer toggle -->
@@ -186,4 +193,17 @@ definePageMeta({
 
 
 <style scoped>
+.loader {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #f97316;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 </style>
