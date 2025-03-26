@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/useAuth';
 import { useOrderStore } from '~/stores/useOrderStore';
+import { definePageMeta } from '#imports'
 
 // Set page layout
 definePageMeta({

@@ -1,4 +1,5 @@
 <script setup>
+import { navigateTo } from '#app';
 definePageMeta({
   layout: 'default'
 })
@@ -117,6 +118,7 @@ const applyVoucher = () => {
 
 const processCheckout = () => {
   console.log('Processing checkout...');
+  navigateTo('/checkout');
 };
 </script>
 

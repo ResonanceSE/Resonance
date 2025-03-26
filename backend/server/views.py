@@ -5,10 +5,13 @@ from django.conf import settings
 
 def home_view(request):
     return JsonResponse(
-        {"message": f"Allowed origins: {', '.join(settings.CORS_ALLOWED_ORIGINS)}"}
+        {"message": f"Allowed origins: {', '.join(settings.ALLOWED_HOSTS)}"}
     )
 
 
 @api_view(["GET"])
 def keep_alive(request):
     return JsonResponse({"message": "Ping server!"})
+
+
+# settings.CORS_ALLOWED_ORIGINS,

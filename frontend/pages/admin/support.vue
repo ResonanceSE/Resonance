@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/useAuth';
-
+import { definePageMeta } from '#imports'
 definePageMeta({
   layout: 'admin',
   middleware: ['auth']
