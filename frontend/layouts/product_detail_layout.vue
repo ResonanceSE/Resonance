@@ -47,15 +47,13 @@ const layoutProps = computed(() => {
   };
 });
 
-// Utility functions
+
 const capitalizeFirstLetter = (string) => {
   if (!string) return '';
   return string.charAt(0).toUpperCase() + string.slice(1);
 };
 
-// Format currency
 const formatCurrency = (price) => {
-  // Convert string to number if needed
   const numericPrice = typeof price === 'string' ? parseFloat(price) : price;
   
   return new Intl.NumberFormat('en-US', {
@@ -64,12 +62,10 @@ const formatCurrency = (price) => {
   }).format(numericPrice || 0);
 };
 
-// Select an image from thumbnails
 const selectImage = (index) => {
   selectedImage.value = index;
 };
 
-// Change quantity
 const decreaseQuantity = () => {
   if (quantity.value > 1) {
     quantity.value--;
@@ -82,24 +78,17 @@ const increaseQuantity = () => {
   }
 };
 
-// Add to cart handler
 const handleAddToCart = () => {
   if (!product.value) return;
-  
-  // You can get the cart from local storage or state management
   const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-  
-  // Check if product already exists in cart
   const existingProductIndex = cart.findIndex(item => 
     item.id === product.value.id && 
     item.category === product.value.category
   );
   
   if (existingProductIndex >= 0) {
-    // Update quantity if product already in cart
     cart[existingProductIndex].quantity += quantity.value;
   } else {
-    // Add new product to cart
     cart.push({
       id: product.value.id,
       name: product.value.name,
@@ -110,17 +99,14 @@ const handleAddToCart = () => {
     });
   }
   
-  // Save updated cart
   localStorage.setItem('cart', JSON.stringify(cart));
   
-  // Show success message
   addToCartSuccess.value = true;
   setTimeout(() => {
     addToCartSuccess.value = false;
   }, 2000);
 };
 
-// Fetch product data
 const fetchProduct = async () => {
   isLoading.value = true;
   error.value = null;
@@ -157,7 +143,6 @@ const fetchProduct = async () => {
   }
 };
 
-// Mock product data for development
 const getMockProduct = () => {
   return {
     id: productId,

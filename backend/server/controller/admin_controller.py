@@ -100,7 +100,6 @@ def manage_products(request, product_id=None):
 
 @api_view(["GET", "PUT"])
 def manage_orders(request, order_id=None):
-    """Access and process orders"""
     if not request.user.is_authenticated:
         return Response(
             {"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED
@@ -131,6 +130,7 @@ def manage_orders(request, order_id=None):
                             }
                             for item in order.items.all()
                         ],
+                        "user": order.user.username,
                     }
                 )
             except Order.DoesNotExist:
@@ -147,6 +147,7 @@ def manage_orders(request, order_id=None):
                         "status": order.status,
                         "total_amount": str(order.total_amount),
                         "created_at": order.created_at,
+                        "user": order.user.username,
                     }
                     for order in orders
                 ]

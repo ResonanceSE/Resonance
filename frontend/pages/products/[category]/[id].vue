@@ -3,11 +3,9 @@
 definePageMeta({
   layout: 'product-detail-layout'
 });
-
 const route = useRoute();
 const category = route.params.category;
 
-// Category-specific content based on route parameter
 const categoryContent = computed(() => {
   switch(category) {
     case 'earphones':

@@ -7,7 +7,6 @@ const navbar_left_placeholder = ref<string[]>([
   'Contact'
 ]);
 
-
 const catalog_placeholder = reactive<{ slug: string; name: string; icon: string }[]>([
   {
     slug: "headphones",
@@ -26,21 +25,80 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
   }
 ]);
 
-// State management
+interface CartItem {
+  id: number;
+  price: number;
+  quantity: number;
+}
+
+const cartItems = ref<CartItem[]>([]);
 const isMenuOpen = ref(false);
-const cartCount = ref(2);
+const cartCount = computed(() => {
+  return cartItems.value.reduce((total, item) => total + item.quantity, 0);
+});
+
 const route = useRoute();
 const router = useRouter();
+const config = useRuntimeConfig();
+const apiUrl = config.public.apiUrl || 'http://localhost:8000';
 
-// Use our auth store
 const authStore = useAuthStore();
 const isLogin = computed(() => authStore.isLoggedIn);
 const username = computed(() => authStore.user?.username || "User Log In");
 
-// Logout related states
 const showLogoutModal = ref(false);
 const isLoggingOut = ref(false);
 const showLogoutSuccessModal = ref(false);
+
+const loadCart = () => {
+  try {
+    const cartData = localStorage.getItem('cart');
+    if (cartData) {
+      const parsedCart = JSON.parse(cartData);
+      const validCart = parsedCart.filter(item => item.id !== 4);
+      
+      cartItems.value = validCart;
+      return;
+    }
+    if (authStore.isLoggedIn) {
+      fetchCartFromAPI();
+    } else {
+      cartItems.value = [];
+    }
+  } catch (error) {
+    console.error('Error loading cart:', error);
+    cartItems.value = [];
+  }
+};
+
+const fetchCartFromAPI = async () => {
+  try {
+    const response = await fetch(`${apiUrl}/api/cart/`, {
+      headers: {
+        'Authorization': `Token ${authStore.token}`
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.status === 'success' && data.data && data.data.items) {
+        cartItems.value = data.data.items;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching cart from API:', error);
+  }
+};
+
+const subtotal = computed(() => {
+  return cartItems.value.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+});
+
+
+const formatPrice = (price : number) => {
+  const dollars = price / 100;
+  return '$' + dollars.toFixed(2);
+};
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -61,11 +119,11 @@ const isActive = (path: string): boolean => {
   return route.path.includes(path.toLowerCase());
 };
 
-// Handle logout flow with modals
 const openLogoutModal = () => {
   showLogoutModal.value = true;
   closeMenu();
 };
+
 const closeProductsDropdown = () => {
   const desktopDropdowns = document.querySelectorAll('.desktop-dropdown');
   desktopDropdowns.forEach(dropdown => {
@@ -77,7 +135,10 @@ const closeProductsDropdown = () => {
     dropdown.removeAttribute('open');
   });
 };
+
 onMounted(() => {
+  loadCart();
+  
   window.addEventListener('click', function(e) {
     document.querySelectorAll('.dropdown').forEach(function(dropdown) {
       const target = e.target as HTMLElement;
@@ -87,7 +148,18 @@ onMounted(() => {
       }
     });
   });
+  
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'cart') {
+      loadCart();
+    }
+  });
 });
+
+watch(() => authStore.isLoggedIn, (newValue) => {
+  loadCart();
+});
+
 const closeLogoutModal = () => {
   showLogoutModal.value = false;
 };
@@ -209,13 +281,13 @@ const handleLogout = async () => {
           <label tabindex="0" class="btn btn-ghost btn-circle">
             <div class="indicator">
               <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
-              <span class="badge badge-sm badge-primary indicator-item">{{ cartCount }}</span>
+              <span v-if="cartCount > 0" class="badge badge-sm badge-primary indicator-item">{{ cartCount }}</span>
             </div>
           </label>
           <div tabindex="0" class="mt-3 card card-compact dropdown-content w-52 bg-base-100 shadow-lg z-[1]">
             <div class="card-body">
-              <span class="font-bold text-lg">{{ cartCount }} Items</span>
-              <span class="text-info">Subtotal: $999</span>
+              <span class="font-bold text-lg">{{ cartCount }} Item{{ cartCount !== 1 ? 's' : '' }}</span>
+              <span class="text-info">Subtotal: {{ formatPrice(subtotal) }}</span>
               <div class="card-actions">
                 <NuxtLink to="/cart" class="btn btn-primary btn-block">View cart</NuxtLink>
               </div>

@@ -1,25 +1,21 @@
 from .product_model import Product
 from .customer_model import Customer
+from .category_model import Category
 from .auth_model import Token
 from .ecommerce_model import (
-    Category,
     Order,
     OrderItem,
     Cart,
     CartItem,
-    Review,
-    Wishlist,
 )
 
 __all__ = [
     "Product",
     "Customer",
-    "Token",
     "Category",
+    "Token",
     "Order",
     "OrderItem",
     "Cart",
     "CartItem",
-    "Review",
-    "Wishlist",
 ]

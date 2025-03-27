@@ -10,7 +10,11 @@ from .admin_controller import (
     get_admin_stats,
     manage_products,
     manage_orders,
-    manage_support_queries,
+)
+from .customer_order_controller import (
+    get_user_by_id,
+    get_user_orders,
+    get_order_details,
 )
 
 __all__ = [
@@ -21,7 +25,9 @@ __all__ = [
     "UserAPI",
     "ValidatePasswordAPI",
     "get_admin_stats",
+    "get_user_by_id",
+    "get_user_orders",
+    "get_order_details",
     "manage_products",
     "manage_orders",
-    "manage_support_queries",
 ]

@@ -1,5 +1,3 @@
-// frontend/composables/useProductFiltering.ts
-
 interface Product {
     id: number;
     name: string;
@@ -37,14 +35,11 @@ interface Product {
   export function useProductFiltering() {
     const config = useRuntimeConfig();
     const apiUrl = config.public.apiUrl || 'http://localhost:8000';
-    
-    // State for products and loading status
     const products = ref<Product[]>([]);
     const filteredProducts = ref<Product[]>([]);
     const isLoading = ref<boolean>(false);
     const error = ref<string | null>(null);
     
-    // Filter state
     const filters = reactive<FilterState>({
       category: '',
       searchQuery: '',
@@ -54,7 +49,6 @@ interface Product {
       sortBy: 'default'
     });
     
-    // Fetch all available filters from API
     const fetchFilters = async (): Promise<ApiFilterResponse> => {
       try {
         const response = await fetch(`${apiUrl}/api/products/filters/`);
@@ -124,7 +118,6 @@ interface Product {
       
       if (filters.connections.length > 0) {
         result = result.filter(product => {
-          // The connections field might contain multiple connections
           const productConnections = product.connections?.split(',').map(c => c.trim());
           return productConnections && filters.connections.some(conn => 
             productConnections.includes(conn)

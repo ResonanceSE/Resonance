@@ -1,1141 +1,343 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useAuthStore } from '~/stores/useAuth'
 
 definePageMeta({
     layout: 'default'
 })
 
 const router = useRouter()
+const authStore = useAuthStore()
+const config = useRuntimeConfig()
+const apiUrl = config.public.apiUrl || 'http://localhost:8000'
 
-// Checkout steps
-const currentStep = ref('cart') // 'cart', 'shipping', 'payment', 'confirmation'
+// UI state
 const isLoading = ref(false)
+const isSubmitting = ref(false)
+const errorMessage = ref('')
+const orderPlaced = ref(false)
+const orderNumber = ref('')
 
-// Cart data
-const cartItems = ref([
+const cartItems = ref([])
+
+const addressForm = reactive({
+    recipient: '',
+    line1: '',
+    line2: '',
+    city: '',
+    postal_code: '',
+    country: ''
+})
+
+const useExistingAddress = ref(true)
+const addresses = ref([
     {
         id: 1,
-        name: 'Campfire Trifecta Astral Plane',
-        category: 'Astral Plane',
-        price: 3375,
-        quantity: 1,
-        image: '/images/product-placeholder.jpg'
+        recipient: 'John Doe',
+        line1: '123 Main Street',
+        line2: 'Apt 4B',
+        city: 'New York',
+        postal_code: '10001',
+        country: 'USA'
     }
 ])
+const selectedAddressId = ref(1)
 
-const selectedItems = reactive({})
-
-// Initialize selectedItems with all items selected
 onMounted(() => {
-    cartItems.value.forEach(item => {
-        selectedItems[item.id] = true
-    })
+    loadCart()
 })
-
-// Toggle individual item selection
-const toggleItemSelection = (itemId) => {
-    selectedItems[itemId] = !selectedItems[itemId]
-}
-
-// Computed property for select all functionality
-const selectAll = computed({
-    get: () => {
-        return cartItems.value.length > 0 &&
-            cartItems.value.every(item => selectedItems[item.id])
-    },
-    set: (value) => {
-        cartItems.value.forEach(item => {
-            selectedItems[item.id] = value
-        })
-    }
-})
-
-const decreaseQuantity = (item) => {
-    if (item.quantity > 1) {
-        item.quantity--
-    }
-}
-
-const increaseQuantity = (item) => {
-    item.quantity++
-}
-
-const removeItem = (itemId) => {
-    const index = cartItems.value.findIndex(item => item.id === itemId)
-    if (index !== -1) {
-        cartItems.value.splice(index, 1)
-        // Fix for @typescript-eslint/no-dynamic-delete
-        selectedItems[itemId] = undefined
-    }
-}
-
-const removeSelectedItems = () => {
-    cartItems.value = cartItems.value.filter(item => !selectedItems[item.id])
-
-    Object.keys(selectedItems).forEach(key => {
-        if (selectedItems[key]) {
-            // Fix for @typescript-eslint/no-dynamic-delete
-            selectedItems[key] = undefined
+const loadCart = () => {
+    isLoading.value = true
+    try {
+        const cartString = localStorage.getItem('cart')
+        console.log("Raw cart data from localStorage:", cartString)
+        
+        if (cartString) {
+            const parsedCart = JSON.parse(cartString)
+            console.log("Parsed cart data:", parsedCart)
+            cartItems.value = parsedCart
+        } else {
+            cartItems.value = []
         }
-    })
+        
+        // Additional logging to see exactly what product IDs you're working with
+        console.log("Product IDs in cart:", cartItems.value.map(item => item.id))
+        
+        if (cartItems.value.length === 0 && !orderPlaced.value) {
+            router.push('/cart')
+        }
+    } catch (error) {
+        console.error('Error loading cart:', error)
+        cartItems.value = []
+    } finally {
+        isLoading.value = false
+    }
 }
 
-// Price calculations
-const getItemsPrice = computed(() => {
-    let total = 0
-    for (const item of cartItems.value) {
-        if (selectedItems[item.id]) {
-            total += item.price * item.quantity
-        }
-    }
-    return total
+const subtotal = computed(() => {
+    return cartItems.value.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 })
 
-// Using this function throughout the template to fix unused variable warning
+const shippingFee = computed(() => {
+    return cartItems.value.length > 0 ? 999 : 0
+})
+
+const total = computed(() => {
+    return subtotal.value + shippingFee.value
+})
+
 const formatPrice = (price) => {
     return '$' + (price / 100).toFixed(2)
 }
 
-const getSelectedItemsCount = computed(() => {
-    return Object.values(selectedItems).filter(Boolean).length
+const selectedAddress = computed(() => {
+    return addresses.value.find(addr => addr.id === selectedAddressId.value) || addresses.value[0]
 })
 
-// Shipping and payment
-const shippingFee = ref(999)
-const voucher = ref('')
-const discount = ref(0)
-
-// Order Summary calculations
-const totalPrice = computed(() => {
-    return getItemsPrice.value + shippingFee.value - discount.value
-})
-
-// Customer information
-const customerInfo = reactive({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: ''
-})
-
-// Address management
-const addresses = ref([
-    {
-        id: 1,
-        default: true,
-        recipient: 'John Doe',
-        line1: 'xxx/xxx, xxxx Village, xxxx Rd.',
-        line2: 'xxxx District, xxxx Province, 10xxx'
+const getFormattedAddress = () => {
+    if (useExistingAddress.value) {
+        const addr = selectedAddress.value
+        return `${addr.recipient}\n${addr.line1}\n${addr.line2}\n${addr.city}, ${addr.postal_code}\n${addr.country}`
+    } else {
+        return `${addressForm.recipient}\n${addressForm.line1}\n${addressForm.line2}\n${addressForm.city}, ${addressForm.postal_code}\n${addressForm.country}`
     }
-])
-
-const selectedAddress = ref(addresses.value[0])
-const showAddressModal = ref(false)
-const showNewAddressForm = ref(false)
-const newAddress = reactive({
-    recipient: '',
-    line1: '',
-    line2: ''
-})
-
-// Bank information for payment
-const bankInfo = {
-    bankName: 'Bangkok Bank',
-    accountName: 'Resonance Co., Ltd.',
-    accountNumber: '123-4-56789-0',
-    swiftCode: 'BKKBTHBK',
-    branch: 'Main Branch'
 }
 
-// Order information
-const orderNumber = ref('')
-const orderDate = ref('')
-
-// Apply voucher code
-const applyVoucher = () => {
-    isLoading.value = true
-
-    // Simulate API request
-    setTimeout(() => {
-        if (voucher.value.toUpperCase() === 'RESONANCE20') {
-            discount.value = Math.round(getItemsPrice.value * 0.2)
-            // Success notification would go here
-        } else {
-            discount.value = 0
-            // Error notification would go here
-        }
-        isLoading.value = false
-    }, 800)
-}
-
-// Add new address
-const addNewAddress = () => {
-    // Basic validation
-    if (!newAddress.recipient || !newAddress.line1) {
+const placeOrder = async () => {
+    if (!authStore.isLoggedIn) {
+        router.push('/login?redirect=/checkout')
         return
     }
-
-    const newId = addresses.value.length > 0
-        ? Math.max(...addresses.value.map(a => a.id)) + 1
-        : 1
-
-    addresses.value.push({
-        id: newId,
-        default: addresses.value.length === 0,
-        ...newAddress
-    })
-
-    selectedAddress.value = addresses.value.find(a => a.id === newId)
-    showNewAddressForm.value = false
-    showAddressModal.value = false
-
-    // Reset form
-    Object.keys(newAddress).forEach(key => {
-        newAddress[key] = ''
-    })
-}
-
-// Process checkout
-const processCheckout = () => {
-    if (currentStep.value === 'cart') {
-        currentStep.value = 'shipping'
-    } else if (currentStep.value === 'shipping') {
-        // Validate shipping info
-        if (!customerInfo.email || !selectedAddress.value) {
-            // Show validation error
+    
+    if (!useExistingAddress.value) {
+        if (!addressForm.recipient || !addressForm.line1 || !addressForm.city) {
+            errorMessage.value = 'Please fill in all required address fields'
             return
         }
-        currentStep.value = 'payment'
-    } else if (currentStep.value === 'payment') {
-        // Submit order
-        submitOrder()
+    }
+    
+    if (cartItems.value.length === 0) {
+        errorMessage.value = 'Your cart is empty'
+        return
+    }
+    
+    isSubmitting.value = true
+    errorMessage.value = ''
+    
+    try {
+        const shippingAddress = getFormattedAddress()
+        const items = cartItems.value.map(item => ({
+            product_id: item.id,
+            quantity: item.quantity,
+            price: item.price
+        }))
+        
+        console.log("Sending order with items:", items)
+        
+        const response = await fetch(`${apiUrl}/api/orders/create/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token ${authStore.token}`
+            },
+            body: JSON.stringify({
+                shipping_address: shippingAddress,
+                items: items
+            })
+        })
+        
+        const result = await response.json()
+        
+        if (response.ok && result.status === 'success') {
+            orderNumber.value = result.data.order_number
+            orderPlaced.value = true
+            localStorage.removeItem('cart')
+            cartItems.value = []
+        } else {
+            throw new Error(result.message || 'Failed to create order')
+        }
+    } catch (error) {
+        console.error('Error placing order:', error)
+        errorMessage.value = error.message || 'An error occurred while placing your order. Please try again.'
+    } finally {
+        isSubmitting.value = false
     }
 }
 
-const previousStep = () => {
-    if (currentStep.value === 'shipping') {
-        currentStep.value = 'cart'
-    } else if (currentStep.value === 'payment') {
-        currentStep.value = 'shipping'
-    }
-}
-
-const submitOrder = () => {
-    isLoading.value = true
-
-    // Simulate API request to your backend
-    setTimeout(() => {
-        // Generate random order number
-        orderNumber.value = 'ORD-' + Math.floor(Math.random() * 10000).toString().padStart(4, '0')
-        orderDate.value = new Date().toLocaleDateString()
-
-        // Order successful
-        currentStep.value = 'confirmation'
-        isLoading.value = false
-    }, 1500)
-}
-
-const goToProductPage = () => {
+const continueShopping = () => {
     router.push('/products')
 }
-
-// Copy bank details to clipboard
-const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text)
-    // Show a success message or notification
-    alert('Copied to clipboard')
-}
-
-// Generate payment reference
-const paymentReference = computed(() => {
-    return orderNumber.value ? orderNumber.value : 'Your order number will be your payment reference'
-})
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50">
-        <div class="container max-w-6xl mx-auto px-4 py-8">
-            <!-- Page title -->
-            <div class="mb-8">
-                <h1 class="text-3xl font-bold">
-                    <span class="text-blue-600">Checkout</span>
-                    <span class="text-gray-800"> Page</span>
-                </h1>
-                <div class="h-1 w-24 bg-orange-500 mt-2"></div>
+    <div class="min-h-screen bg-gray-50 py-10">
+        <div class="container max-w-4xl mx-auto px-4">
+            <!-- Page header -->
+            <div class="mb-8 text-center">
+                <h1 class="text-3xl font-bold text-gray-800">Checkout</h1>
+                <div class="w-24 h-1 bg-orange-500 mx-auto mt-2"/>
             </div>
-
-            <!-- Checkout steps -->
-            <div v-if="currentStep !== 'confirmation'" class="mb-8">
-                <div class="flex items-center justify-between max-w-2xl mx-auto">
-                    <div class="flex flex-col items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center mb-2"
-                            :class="currentStep === 'cart' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'">
-                            1
-                        </div>
-                        <span class="text-sm">Cart</span>
-                    </div>
-
-                    <div class="flex-1 h-1 mx-4" :class="currentStep === 'cart' ? 'bg-gray-200' : 'bg-orange-500'">
-                    </div>
-
-                    <div class="flex flex-col items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center mb-2"
-                            :class="currentStep === 'shipping' ? 'bg-orange-500 text-white' : (currentStep === 'cart' ? 'bg-gray-200 text-gray-600' : 'bg-orange-500 text-white')">
-                            2
-                        </div>
-                        <span class="text-sm">Shipping</span>
-                    </div>
-
-                    <div class="flex-1 h-1 mx-4" :class="currentStep === 'payment' ? 'bg-orange-500' : 'bg-gray-200'">
-                    </div>
-
-                    <div class="flex flex-col items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center mb-2"
-                            :class="currentStep === 'payment' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-600'">
-                            3
-                        </div>
-                        <span class="text-sm">Review & Pay</span>
-                    </div>
-                </div>
+            
+            <!-- Error message -->
+            <div v-if="errorMessage" class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+                <p>{{ errorMessage }}</p>
             </div>
-
-            <!-- Cart Step -->
-            <div v-if="currentStep === 'cart'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Cart Items -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4">Your Cart</h2>
-
-                        <!-- Select all -->
-                        <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-                            <div class="flex items-center">
-                                <input v-model="selectAll" type="checkbox"
-                                    class="w-5 h-5 rounded text-orange-500 focus:ring-orange-500 border-gray-400">
-                                <span class="ml-2 text-gray-700">Select All ({{ getSelectedItemsCount }} items)</span>
-                            </div>
-                            <button class="text-red-500 hover:text-red-700 text-sm font-medium"
-                                @click="removeSelectedItems">
-                                Remove
-                            </button>
-                        </div>
-
-                        <!-- Cart Items -->
-                        <div v-if="cartItems.length > 0" class="divide-y divide-gray-100">
-                            <div v-for="item in cartItems" :key="item.id" class="py-4 flex items-center">
-                                <div class="mr-4">
-                                    <input type="checkbox"
-                                        class="w-5 h-5 rounded text-orange-500 focus:ring-orange-500 border-gray-400"
-                                        :checked="selectedItems[item.id]" @change="toggleItemSelection(item.id)">
-                                </div>
-
-                                <!-- Product image -->
-                                <div class="w-16 h-16 bg-gray-100 rounded-md mr-4"></div>
-
-                                <!-- Product details -->
-                                <div class="flex-grow">
-                                    <h3 class="font-medium text-gray-800">{{ item.name }}</h3>
-                                    <p class="text-sm text-gray-500">{{ item.category }}</p>
-                                    <p class="font-semibold text-gray-900 mt-1">{{ formatPrice(item.price) }}</p>
-                                </div>
-
-                                <!-- Quantity control -->
-                                <div class="flex items-center border rounded-md mr-6 border-gray-400">
-                                    <button class="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                                        @click="decreaseQuantity(item)">
-                                        -
-                                    </button>
-                                    <span class="px-4 py-1 text-gray-800">{{ item.quantity }}</span>
-                                    <button class="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                                        @click="increaseQuantity(item)">
-                                        +
-                                    </button>
-                                </div>
-
-                                <!-- Total price -->
-                                <div class="text-right">
-                                    <p class="font-semibold text-orange-500">{{ formatPrice(item.price * item.quantity)
-                                        }}</p>
-                                    <button class="text-sm text-red-500 hover:text-red-700"
-                                        @click="removeItem(item.id)">
-                                        Remove
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Empty cart state -->
-                        <div v-if="cartItems.length === 0" class="text-center py-12">
-                            <p class="text-gray-500 mb-4">Your cart is empty</p>
-                            <button class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                                @click="goToProductPage">
-                                Continue Shopping
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Summary -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
-
-                        <!-- Summary Details -->
-                        <div class="space-y-3 mb-4">
-                            <div class="flex justify-between text-gray-700">
-                                <span>Items Price ({{ getSelectedItemsCount }} Items)</span>
-                                <span>{{ formatPrice(getItemsPrice) }}</span>
-                            </div>
-                            <div class="flex justify-between text-gray-700">
-                                <span>Shipping Fee</span>
-                                <span>{{ formatPrice(shippingFee) }}</span>
-                            </div>
-                            <div v-if="discount > 0" class="flex justify-between text-green-600">
-                                <span>Discount</span>
-                                <span>-{{ formatPrice(discount) }}</span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-3 mt-3">
-                                <div class="flex justify-between font-bold text-gray-900">
-                                    <span>Total Price</span>
-                                    <span>{{ formatPrice(totalPrice) }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Voucher -->
-                        <div class="mb-6">
-                            <div class="flex">
-                                <input v-model="voucher" type="text" placeholder="Enter Voucher Code"
-                                    class="flex-1 rounded-l-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500">
-                                <button class="px-4 py-2 bg-orange-500 text-white rounded-r-md hover:bg-orange-600"
-                                    @click="applyVoucher">
-                                    Apply
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Proceed to Checkout -->
-                        <button class="w-full py-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 font-medium"
-                            :disabled="cartItems.length === 0 || getSelectedItemsCount === 0"
-                            :class="{ 'opacity-50 cursor-not-allowed': cartItems.length === 0 || getSelectedItemsCount === 0 }"
-                            @click="processCheckout">
-                            Proceed to Checkout
-                        </button>
-                    </div>
-                </div>
+            
+            <!-- Loading indicator -->
+            <div v-if="isLoading" class="flex justify-center py-12">
+                <div class="loading loading-spinner loading-lg text-orange-500"/>
             </div>
-
-            <!-- Shipping Step -->
-            <div v-if="currentStep === 'shipping'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Shipping Information -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4">Shipping Information</h2>
-
-                        <!-- Customer Information Form -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-medium mb-3">Customer Information</h3>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="form-control">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                                    <input v-model="customerInfo.firstName" type="text"
-                                        class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                        required>
-                                </div>
-
-                                <div class="form-control">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                                    <input v-model="customerInfo.lastName" type="text"
-                                        class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                        required>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                                <div class="form-control">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                                    <input v-model="customerInfo.email" type="email"
-                                        class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                        required>
-                                </div>
-
-                                <div class="form-control">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                    <input v-model="customerInfo.phone" type="tel"
-                                        class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Shipping Address -->
-                        <div class="mb-6">
-                            <h3 class="text-lg font-medium mb-3">Shipping Address</h3>
-
-                            <div v-if="selectedAddress" class="p-4 bg-gray-50 rounded-md mb-4 border border-gray-300">
-                                <div class="flex justify-between">
-                                    <div>
-                                        <p class="font-medium text-gray-800">{{ selectedAddress.recipient }}</p>
-                                        <p class="text-gray-600">{{ selectedAddress.line1 }}</p>
-                                        <p class="text-gray-600">{{ selectedAddress.line2 }}</p>
-                                    </div>
-                                    <span v-if="selectedAddress.default"
-                                        class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">Default</span>
-                                </div>
-                            </div>
-
-                            <div class="flex gap-3">
-                                <button class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 flex-1"
-                                    @click="showAddressModal = true">
-                                    Select Address
-                                </button>
-                                <button
-                                    class="px-4 py-2 border border-gray-400 text-gray-700 rounded-md hover:bg-gray-50 flex-1"
-                                    @click="showNewAddressForm = true; showAddressModal = true">
-                                    Add New Address
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Navigation buttons -->
-                        <div class="flex justify-between mt-8">
-                            <button class="px-6 py-2 border border-gray-400 text-gray-700 rounded-md hover:bg-gray-50"
-                                @click="previousStep">
-                                Back to Cart
-                            </button>
-
-                            <button class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                                :disabled="!customerInfo.email || !selectedAddress"
-                                :class="{ 'opacity-50 cursor-not-allowed': !customerInfo.email || !selectedAddress }"
-                                @click="processCheckout">
-                                Continue to Payment
-                            </button>
-                        </div>
-                    </div>
+            
+            <!-- Order Confirmation -->
+            <div v-else-if="orderPlaced" class="bg-white rounded-lg shadow-lg p-8 text-center">
+                <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
                 </div>
-
-                <!-- Order Summary -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
-
-                        <!-- Cart Items Summary -->
-                        <div class="space-y-4 mb-6">
-                            <div v-for="item in cartItems.filter(i => selectedItems[i.id])" :key="item.id"
-                                class="flex items-center">
-                                <div class="w-12 h-12 bg-gray-100 rounded-md mr-3 flex-shrink-0"></div>
-                                <div class="flex-grow">
-                                    <p class="text-sm font-medium text-gray-800">{{ item.name }}</p>
-                                    <p class="text-xs text-gray-500">Qty: {{ item.quantity }}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm font-semibold">{{ formatPrice(item.price * item.quantity) }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Summary Details -->
-                        <div class="space-y-3 border-t border-gray-200 pt-4">
-                            <div class="flex justify-between text-gray-700">
-                                <span>Subtotal</span>
-                                <span>{{ formatPrice(getItemsPrice) }}</span>
-                            </div>
-                            <div class="flex justify-between text-gray-700">
-                                <span>Shipping</span>
-                                <span>{{ formatPrice(shippingFee) }}</span>
-                            </div>
-                            <div v-if="discount > 0" class="flex justify-between text-green-600">
-                                <span>Discount</span>
-                                <span>-{{ formatPrice(discount) }}</span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-3 mt-3">
-                                <div class="flex justify-between font-bold text-gray-900">
-                                    <span>Total</span>
-                                    <span>{{ formatPrice(totalPrice) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Order Placed Successfully!</h2>
+                <p class="mb-2">Your order number is: <span class="font-bold">{{ orderNumber }}</span></p>
+                <p class="text-gray-600 mb-6">Thank you for your order. We'll process it as soon as possible.</p>
+                
+                <button 
+                    class="btn btn-primary"
+                    @click="continueShopping"
+                >
+                    Continue Shopping
+                </button>
             </div>
-
-            <!-- Payment Step - Now showing Bank Transfer Info -->
-            <div v-if="currentStep === 'payment'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Payment Information -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4">Payment Information</h2>
-
-                        <!-- Payment Method - Bank Transfer Only -->
-                        <div class="mb-6">
-                            <div class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
-                                <div class="flex items-start">
-                                    <div class="bg-blue-100 p-3 rounded-full mr-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600"
-                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="font-medium text-blue-800">Payment by Bank Transfer</p>
-                                        <p class="text-sm text-blue-700 mt-1">
-                                            After reviewing your order, you'll receive our bank details to complete your
-                                            payment.
-                                            Your order will be processed once payment is confirmed.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="border border-gray-200 rounded-md p-5">
-                                <h3 class="text-lg font-medium mb-4">Order Review</h3>
-
-                                <!-- Order Items -->
-                                <div class="space-y-3 mb-6">
-                                    <div v-for="item in cartItems.filter(i => selectedItems[i.id])" :key="item.id"
-                                        class="flex justify-between py-2 border-b border-gray-100">
-                                        <div>
-                                            <p class="font-medium">{{ item.name }} <span class="text-gray-500">x{{
-                                                    item.quantity }}</span></p>
-                                            <p class="text-sm text-gray-500">{{ item.category }}</p>
-                                        </div>
-                                        <p class="font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Shipping Address -->
-                                <div class="mb-6">
-                                    <h4 class="font-medium text-gray-700 mb-2">Shipping To:</h4>
-                                    <div class="bg-gray-50 p-3 rounded-md border border-gray-200">
-                                        <p class="font-medium">{{ customerInfo.firstName }} {{ customerInfo.lastName }}
-                                        </p>
-                                        <p>{{ selectedAddress.line1 }}</p>
-                                        <p>{{ selectedAddress.line2 }}</p>
-                                        <p class="mt-1">Email: {{ customerInfo.email }}</p>
-                                        <p v-if="customerInfo.phone">Phone: {{ customerInfo.phone }}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Order Totals -->
-                                <div class="space-y-2 mb-6">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600">Subtotal:</span>
-                                        <span>{{ formatPrice(getItemsPrice) }}</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600">Shipping:</span>
-                                        <span>{{ formatPrice(shippingFee) }}</span>
-                                    </div>
-                                    <div v-if="discount > 0" class="flex justify-between text-green-600">
-                                        <span>Discount:</span>
-                                        <span>-{{ formatPrice(discount) }}</span>
-                                    </div>
-                                    <div class="flex justify-between font-bold text-lg pt-2 border-t border-gray-200">
-                                        <span>Total:</span>
-                                        <span class="text-orange-500">{{ formatPrice(totalPrice) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Navigation buttons -->
-                        <div class="flex justify-between mt-8">
-                            <button class="px-6 py-2 border border-gray-400 text-gray-700 rounded-md hover:bg-gray-50"
-                                @click="previousStep">
-                                Back to Shipping
-                            </button>
-
-                            <button class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                                @click="submitOrder">
-                                Place Order
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Summary -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg shadow-sm p-6">
-                        <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
-
-                        <!-- Summary Details -->
-                        <div class="space-y-3 mb-6">
-                            <div class="flex justify-between text-gray-700">
-                                <span>Subtotal</span>
-                                <span>{{ formatPrice(getItemsPrice) }}</span>
-                            </div>
-                            <div class="flex justify-between text-gray-700">
-                                <span>Shipping</span>
-                                <span>{{ formatPrice(shippingFee) }}</span>
-                            </div>
-                            <div v-if="discount > 0" class="flex justify-between text-green-600">
-                                <span>Discount</span>
-                                <span>-{{ formatPrice(discount) }}</span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-3 mt-3">
-                                <div class="flex justify-between font-bold text-gray-900">
-                                    <span>Total</span>
-                                    <span>{{ formatPrice(totalPrice) }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Payment Method Info -->
-                        <div class="bg-orange-50 p-4 rounded-md border border-orange-100">
-                            <h3 class="font-medium text-orange-800 mb-2">Bank Transfer Payment</h3>
-                            <p class="text-sm text-orange-700 mb-2">
-                                After placing your order, please transfer the total amount to our bank account.
-                                Include your order number as the payment reference.
-                            </p>
-                            <p class="text-sm text-orange-700 mb-2">
-                                After placing your order, please transfer the total amount to our bank account.
-                                Include your order number as the payment reference.
-                            </p>
-                            <p class="text-sm font-medium text-orange-800">
-                                Your order will be processed once payment is confirmed.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Order Confirmation with Bank Transfer Information -->
-            <div v-if="currentStep === 'confirmation'" class="max-w-3xl mx-auto">
-                <div class="bg-white rounded-lg shadow-sm p-8">
-                    <div class="text-center mb-8">
-                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-
-                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Thank You For Your Order!</h2>
-                        <p class="text-gray-600">
-                            Your order has been received and is pending payment.
-                            Please complete the bank transfer to process your order.
-                        </p>
-                    </div>
-
-                    <!-- Order Information -->
-                    <div class="bg-gray-50 rounded-md p-6 mb-8 border border-gray-200">
-                        <div class="flex justify-between mb-2">
-                            <span class="font-medium text-gray-700">Order Number:</span>
-                            <span>{{ orderNumber }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="font-medium text-gray-700">Order Date:</span>
-                            <span>{{ orderDate }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="font-medium text-gray-700">Order Total:</span>
-                            <span class="font-bold text-orange-500">{{ formatPrice(totalPrice) }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Bank Transfer Details -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-medium text-gray-800 mb-4">Complete Your Payment</h3>
-
-                        <div class="bg-blue-50 border border-blue-200 rounded-md p-6 mb-6">
-                            <h4 class="font-medium text-blue-800 mb-4">Bank Transfer Information</h4>
-
-                            <div class="space-y-4">
-                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
-                                    <span class="text-gray-600">Bank Name:</span>
-                                    <div class="flex items-center">
-                                        <span class="font-medium mr-2">{{ bankInfo.bankName }}</span>
-                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
-                                            @click="copyToClipboard(bankInfo.bankName)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
-                                    <span class="text-gray-600">Account Name:</span>
-                                    <div class="flex items-center">
-                                        <span class="font-medium mr-2">{{ bankInfo.accountName }}</span>
-                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
-                                            @click="copyToClipboard(bankInfo.accountName)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
-                                    <span class="text-gray-600">Account Number:</span>
-                                    <div class="flex items-center">
-                                        <span class="font-medium mr-2">{{ bankInfo.accountNumber }}</span>
-                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
-                                            @click="copyToClipboard(bankInfo.accountNumber)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
-                                    <span class="text-gray-600">Branch:</span>
-                                    <div class="flex items-center">
-                                        <span class="font-medium mr-2">{{ bankInfo.branch }}</span>
-                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
-                                            @click="copyToClipboard(bankInfo.branch)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
-                                    <span class="text-gray-600">Swift Code:</span>
-                                    <div class="flex items-center">
-                                        <span class="font-medium mr-2">{{ bankInfo.swiftCode }}</span>
-                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
-                                            @click="copyToClipboard(bankInfo.swiftCode)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="flex justify-between items-center pb-2 border-b border-blue-200">
-                                    <span class="text-gray-600">Amount to Transfer:</span>
-                                    <span class="font-bold text-blue-800">{{ formatPrice(totalPrice) }}</span>
-                                </div>
-
-                                <div class="flex justify-between items-center">
-                                    <span class="text-gray-600">Payment Reference:</span>
-                                    <div class="flex items-center">
-                                        <span class="font-medium mr-2">{{ orderNumber }}</span>
-                                        <button class="text-blue-600 hover:text-blue-800 text-sm"
-                                            @click="copyToClipboard(orderNumber)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
-                                                viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Instructions -->
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-md p-5">
-                            <h4 class="font-medium text-yellow-800 mb-3">Important Instructions</h4>
-                            <ul class="list-disc pl-5 space-y-2 text-yellow-700">
-                                <li>Please transfer the exact amount shown above.</li>
-                                <li>Include your order number as the payment reference to help us identify your payment.
-                                </li>
-                                <li>After making the transfer, save a copy of the payment receipt.</li>
-                                <li>Your order will be processed once we confirm your payment.</li>
-                                <li>You can view your order status in the "My Orders" section of your account.</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <!-- Transfer Instructions Section -->
-                    <div class="bg-blue-50 border border-blue-200 rounded-md p-6 mt-6">
-                        <h3 class="text-lg font-medium text-blue-800 mb-4">
-                            How to Transfer Payment
-                        </h3>
-
-                        <div class="space-y-6">
-                            <!-- Bank Information -->
-                            <div class="bg-white rounded-md p-4 border border-blue-100">
-                                <h4 class="font-medium text-gray-800 mb-3">Our Bank Details</h4>
-
-                                <div class="space-y-3">
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600">Bank Name:</span>
-                                        <span class="font-medium">Bangkok Bank</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600">Account Name:</span>
-                                        <span class="font-medium">Resonance Co., Ltd.</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600">Account Number:</span>
-                                        <span class="font-medium">123-4-56789-0</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600">Branch:</span>
-                                        <span class="font-medium">Main Branch</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-600">Swift Code:</span>
-                                        <span class="font-medium">BKKBTHBK</span>
-                                    </div>
-                                    <div class="flex justify-between font-bold">
-                                        <span>Amount to Transfer:</span>
-                                        <span class="text-orange-500">{{ formatPrice(totalPrice) }}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Transfer Methods -->
+            
+            <!-- Checkout Form -->
+            <div v-else class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Cart Summary -->
+                <div class="p-6 bg-gray-50 border-b">
+                    <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                    
+                    <div class="divide-y divide-gray-200">
+                        <div v-for="item in cartItems" :key="item.id" class="py-3 flex justify-between">
                             <div>
-                                <h4 class="font-medium text-gray-800 mb-3">Ways to Transfer Money</h4>
-
-                                <div class="space-y-4">
-                                    <!-- Method 1: Mobile Banking -->
-                                    <div class="bg-white rounded-md p-4 border border-blue-100">
-                                        <h5 class="font-medium text-gray-700 mb-2">Mobile Banking</h5>
-                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
-                                            <li>Log in to your mobile banking application</li>
-                                            <li>Select "Transfer" or "Pay" option</li>
-                                            <li>Choose "Transfer to another bank"</li>
-                                            <li>Enter our bank name (Bangkok Bank)</li>
-                                            <li>Enter our account number (123-4-56789-0)</li>
-                                            <li>Enter the amount: {{ formatPrice(totalPrice) }}</li>
-                                            <li>In the reference/note field, enter your Order Number</li>
-                                            <li>Confirm and complete the transfer</li>
-                                            <li>Save the transaction receipt or take a screenshot</li>
-                                        </ol>
-                                    </div>
-
-                                    <!-- Method 2: Internet Banking -->
-                                    <div class="bg-white rounded-md p-4 border border-blue-100">
-                                        <h5 class="font-medium text-gray-700 mb-2">Internet Banking</h5>
-                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
-                                            <li>Log in to your internet banking portal</li>
-                                            <li>Navigate to "Transfers" or "Payments" section</li>
-                                            <li>Select "Transfer to another bank"</li>
-                                            <li>Enter our bank name (Bangkok Bank)</li>
-                                            <li>Enter our account number (123-4-56789-0)</li>
-                                            <li>Enter the recipient name (Resonance Co., Ltd.)</li>
-                                            <li>Enter the amount: {{ formatPrice(totalPrice) }}</li>
-                                            <li>Add your Order Number in the reference field</li>
-                                            <li>Confirm the transaction and save the receipt</li>
-                                        </ol>
-                                    </div>
-
-                                    <!-- Method 3: Bank Counter -->
-                                    <div class="bg-white rounded-md p-4 border border-blue-100">
-                                        <h5 class="font-medium text-gray-700 mb-2">Bank Counter</h5>
-                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
-                                            <li>Visit any bank branch</li>
-                                            <li>Fill out a bank transfer form</li>
-                                            <li>Provide our bank name (Bangkok Bank)</li>
-                                            <li>Provide our account number (123-4-56789-0)</li>
-                                            <li>Provide the account name (Resonance Co., Ltd.)</li>
-                                            <li>Enter the transfer amount: {{ formatPrice(totalPrice) }}</li>
-                                            <li>Include your Order Number in the reference section</li>
-                                            <li>Complete the transfer with the bank teller</li>
-                                            <li>Keep the receipt provided by the bank</li>
-                                        </ol>
-                                    </div>
-
-                                    <!-- Method 4: ATM -->
-                                    <div class="bg-white rounded-md p-4 border border-blue-100">
-                                        <h5 class="font-medium text-gray-700 mb-2">ATM</h5>
-                                        <ol class="list-decimal pl-5 text-sm text-gray-600 space-y-1">
-                                            <li>Insert your ATM card and enter your PIN</li>
-                                            <li>Select "Transfer" from the main menu</li>
-                                            <li>Select "Other Bank Transfer" option</li>
-                                            <li>Enter the bank code for Bangkok Bank</li>
-                                            <li>Enter our account number (123-4-56789-0)</li>
-                                            <li>Enter the amount: {{ formatPrice(totalPrice) }}</li>
-                                            <li>Confirm the transaction</li>
-                                            <li>Keep the transaction receipt</li>
-                                            <li>Note your Order Number on the receipt</li>
-                                        </ol>
-                                    </div>
-                                </div>
+                                <h3 class="font-medium">{{ item.name }}</h3>
+                                <p class="text-sm text-gray-500">Qty: {{ item.quantity }}</p>
                             </div>
-
-                            <!-- What to do after transfer -->
-                            <div class="bg-yellow-50 rounded-md p-4 border border-yellow-200">
-                                <h4 class="font-medium text-yellow-800 mb-2">After Your Transfer</h4>
-                                <ol class="list-decimal pl-5 text-sm text-yellow-700 space-y-2">
-                                    <li>Keep your transfer receipt or screenshot as proof of payment</li>
-                                    <li>Your order will be processed once payment is confirmed (usually within 1
-                                        business day)</li>
-                                    <li>You'll receive a confirmation email when your payment is verified</li>
-                                    <li>You can check your order status anytime in your account dashboard</li>
-                                </ol>
-                            </div>
-
-                            <!-- Contact for assistance -->
-                            <div class="bg-orange-50 rounded-md p-4 border border-orange-200">
-                                <h4 class="font-medium text-orange-800 mb-2">Need Assistance?</h4>
-                                <p class="text-sm text-orange-700">
-                                    If you encounter any issues with your payment or have questions, please contact our
-                                    customer support:
-                                </p>
-                                <div class="mt-2 text-sm">
-                                    <div class="flex items-center text-orange-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                        <span>support@resonance.com</span>
-                                    </div>
-                                    <div class="flex items-center mt-1 text-orange-700">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                        </svg>
-                                        <span>+66 2 123 4567</span>
-                                    </div>
-                                </div>
+                            <div class="text-right">
+                                <p class="font-medium">{{ formatPrice(item.price * item.quantity) }}</p>
                             </div>
                         </div>
                     </div>
-                    <!-- Order Details Summary -->
-                    <div class="mb-8">
-                        <h3 class="text-lg font-medium text-gray-800 mb-4">Order Details</h3>
-
-                        <div class="space-y-3 mb-6 border-b border-gray-200 pb-6">
-                            <div v-for="item in cartItems.filter(i => selectedItems[i.id])" :key="item.id"
-                                class="flex justify-between">
-                                <span>{{ item.name }} (x{{ item.quantity }})</span>
-                                <span>{{ formatPrice(item.price * item.quantity) }}</span>
-                            </div>
-
-                            <div class="pt-3 border-t border-gray-200">
-                                <div class="flex justify-between text-gray-700">
-                                    <span>Subtotal</span>
-                                    <span>{{ formatPrice(getItemsPrice) }}</span>
-                                </div>
-                                <div class="flex justify-between text-gray-700">
-                                    <span>Shipping</span>
-                                    <span>{{ formatPrice(shippingFee) }}</span>
-                                </div>
-                                <div v-if="discount > 0" class="flex justify-between text-green-600">
-                                    <span>Discount</span>
-                                    <span>-{{ formatPrice(discount) }}</span>
-                                </div>
-                                <div class="flex justify-between font-bold text-orange-500 mt-2">
-                                    <span>Total</span>
-                                    <span>{{ formatPrice(totalPrice) }}</span>
-                                </div>
-                            </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="flex justify-between text-sm">
+                            <span>Subtotal</span>
+                            <span>{{ formatPrice(subtotal) }}</span>
                         </div>
-
-                        <!-- Shipping Information -->
-                        <div>
-                            <h4 class="font-medium text-gray-700 mb-2">Shipping To:</h4>
-                            <div class="bg-gray-50 p-3 rounded-md border border-gray-200">
-                                <p class="font-medium">{{ customerInfo.firstName }} {{ customerInfo.lastName }}</p>
-                                <p>{{ selectedAddress.line1 }}</p>
-                                <p>{{ selectedAddress.line2 }}</p>
-                                <p class="mt-1">Email: {{ customerInfo.email }}</p>
-                                <p v-if="customerInfo.phone">Phone: {{ customerInfo.phone }}</p>
-                            </div>
+                        <div class="flex justify-between text-sm mt-2">
+                            <span>Shipping</span>
+                            <span>{{ formatPrice(shippingFee) }}</span>
                         </div>
-                    </div>
-
-                    <div class="flex justify-center">
-                        <button class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                            @click="goToProductPage">
-                            Continue Shopping
-                        </button>
+                        <div class="flex justify-between font-bold text-lg mt-2 pt-2 border-t border-gray-200">
+                            <span>Total</span>
+                            <span>{{ formatPrice(total) }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Address Modal -->
-        <div v-if="showAddressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg p-6 max-w-md w-full">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-xl font-bold">Select Delivery Address</h3>
-                    <button class="text-gray-500 hover:text-gray-700" @click="showAddressModal = false">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                            stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-
-                <div v-if="!showNewAddressForm">
-                    <div v-for="address in addresses" :key="address.id" class="mb-3">
-                        <div class="p-3 border border-gray-400 rounded-md cursor-pointer hover:bg-gray-50"
-                            :class="{ 'border-orange-500 bg-orange-50': selectedAddress.id === address.id }"
-                            @click="selectedAddress = address; showAddressModal = false">
-                            <div class="flex items-start gap-3">
-                                <input type="radio" name="addressRadio"
-                                    class="mt-1 h-4 w-4 text-orange-500 border-gray-400 focus:ring-orange-500"
-                                    :checked="selectedAddress.id === address.id">
+                
+                <!-- Shipping Address -->
+                <div class="p-6">
+                    <h2 class="text-xl font-bold mb-4">Shipping Address</h2>
+                    
+                    <!-- Address selection toggle -->
+                    <div class="mb-6 flex space-x-4">
+                        <label class="flex items-center">
+                            <input v-model="useExistingAddress" type="radio" :value="true" class="radio radio-primary mr-2">
+                            <span>Use existing address</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input v-model="useExistingAddress" type="radio" :value="false" class="radio radio-primary mr-2">
+                            <span>Enter new address</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Existing addresses -->
+                    <div v-if="useExistingAddress" class="mb-6">
+                        <div
+v-for="address in addresses" :key="address.id" 
+                            class="border rounded-lg p-4 mb-3 cursor-pointer"
+                            :class="{'border-orange-500 bg-orange-50': selectedAddressId === address.id}"
+                            @click="selectedAddressId = address.id">
+                            <div class="flex items-start">
+                                <input type="radio" :checked="selectedAddressId === address.id" class="radio radio-primary mt-1 mr-3">
                                 <div>
                                     <p class="font-medium">{{ address.recipient }}</p>
-                                    <p class="text-gray-600 text-sm">{{ address.line1 }}</p>
-                                    <p class="text-gray-600 text-sm">{{ address.line2 }}</p>
+                                    <p>{{ address.line1 }}</p>
+                                    <p>{{ address.line2 }}</p>
+                                    <p>{{ address.city }}, {{ address.postal_code }}</p>
+                                    <p>{{ address.country }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="flex justify-end gap-2 mt-4">
-                        <button class="px-4 py-2 border border-gray-400 rounded-md hover:bg-gray-50"
-                            @click="showNewAddressForm = true">
-                            Add New
-                        </button>
-                        <button class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
-                            @click="showAddressModal = false">
-                            Confirm
+                    
+                    <!-- New address form -->
+                    <div v-else class="mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Full Name</span>
+                                </label>
+                                <input v-model="addressForm.recipient" type="text" class="input input-bordered" required>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Address Line 1</span>
+                                </label>
+                                <input v-model="addressForm.line1" type="text" class="input input-bordered" required>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Address Line 2</span>
+                                </label>
+                                <input v-model="addressForm.line2" type="text" class="input input-bordered">
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">City</span>
+                                </label>
+                                <input v-model="addressForm.city" type="text" class="input input-bordered" required>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Postal Code</span>
+                                </label>
+                                <input v-model="addressForm.postal_code" type="text" class="input input-bordered" required>
+                            </div>
+                            
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text">Country</span>
+                                </label>
+                                <input v-model="addressForm.country" type="text" class="input input-bordered" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Place Order Button -->
+                    <div class="mt-6">
+                        <button 
+                            class="btn btn-primary btn-block"
+                            :disabled="isSubmitting"
+                            @click="placeOrder"
+                        >
+                            <span v-if="isSubmitting">
+                                <span class="loading loading-spinner loading-xs mr-2"/>
+                                Processing...
+                            </span>
+                            <span v-else>Place Order</span>
                         </button>
                     </div>
-                </div>
-
-                <div v-else>
-                    <!-- New Address Form -->
-                    <form class="space-y-4" @submit.prevent="addNewAddress">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Recipient's Full Name</label>
-                            <input v-model="newAddress.recipient" type="text"
-                                class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                required>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 1</label>
-                            <input v-model="newAddress.line1" type="text"
-                                class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                placeholder="Street address, apartment, etc." required>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
-                            <input v-model="newAddress.line2" type="text"
-                                class="w-full rounded-md border border-gray-400 focus:ring-orange-500 focus:border-orange-500"
-                                placeholder="City, state, postal code">
-                        </div>
-
-                        <div class="flex justify-end gap-2 mt-6">
-                            <button type="button" class="px-4 py-2 border border-gray-400 rounded-md hover:bg-gray-50"
-                                @click="showNewAddressForm = false">
-                                Cancel
-                            </button>
-                            <button type="submit"
-                                class="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">
-                                Save Address
-                            </button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -1143,51 +345,10 @@ const paymentReference = computed(() => {
 </template>
 
 <style scoped>
-/* Custom styles for better UI */
-input[type="checkbox"],
-input[type="radio"] {
-    color: #f97316;
+.btn-primary {
+  @apply bg-orange-500 hover:bg-orange-600 border-orange-500;
 }
-
-/* Enhanced visible borders for all inputs */
-input,
-select,
-textarea {
-    border-color: #9ca3af;
-    /* border-gray-400 */
-    border-width: 1px;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    --tw-ring-color: rgba(249, 115, 22, 0.6);
-    border-color: #f97316;
-    border-width: 1px;
-    outline: none;
-}
-
-.focus\:ring-orange-500:focus {
-    --tw-ring-color: rgba(249, 115, 22, 0.6);
-    box-shadow: 0 0 0 2px var(--tw-ring-color);
-}
-
-.focus\:border-orange-500:focus {
-    border-color: #f97316;
-}
-
-.hover\:bg-orange-600:hover {
-    background-color: #ea580c;
-}
-
-/* Optional animation for transitions */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.3s;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
+.radio-primary:checked {
+  @apply bg-orange-500 border-orange-500;
 }
 </style>

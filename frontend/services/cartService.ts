@@ -1,141 +1,84 @@
 import { useAuthStore } from '~/stores/useAuth'
 
-interface CartItem {
+export interface CartItem {
   id: number
-  product: number
-  quantity: number
+  name: string
+  category: string
   price: number
-}
-
-interface Cart {
-  id: number
-  items: CartItem[]
-  total: number
-  created_at: string
-  updated_at: string
+  quantity: number
+  image?: string
 }
 
 export const cartService = {
-  async getCart(): Promise<Cart> {
-    try {
-      const response = await fetch(
-        `${useRuntimeConfig().public.apiUrl}/api/cart/`,
-        {
-          headers: {
-            'Authorization': `Token ${useAuthStore().token}`,
-          },
-        }
-      )
-
-      const result = await response.json()
-      if (result.status === 'success') {
-        return result.data
+  getCart(): CartItem[] {
+    if (import.meta.client) {
+      try {
+        const cartData = localStorage.getItem('cart')
+        return cartData ? JSON.parse(cartData) : []
+      } catch (error) {
+        console.error('Error getting cart:', error)
+        return []
       }
-      throw new Error(result.message)
-    } catch (error) {
-      console.error('Get cart error:', error)
-      throw error
+    }
+    return []
+  },
+
+  saveCart(cart: CartItem[]): void {
+    if (import.meta.client) {
+      try {
+        localStorage.setItem('cart', JSON.stringify(cart))
+      } catch (error) {
+        console.error('Error saving cart:', error)
+      }
     }
   },
 
-  async addToCart(productId: number, quantity: number = 1): Promise<Cart> {
-    try {
-      const response = await fetch(
-        `${useRuntimeConfig().public.apiUrl}/api/cart/add/`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Token ${useAuthStore().token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            product: productId,
-            quantity,
-          }),
-        }
-      )
+  addToCart(item: CartItem): CartItem[] {
+    const cart = this.getCart()
+    const existingItemIndex = cart.findIndex(cartItem => cartItem.id === item.id)
+    
+    if (existingItemIndex >= 0) {
+      cart[existingItemIndex].quantity += item.quantity
+    } else {
+      cart.push(item)
+    }
+    
+    this.saveCart(cart)
+    return cart
+  },
 
-      const result = await response.json()
-      if (result.status === 'success') {
-        return result.data
-      }
-      throw new Error(result.message)
-    } catch (error) {
-      console.error('Add to cart error:', error)
-      throw error
+  updateQuantity(itemId: number, quantity: number): CartItem[] {
+    const cart = this.getCart()
+    const itemIndex = cart.findIndex(item => item.id === itemId)
+    
+    if (itemIndex >= 0) {
+      cart[itemIndex].quantity = quantity
+      this.saveCart(cart)
+    }
+    
+    return cart
+  },
+
+  removeItem(itemId: number): CartItem[] {
+    const cart = this.getCart()
+    const updatedCart = cart.filter(item => item.id !== itemId)
+    this.saveCart(updatedCart)
+    return updatedCart
+  },
+
+  clearCart(): void {
+    if (import.meta.client) {
+      localStorage.removeItem('cart')
     }
   },
 
-  async updateCartItem(itemId: number, quantity: number): Promise<Cart> {
-    try {
-      const response = await fetch(
-        `${useRuntimeConfig().public.apiUrl}/api/cart/update/${itemId}/`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Token ${useAuthStore().token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            quantity,
-          }),
-        }
-      )
-
-      const result = await response.json()
-      if (result.status === 'success') {
-        return result.data
-      }
-      throw new Error(result.message)
-    } catch (error) {
-      console.error('Update cart item error:', error)
-      throw error
-    }
+  getCartTotal(): number {
+    const cart = this.getCart()
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0)
   },
 
-  async removeFromCart(itemId: number): Promise<Cart> {
-    try {
-      const response = await fetch(
-        `${useRuntimeConfig().public.apiUrl}/api/cart/remove/${itemId}/`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Token ${useAuthStore().token}`,
-          },
-        }
-      )
-
-      const result = await response.json()
-      if (result.status === 'success') {
-        return result.data
-      }
-      throw new Error(result.message)
-    } catch (error) {
-      console.error('Remove from cart error:', error)
-      throw error
-    }
-  },
-
-  async clearCart(): Promise<Cart> {
-    try {
-      const response = await fetch(
-        `${useRuntimeConfig().public.apiUrl}/api/cart/clear/`,
-        {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Token ${useAuthStore().token}`,
-          },
-        }
-      )
-
-      const result = await response.json()
-      if (result.status === 'success') {
-        return result.data
-      }
-      throw new Error(result.message)
-    } catch (error) {
-      console.error('Clear cart error:', error)
-      throw error
-    }
+  getCartItemCount(): number {
+    const cart = this.getCart()
+    return cart.reduce((count, item) => count + item.quantity, 0)
   }
-} 
+}

@@ -81,7 +81,6 @@ const formatStatus = (status: string) => {
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
-// Get status class for coloring
 const getStatusClass = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
@@ -109,9 +108,13 @@ onMounted(fetchStats);
 
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
-    <h1> Admin status : {{ authStore.isAdmin }}</h1>
-    <!-- Loading state -->
+    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+    <Icon name="heroicons:user-circle" class="h-8 w-8 mr-3" />
+    Welcome, <span class="text-orange-300 ml-2">{{ authStore.user?.username || 'Staff Member' }}</span>!
+  </h1>
+  <p class="text-slate-500 my-4">
+    Admin Dashboard | Last login: {{ new Date().toLocaleDateString() }}
+  </p>
     <div v-if="loading" class="flex justify-center my-8">
       <div class="loading loading-spinner loading-lg text-primary"/>
     </div>
@@ -142,11 +145,6 @@ onMounted(fetchStats);
       <div class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-all">
         <h3 class="text-gray-500 text-sm">Pending Orders</h3>
         <p class="text-2xl font-semibold">{{ orderStore.countByStatus.pending }}</p>
-      </div>
-      
-      <div class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-all">
-        <h3 class="text-gray-500 text-sm">Low Stock Products</h3>
-        <p class="text-2xl font-semibold">{{ stats.low_stock_products }}</p>
       </div>
     </div>
     
@@ -186,7 +184,7 @@ onMounted(fetchStats);
               </td>
               <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(order.created_at) }}</td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <NuxtLink :to="`/admin/orders/${order.id}`" class="text-blue-600 hover:text-blue-900">
+                <NuxtLink :to="`/admin/orders/`" class="text-blue-600 hover:text-blue-900">
                   View
                 </NuxtLink>
               </td>
@@ -274,7 +272,6 @@ class="bg-red-500 h-2 rounded-full"
         </div>
       </div>
       
-      <!-- Quick Actions -->
       <div class="bg-white p-6 rounded-lg shadow">
         <h3 class="text-gray-800 font-medium mb-4">Quick Actions</h3>
         <div class="space-y-2">
@@ -290,13 +287,6 @@ class="bg-red-500 h-2 rounded-full"
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             View All Orders
-          </NuxtLink>
-          
-          <NuxtLink to="/admin/support" class="btn btn-outline w-full justify-start">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            Customer Support
           </NuxtLink>
         </div>
       </div>

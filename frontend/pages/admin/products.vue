@@ -85,9 +85,6 @@ const fetchProducts = async () => {
     
     const data = await response.json();
     products.value = data;
-    
-    // Also fetch categories
-    await fetchCategories();
   } catch (err) {
     console.error('Error fetching products:', err);
     error.value = err instanceof Error ? err.message : 'Failed to load products data';
@@ -96,32 +93,6 @@ const fetchProducts = async () => {
   }
 };
 
-const fetchCategories = async () => {
-  try {
-    const response = await fetch(`${apiUrl}/api/categories/`, {
-      headers: {
-        'Authorization': `Token ${authStore.token}`
-      }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch categories: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    categories.value = data;
-  } catch (err) {
-    console.error('Error fetching categories:', err);
-    // Not stopping the show for categories
-    categories.value = [
-      { id: 1, name: 'Headphones', slug: 'headphones' },
-      { id: 2, name: 'Speakers', slug: 'speakers' },
-      { id: 3, name: 'Earbuds', slug: 'earbuds' },
-      { id: 4, name: 'Accessories', slug: 'accessories' },
-      { id: 5, name: 'Microphones', slug: 'microphones' }
-    ];
-  }
-};
 
 // CRUD operations
 const handleSubmit = async () => {

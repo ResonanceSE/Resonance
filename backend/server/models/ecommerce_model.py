@@ -3,20 +3,6 @@ from django.core.validators import MinValueValidator
 from decimal import Decimal
 
 
-class Category(models.Model):
-    name = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
-    description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        verbose_name_plural = "categories"
-
-    def __str__(self):
-        return self.name
-
-
 class Order(models.Model):
     STATUS_CHOICES = [
         ("pending", "Pending"),
@@ -87,5 +73,3 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review for {self.product.name} by {self.user.username}"
-
-
