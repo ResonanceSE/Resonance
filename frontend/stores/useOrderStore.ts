@@ -1,12 +1,9 @@
-// stores/useOrderStore.ts
 import { defineStore } from 'pinia';
-import { useRuntimeConfig } from 'nuxt/app';
 import { useAuthStore } from '~/stores/useAuth';
 
-// Order Status Type
+
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
-// Order Interface
 export interface Order {
   id: number;
   order_number: string;
@@ -14,13 +11,11 @@ export interface Order {
   status: OrderStatus;
   total_amount: string;
   created_at: string;
-  // Add more fields as needed
   customer_email?: string;
   shipping_address?: string;
   items?: OrderItem[];
 }
 
-// Order Item Interface
 export interface OrderItem {
   id: number;
   product_id: number;
@@ -30,7 +25,6 @@ export interface OrderItem {
   subtotal: number;
 }
 
-// Order Filter Options
 export interface OrderFilters {
   status?: OrderStatus;
   startDate?: string;
@@ -38,25 +32,18 @@ export interface OrderFilters {
   search?: string;
 }
 
-// Define the store
 export const useOrderStore = defineStore('orders', {
   state: () => ({
-    // All orders
     orders: [] as Order[],
-    
-    // Single order details with items
     currentOrder: null as Order | null,
-    
-    // UI states
+  
     loading: false,
     error: null as string | null,
-    
-    // Pagination
+  
     page: 1,
     limit: 10,
     total: 0,
     
-    // Filters
     filters: {
       status: undefined,
       startDate: undefined,
@@ -64,25 +51,19 @@ export const useOrderStore = defineStore('orders', {
       search: '',
     } as OrderFilters,
     
-    // Sorting
     sortBy: 'created_at',
     sortDir: 'desc',
   }),
   
   getters: {
-    // Get recent orders (most recent 5)
     recentOrders: (state) => {
       return [...state.orders]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 5);
     },
-    
-    // Get orders by status
     ordersByStatus: (state) => (status: OrderStatus) => {
       return state.orders.filter(order => order.status === status);
     },
-    
-    // Count orders by status
     countByStatus: (state) => {
       const counts = {
         pending: 0,
@@ -98,24 +79,16 @@ export const useOrderStore = defineStore('orders', {
       
       return counts;
     },
-    
-    // Calculate total sales
     totalSales: (state) => {
       return state.orders.reduce((sum, order) => {
         return sum + parseFloat(order.total_amount);
       }, 0);
     },
-    
-    // Get filtered and sorted orders
     filteredOrders: (state) => {
       let result = [...state.orders];
-      
-      // Apply status filter
       if (state.filters.status) {
         result = result.filter(order => order.status === state.filters.status);
       }
-      
-      // Apply date range filter
       if (state.filters.startDate) {
         const startDate = new Date(state.filters.startDate);
         result = result.filter(order => new Date(order.created_at) >= startDate);
@@ -125,8 +98,6 @@ export const useOrderStore = defineStore('orders', {
         const endDate = new Date(state.filters.endDate);
         result = result.filter(order => new Date(order.created_at) <= endDate);
       }
-      
-      // Apply search filter
       if (state.filters.search) {
         const searchTerm = state.filters.search.toLowerCase();
         result = result.filter(order => 
@@ -135,11 +106,9 @@ export const useOrderStore = defineStore('orders', {
         );
       }
       
-      // Apply sorting
       result.sort((a, b) => {
-        let aValue, bValue;
-        
-        // Determine which field to sort by
+        let aValue , bValue;
+
         switch (state.sortBy) {
           case 'total_amount':
             aValue = parseFloat(a.total_amount);
@@ -153,8 +122,6 @@ export const useOrderStore = defineStore('orders', {
             aValue = a[state.sortBy as keyof Order];
             bValue = b[state.sortBy as keyof Order];
         }
-        
-        // Determine sort direction
         if (state.sortDir === 'asc') {
           return aValue > bValue ? 1 : -1;
         } else {
@@ -165,13 +132,9 @@ export const useOrderStore = defineStore('orders', {
       return result;
     },
     
-    // Get paginated orders
     paginatedOrders: (state) => {
       const start = (state.page - 1) * state.limit;
       const end = start + state.limit;
-      
-      // This would be used when implementing client-side pagination
-      // For server-side pagination, you'd just return state.orders directly
       return state.orders.slice(start, end);
     },
   },
@@ -250,11 +213,9 @@ export const useOrderStore = defineStore('orders', {
           queryParams.append('search', this.filters.search);
         }
         
-        // Add pagination params
         queryParams.append('page', this.page.toString());
         queryParams.append('limit', this.limit.toString());
         
-        // Add sorting params
         queryParams.append('sort_by', this.sortBy);
         queryParams.append('sort_dir', this.sortDir);
         
@@ -270,17 +231,13 @@ export const useOrderStore = defineStore('orders', {
         
         const data = await response.json();
         
-        // Handle different API response formats
         if (Array.isArray(data)) {
-          // Direct array response
           this.orders = data;
           this.total = data.length;
         } else if (data.results && Array.isArray(data.results)) {
-          // Paginated response format
           this.orders = data.results;
           this.total = data.count || data.results.length;
         } else {
-          // Fallback
           this.orders = [];
           this.total = 0;
         }
@@ -294,7 +251,6 @@ export const useOrderStore = defineStore('orders', {
       }
     },
     
-    // Fetch a single order with details
     async fetchOrder(orderId: number) {
       this.setLoading(true);
       this.setError(null);
@@ -324,8 +280,6 @@ export const useOrderStore = defineStore('orders', {
         this.setLoading(false);
       }
     },
-    
-    // Update order status
     async updateOrderStatus(orderId: number, status: OrderStatus) {
       this.setLoading(true);
       this.setError(null);
@@ -348,16 +302,12 @@ export const useOrderStore = defineStore('orders', {
           throw new Error(`Failed to update order status: ${response.statusText}`);
         }
         
-        // Update the order in the local store
         const updatedOrder = await response.json();
-        
-        // Update in the orders array
         const index = this.orders.findIndex(order => order.id === orderId);
         if (index !== -1) {
           this.orders[index] = updatedOrder;
         }
         
-        // Update current order if it's the same one
         if (this.currentOrder && this.currentOrder.id === orderId) {
           this.currentOrder = updatedOrder;
         }
@@ -372,7 +322,6 @@ export const useOrderStore = defineStore('orders', {
       }
     },
     
-    // Delete an order
     async deleteOrder(orderId: number) {
       this.setLoading(true);
       this.setError(null);
@@ -393,10 +342,8 @@ export const useOrderStore = defineStore('orders', {
           throw new Error(`Failed to delete order: ${response.statusText}`);
         }
         
-        // Remove the order from the local store
         this.orders = this.orders.filter(order => order.id !== orderId);
         
-        // Clear current order if it's the same one
         if (this.currentOrder && this.currentOrder.id === orderId) {
           this.currentOrder = null;
         }

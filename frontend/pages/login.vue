@@ -73,19 +73,17 @@ const togglePasswordVisibility = () => {
     <div class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"/>
     <div class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"/>
     
-    <div class="relative top-[50%] w-full max-w-6xl m-auto rounded-3xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-sm">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-6xl rounded-3xl overflow-hidden shadow-2xl bg-white/80 backdrop-blur-sm">
       <!-- Grid container -->
       <div class="grid grid-cols-1 md:grid-cols-12">
         
-        <!-- Left side - Decorative content (7/12 columns on desktop) -->
+        <!-- Left side -->
         <div class="hidden md:block md:col-span-7 relative p-6 lg:p-16 bg-gradient-to-br from-blue-500 to-indigo-600">
-          <!-- Decorative shapes with enhanced styling -->
           <div class="absolute right-0 top-1/4 w-32 h-32 bg-teal-400 rounded-l-full opacity-75 animate-pulse"/>
           <div class="absolute left-0 top-0 w-40 h-48 bg-teal-500 rounded-r-full opacity-75 animate-float"/>
           <div class="absolute right-16 bottom-40 w-16 h-16 bg-orange-400 rotate-45 animate-spin-slow"/>
           <div class="absolute left-16 bottom-24 w-32 h-32 bg-pink-400 rounded-full opacity-75 animate-float-delay"/>
           
-          <!-- Enhanced main text with better contrast -->
           <div class="z-10 absolute top-20 right-8 lg:right-16">
             <h2 class="text-2xl md:text-3xl lg:text-4xl font-bold leading-tight text-right text-white drop-shadow-md">
               Explore the world of sounds<br>
@@ -218,24 +216,6 @@ const togglePasswordVisibility = () => {
               </div>
               
               <!-- Enhanced social login section -->
-              <div class="grid gap-4 pt-4">
-                <div class="relative flex items-center">
-                  <div class="flex-grow border-t border-gray-300"/>
-                  <span class="flex-shrink mx-4 text-gray-500">Or login with</span>
-                  <div class="flex-grow border-t border-gray-300"/>
-                </div>
-                <div class="grid grid-cols-3 gap-4 max-w-xs mx-auto">
-                  <button class="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all transform hover:-translate-y-0.5 duration-150">
-                    <Icon name="logos:google-icon" class="h-7 w-7 mx-auto" aria-hidden="true" />
-                  </button>
-                  <button class="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all transform hover:-translate-y-0.5 duration-150">
-                    <Icon name="logos:facebook" class="h-7 w-7 mx-auto" aria-hidden="true" />
-                  </button>
-                  <button class="p-3 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all transform hover:-translate-y-0.5 duration-150">
-                    <Icon name="logos:x" class="h-7 w-7 mx-auto" aria-hidden="true" />
-                  </button>
-                </div>
-              </div>
             </div>
             
             <!-- Enhanced footer section -->

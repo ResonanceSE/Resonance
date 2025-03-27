@@ -32,6 +32,12 @@ from .controller.auth_controller import (
 )
 from .views import home_view, keep_alive
 from .controller import admin_controller
+from .controller.customer_order_controller import (
+    create_order,
+    get_user_orders,
+    get_order_details,
+    get_user_by_id,
+)
 
 urlpatterns = [
     path("", home_view),
@@ -73,13 +79,9 @@ urlpatterns = [
         name="staff-order-detail",
     ),
     path(
-        "api/staff/support/",
-        admin_controller.manage_support_queries,
-        name="staff-support",
+        "api/user/get_user_by_id/<int:user_id>/", get_user_by_id, name="get-user-by-id"
     ),
-    path(
-        "api/staff/support/<int:query_id>/",
-        admin_controller.manage_support_queries,
-        name="staff-support-detail",
-    ),
+    path("api/orders/create/", create_order, name="create-order"),
+    path("api/orders/", get_user_orders, name="user-orders"),
+    path("api/orders/<int:order_id>/", get_order_details, name="order-details"),
 ]

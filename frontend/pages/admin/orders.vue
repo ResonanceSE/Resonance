@@ -1,7 +1,5 @@
-//frontend/pages/admin/orders.vue
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/useAuth';
-import { definePageMeta } from '#imports'
 
 definePageMeta({
   layout: 'admin',
@@ -16,9 +14,9 @@ interface OrderItem {
 }
 
 interface Order {
+  user : string;
   id: number;
   order_number: string;
-  user: string;
   status: string;
   total_amount: string;
   shipping_address: string;
@@ -65,7 +63,6 @@ const fetchOrders = async () => {
   }
 };
 
-// View order details
 const viewOrderDetails = async (order: Order) => {
   try {
     const response = await fetch(`${apiUrl}/api/staff/orders/${order.id}/`, {
@@ -86,12 +83,9 @@ const viewOrderDetails = async (order: Order) => {
   }
 };
 
-// Update order status
 const updateOrderStatus = async (order: Order) => {
   if (!order) return;
-  
   isUpdatingOrderStatus.value = true;
-  
   try {
     const response = await fetch(`${apiUrl}/api/staff/orders/${order.id}/`, {
       method: 'PUT',
@@ -129,7 +123,6 @@ const formatDate = (dateString: string) => {
     minute: '2-digit'
   });
 };
-
 // Get status class for coloring
 const getStatusClass = (status: string) => {
   switch (status.toLowerCase()) {
@@ -241,6 +234,7 @@ const printOrderDetails = () => {
 };
 
 onMounted(fetchOrders);
+
 </script>
 <template>
   <div>

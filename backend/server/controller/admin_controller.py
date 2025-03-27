@@ -42,8 +42,6 @@ def get_admin_stats(request):
 
 @api_view(["GET", "POST", "PUT", "DELETE"])
 def manage_products(request, product_id=None):
-    """Manage product listings - CRUD operations"""
-    # Custom permission check
     if not request.user.is_authenticated:
         return Response(
             {"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED
@@ -102,8 +100,6 @@ def manage_products(request, product_id=None):
 
 @api_view(["GET", "PUT"])
 def manage_orders(request, order_id=None):
-    """Access and process orders"""
-    # Custom permission check
     if not request.user.is_authenticated:
         return Response(
             {"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED
@@ -134,6 +130,7 @@ def manage_orders(request, order_id=None):
                             }
                             for item in order.items.all()
                         ],
+                        "user": order.user.username,
                     }
                 )
             except Order.DoesNotExist:
@@ -150,6 +147,7 @@ def manage_orders(request, order_id=None):
                         "status": order.status,
                         "total_amount": str(order.total_amount),
                         "created_at": order.created_at,
+                        "user": order.user.username,
                     }
                     for order in orders
                 ]
@@ -177,24 +175,3 @@ def manage_orders(request, order_id=None):
             return Response(
                 {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
             )
-
-
-@api_view(["GET", "POST", "PUT"])
-def manage_support_queries(request, query_id=None):
-    """Handle customer support queries"""
-    # Custom permission check
-    if not request.user.is_authenticated:
-        return Response(
-            {"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    if not (request.user.is_staff or request.user.is_superuser):
-        return Response(
-            {"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN
-        )
-
-    # This would integrate with your customer support system
-    # For now, return a placeholder response
-    return Response(
-        {"message": "Support query management will be implemented in the next phase"}
-    )

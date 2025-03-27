@@ -1,5 +1,6 @@
 import { useAuthStore } from '~/stores/useAuth'
 
+
 interface OrderItem {
   id: number
   product: number
@@ -8,6 +9,7 @@ interface OrderItem {
 }
 
 interface Order {
+  user : string
   id: number
   items: OrderItem[]
   total: number
@@ -18,9 +20,37 @@ interface Order {
   updated_at: string
 }
 
+interface CartItem {
+  id: number      
+  quantity: number
+  name?: string
+  price?: number
+  category?: string
+  image?: string
+}
+
 export const orderService = {
-  async createOrder(shippingAddress: string, paymentMethod: string): Promise<Order> {
+  async createOrder(shippingAddress: string, cartItems?: CartItem[]): Promise<Order> {
     try {
+      // Prepare the request body
+      const requestBody: {
+        shipping_address: string;
+        cart_items?: string;
+      } = {
+        shipping_address: shippingAddress,
+      }
+      
+      // If cart items are provided, include them in the request
+      if (cartItems && cartItems.length > 0) {
+        // Only send the necessary fields to the backend
+        const simplifiedCartItems = cartItems.map(item => ({
+          id: item.id,         // This is the product ID
+          quantity: item.quantity
+        }));
+        
+        requestBody.cart_items = JSON.stringify(simplifiedCartItems)
+      }
+      
       const response = await fetch(
         `${useRuntimeConfig().public.apiUrl}/api/orders/create/`,
         {
@@ -29,10 +59,7 @@ export const orderService = {
             'Authorization': `Token ${useAuthStore().token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            shipping_address: shippingAddress,
-            payment_method: paymentMethod,
-          }),
+          body: JSON.stringify(requestBody),
         }
       )
 
@@ -40,10 +67,10 @@ export const orderService = {
       if (result.status === 'success') {
         return result.data
       }
-      throw new Error(result.message)
+      throw new Error(result.message || "Failed to create order")
     } catch (error) {
       console.error('Create order error:', error)
-      throw error
+      throw error instanceof Error ? error : new Error('Unknown error occurred')
     }
   },
 
@@ -62,10 +89,10 @@ export const orderService = {
       if (result.status === 'success') {
         return result.data
       }
-      throw new Error(result.message)
+      throw new Error(result.message || "Failed to get orders")
     } catch (error) {
       console.error('Get orders error:', error)
-      throw error
+      throw error instanceof Error ? error : new Error('Unknown error occurred')
     }
   },
 
@@ -84,10 +111,10 @@ export const orderService = {
       if (result.status === 'success') {
         return result.data
       }
-      throw new Error(result.message)
+      throw new Error(result.message || "Failed to get order details")
     } catch (error) {
       console.error('Get order error:', error)
-      throw error
+      throw error instanceof Error ? error : new Error('Unknown error occurred')
     }
   },
 
@@ -107,10 +134,10 @@ export const orderService = {
       if (result.status === 'success') {
         return result.data
       }
-      throw new Error(result.message)
+      throw new Error(result.message || "Failed to cancel order")
     } catch (error) {
       console.error('Cancel order error:', error)
-      throw error
+      throw error instanceof Error ? error : new Error('Unknown error occurred')
     }
   },
 
@@ -129,10 +156,10 @@ export const orderService = {
       if (result.status === 'success') {
         return result.data
       }
-      throw new Error(result.message)
+      throw new Error(result.message || "Failed to get order history")
     } catch (error) {
       console.error('Get order history error:', error)
-      throw error
+      throw error instanceof Error ? error : new Error('Unknown error occurred')
     }
   }
-} 
+}

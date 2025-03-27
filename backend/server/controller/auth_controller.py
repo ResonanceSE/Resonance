@@ -71,12 +71,6 @@ class RegisterAPI(APIView):
                 password=data["password"],
                 first_name=data.get("first_name", ""),
                 last_name=data.get("last_name", ""),
-                phone_number=data.get("phone_number", ""),
-                address=data.get("address", ""),
-                city=data.get("city", ""),
-                state=data.get("state", ""),
-                postal_code=data.get("postal_code", ""),
-                country=data.get("country", ""),
             )
 
             token = Token.objects.create(user=user)
@@ -109,12 +103,23 @@ class LoginAPI(APIView):
         # Check required fields
         if not all(k in data for k in ["username", "password"]):
             return Response(
-                {"status": "error", "message": "Username and password are required"},
+                {
+                    "status": "error",
+                    "message": "Username/email and password are required",
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Authenticate
-        user = authenticate(username=data["username"], password=data["password"])
+        username_or_email = data["username"]
+        password = data["password"]
+        user = None
+        user = authenticate(username=username_or_email, password=password)
+        if user is None and "@" in username_or_email:
+            try:
+                user_obj = Customer.objects.get(email=username_or_email)
+                user = authenticate(username=user_obj.username, password=password)
+            except Customer.DoesNotExist:
+                user = None
 
         if user:
             token, _ = Token.objects.get_or_create(user=user)

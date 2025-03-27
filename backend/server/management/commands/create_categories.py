@@ -20,14 +20,6 @@ class Command(BaseCommand):
                 "name": "Earbuds",
                 "description": "Compact and portable earbuds for on-the-go listening",
             },
-            {
-                "name": "Accessories",
-                "description": "Essential accessories for your audio equipment",
-            },
-            {
-                "name": "Microphones",
-                "description": "Professional microphones for recording and streaming",
-            },
         ]
 
         for category_data in categories:

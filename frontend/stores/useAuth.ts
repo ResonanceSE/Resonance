@@ -49,13 +49,20 @@ export const useAuthStore = defineStore('auth', {
       try {
         const user = await apiLogin(credentials);
         
-        // Store login time for analytics/tracking
         this.loginTime = new Date();
-        
-        // Update state
+      
         this.user = user;
         this.token = user.token;
         this.isLoggedIn = true;
+        
+        if (import.meta.client && user.username) {
+          const savedCart = localStorage.getItem(`savedCart_${user.username}`);
+          if (savedCart) {
+            localStorage.setItem('cart', savedCart);
+            localStorage.removeItem(`savedCart_${user.username}`);
+            window.dispatchEvent(new Event('cart-updated'));
+          }
+        }
         
         return user;
       } catch (error) {
@@ -92,7 +99,17 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true;
       
       try {
+        if (import.meta.client && this.user?.username) {
+          const currentCart = localStorage.getItem('cart');
+          if (currentCart) {
+            localStorage.setItem(`savedCart_${this.user.username}`, currentCart);
+          }
+        }
+        
         await apiLogout();
+        if (import.meta.client) {
+          localStorage.removeItem('cart');
+        }
       } catch (error) {
         console.error('Logout error:', error);
       } finally {
@@ -100,7 +117,6 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     
-    // Helper methods
     clearSession() {
       this.user = null;
       this.token = null;
@@ -120,6 +136,15 @@ export const useAuthStore = defineStore('auth', {
             this.token = token;
             this.isLoggedIn = true;
             this.loginTime = new Date();
+            
+            if (user.username) {
+              const savedCart = localStorage.getItem(`savedCart_${user.username}`);
+              if (savedCart && !localStorage.getItem('cart')) {
+                localStorage.setItem('cart', savedCart);
+                localStorage.removeItem(`savedCart_${user.username}`);
+                window.dispatchEvent(new Event('cart-updated'));
+              }
+            }
           }
         } catch (error) {
           console.error('Failed to initialize auth store:', error);

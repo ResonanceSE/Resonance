@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// Import the Product interface
-import { useProductFiltering } from '~/composables/useProductFiltering';
 
 interface Product {
   id: number;
