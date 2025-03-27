@@ -315,27 +315,6 @@ class="bg-red-500 h-2 rounded-full"
               <div class="bg-green-500 h-2 rounded-full w-full"/>
             </div>
           </div>
-          
-          <div>
-            <div class="flex justify-between text-sm mb-1">
-              <span>Database</span>
-              <span class="text-green-600">Operational</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-green-500 h-2 rounded-full w-full"/>
-            </div>
-          </div>
-          
-          <div>
-            <div class="flex justify-between text-sm mb-1">
-              <span>Payment Gateway</span>
-              <span class="text-green-600">Operational</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div class="bg-green-500 h-2 rounded-full w-full"/>
-            </div>
-          </div>
-          
           <div class="text-sm text-gray-500 mt-4">
             Last updated: {{ formatDate(new Date().toISOString()) }}
           </div>

@@ -22,7 +22,6 @@ class Customer(AbstractUser):
     reset_password_expires = models.DateTimeField(null=True, blank=True)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     preferred_language = models.CharField(max_length=10, default="en")
-    newsletter_subscription = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
