@@ -20,6 +20,38 @@ def create_order(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # Check if we should save the address
+    save_address = data.get("save_address", False)
+    shipping_address = data.get("shipping_address")
+
+    # Save the shipping address to the user's account if requested
+    if save_address and shipping_address:
+        try:
+            # Update the user's address
+            user.address = shipping_address
+
+            # Extract city, state, postal code if possible
+            address_parts = shipping_address.split("\n")
+            if len(address_parts) >= 4:
+                city_state_zip = address_parts[3].split(",")
+                if len(city_state_zip) >= 1:
+                    user.city = city_state_zip[0].strip()
+                if len(city_state_zip) >= 2:
+                    state_zip = city_state_zip[1].strip().split(" ", 1)
+                    if len(state_zip) >= 1:
+                        user.state = state_zip[0].strip()
+                    if len(state_zip) >= 2:
+                        user.postal_code = state_zip[1].strip()
+
+            # Set country if provided
+            if len(address_parts) >= 5:
+                user.country = address_parts[4].strip()
+
+            user.save()
+        except Exception as e:
+            # Log the error but continue with order creation
+            print(f"Error saving address: {str(e)}")
+
     items_data = data.get("items")
     if not items_data:
         return Response(
@@ -36,7 +68,7 @@ def create_order(request):
             order = Order.objects.create(
                 user=user,
                 order_number=order_number,
-                shipping_address=data["shipping_address"],
+                shipping_address=shipping_address,
                 total_amount=total_amount,
                 payment_status=False,
             )

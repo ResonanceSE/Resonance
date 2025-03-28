@@ -16,49 +16,85 @@ const isSubmitting = ref(false)
 const errorMessage = ref('')
 const orderPlaced = ref(false)
 const orderNumber = ref('')
+const useExistingAddress = ref(true)
+const existingAddress = ref(null)
+const isLoadingAddress = ref(false)
 
 const cartItems = ref([])
 
+// New address form
 const addressForm = reactive({
     recipient: '',
     line1: '',
     line2: '',
     city: '',
     postal_code: '',
+    state: '',
     country: ''
 })
 
-const useExistingAddress = ref(true)
-const addresses = ref([
-    {
-        id: 1,
-        recipient: 'John Doe',
-        line1: '123 Main Street',
-        line2: 'Apt 4B',
-        city: 'New York',
-        postal_code: '10001',
-        country: 'USA'
-    }
-])
-const selectedAddressId = ref(1)
-
 onMounted(() => {
     loadCart()
+    loadSavedAddress()
 })
+
+// Load the user's saved address from the server
+const loadSavedAddress = async () => {
+    if (!authStore.isLoggedIn) return
+
+    isLoadingAddress.value = true
+
+    try {
+        const response = await fetch(`${apiUrl}/api/auth/user/`, {
+            headers: {
+                'Authorization': `Token ${authStore.token}`
+            }
+        })
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch user data: ${response.statusText}`)
+        }
+
+        const userData = await response.json()
+
+        if (userData.status === 'success' && userData.data && userData.data.address) {
+            // Parse the address
+            const addressLines = userData.data.address.split('\n')
+
+            // Create a structured address object
+            existingAddress.value = {
+                recipient: addressLines[0] || '',
+                line1: addressLines[1] || '',
+                line2: addressLines[2] || '',
+                cityStateZip: addressLines[3] || '',
+                country: addressLines[4] || ''
+            }
+
+            // Default to using existing address if available
+            useExistingAddress.value = true
+        } else {
+            // If no address is found, default to entering a new one
+            useExistingAddress.value = false
+        }
+    } catch (error) {
+        console.error('Error loading saved address:', error)
+        useExistingAddress.value = false
+    } finally {
+        isLoadingAddress.value = false
+    }
+}
+
 const loadCart = () => {
     isLoading.value = true
     try {
-        const cartString = localStorage.getItem(`cart_${authStore.user.username || 'guest'}`)
-        console.log("Raw cart data from localStorage:", cartString)
+        const cartString = localStorage.getItem(`cart_${authStore.user?.username || 'guest'}`)
 
         if (cartString) {
             const parsedCart = JSON.parse(cartString)
-            console.log("Parsed cart data:", parsedCart)
             cartItems.value = parsedCart
         } else {
             cartItems.value = []
         }
-        console.log("Product IDs in cart:", cartItems.value.map(item => item.id))
 
         if (cartItems.value.length === 0 && !orderPlaced.value) {
             router.push('/cart')
@@ -70,19 +106,18 @@ const loadCart = () => {
         isLoading.value = false
     }
 }
+
 const verifyStockBeforeCheckout = async () => {
     if (cartItems.value.length === 0) return true;
 
     try {
         for (const item of cartItems.value) {
-            console.log(`Verifying stock for ${item.name}` , 'id ', item.id);
             const response = await fetch(`${apiUrl}/api/products/check-stock/${item.id}/`);
             if (!response.ok) {
                 throw new Error(`Failed to check stock for ${item.name}`);
             }
 
             const stockData = await response.json();
-            console.log('Current stock:', stockData.data.stock);
             const currentStock = stockData.data.stock;
 
             if (currentStock < item.quantity) {
@@ -115,17 +150,38 @@ const formatPrice = (price) => {
     return '$' + Number(price).toFixed(2)
 }
 
-const selectedAddress = computed(() => {
-    return addresses.value.find(addr => addr.id === selectedAddressId.value) || addresses.value[0]
-})
-
 const getFormattedAddress = () => {
-    if (useExistingAddress.value) {
-        const addr = selectedAddress.value
-        return `${addr.recipient}\n${addr.line1}\n${addr.line2}\n${addr.city}, ${addr.postal_code}\n${addr.country}`
+    if (useExistingAddress.value && existingAddress.value) {
+        const addr = existingAddress.value
+        return [
+            addr.recipient,
+            addr.line1,
+            addr.line2,
+            addr.cityStateZip,
+            addr.country
+        ].filter(Boolean).join('\n')
     } else {
-        return `${addressForm.recipient}\n${addressForm.line1}\n${addressForm.line2}\n${addressForm.city}, ${addressForm.postal_code}\n${addressForm.country}`
+        return [
+            addressForm.recipient,
+            addressForm.line1,
+            addressForm.line2,
+            `${addressForm.city}, ${addressForm.state} ${addressForm.postal_code}`,
+            addressForm.country
+        ].filter(Boolean).join('\n')
     }
+}
+
+const validateForm = () => {
+    if (useExistingAddress.value && existingAddress.value) {
+        return true
+    }
+
+    if (!addressForm.recipient || !addressForm.line1 || !addressForm.city || !addressForm.postal_code || !addressForm.country) {
+        errorMessage.value = 'Please fill in all required address fields'
+        return false
+    }
+
+    return true
 }
 
 const placeOrder = async () => {
@@ -134,13 +190,12 @@ const placeOrder = async () => {
         return;
     }
 
-    if (!useExistingAddress.value) {
-        if (!addressForm.recipient || !addressForm.line1 || !addressForm.city) {
-            errorMessage.value = 'Please fill in all required address fields';
-            return;
-        }
+    // Validate form
+    if (!validateForm()) {
+        return;
     }
 
+    // Check cart
     if (cartItems.value.length === 0) {
         errorMessage.value = 'Your cart is empty';
         return;
@@ -173,7 +228,8 @@ const placeOrder = async () => {
             },
             body: JSON.stringify({
                 shipping_address: shippingAddress,
-                items: items
+                items: items,
+                save_address: !useExistingAddress.value // Save new address if entered
             })
         })
 
@@ -218,7 +274,7 @@ const continueShopping = () => {
             </div>
 
             <!-- Loading indicator -->
-            <div v-if="isLoading" class="flex justify-center py-12">
+            <div v-if="isLoading || isLoadingAddress" class="flex justify-center py-12">
                 <div class="loading loading-spinner loading-lg text-orange-500" />
             </div>
 
@@ -279,7 +335,7 @@ const continueShopping = () => {
                     <h2 class="text-xl font-bold mb-4">Shipping Address</h2>
 
                     <!-- Address selection toggle -->
-                    <div class="mb-6 flex space-x-4">
+                    <div v-if="existingAddress" class="mb-6 flex space-x-4">
                         <label class="flex items-center">
                             <input v-model="useExistingAddress" type="radio" :value="true"
                                 class="radio radio-primary mr-2">
@@ -292,28 +348,32 @@ const continueShopping = () => {
                         </label>
                     </div>
 
-                    <!-- Existing addresses -->
-                    <div v-if="useExistingAddress" class="mb-6">
-                        <div v-for="address in addresses" :key="address.id"
-                            class="border rounded-lg p-4 mb-3 cursor-pointer"
-                            :class="{ 'border-orange-500 bg-orange-50': selectedAddressId === address.id }"
-                            @click="selectedAddressId = address.id">
+                    <!-- Existing address display -->
+                    <div v-if="useExistingAddress && existingAddress" class="mb-6">
+                        <div class="border rounded-lg p-4 mb-3 cursor-pointer border-orange-500 bg-orange-50">
                             <div class="flex items-start">
-                                <input type="radio" :checked="selectedAddressId === address.id"
-                                    class="radio radio-primary mt-1 mr-3">
+                                <div class="min-w-[24px] mt-1 mr-3">
+                                    <div class="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </div>
+                                </div>
                                 <div>
-                                    <p class="font-medium">{{ address.recipient }}</p>
-                                    <p>{{ address.line1 }}</p>
-                                    <p>{{ address.line2 }}</p>
-                                    <p>{{ address.city }}, {{ address.postal_code }}</p>
-                                    <p>{{ address.country }}</p>
+                                    <p class="font-medium">{{ existingAddress.recipient }}</p>
+                                    <p>{{ existingAddress.line1 }}</p>
+                                    <p v-if="existingAddress.line2">{{ existingAddress.line2 }}</p>
+                                    <p>{{ existingAddress.cityStateZip }}</p>
+                                    <p>{{ existingAddress.country }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- New address form -->
-                    <div v-else class="mb-6">
+                    <div v-if="!useExistingAddress" class="mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div class="form-control">
                                 <label class="label">
@@ -346,6 +406,13 @@ const continueShopping = () => {
 
                             <div class="form-control">
                                 <label class="label">
+                                    <span class="label-text">State/Province</span>
+                                </label>
+                                <input v-model="addressForm.state" type="text" class="input input-bordered">
+                            </div>
+
+                            <div class="form-control">
+                                <label class="label">
                                     <span class="label-text">Postal Code</span>
                                 </label>
                                 <input v-model="addressForm.postal_code" type="text" class="input input-bordered"
@@ -357,6 +424,14 @@ const continueShopping = () => {
                                     <span class="label-text">Country</span>
                                 </label>
                                 <input v-model="addressForm.country" type="text" class="input input-bordered" required>
+                            </div>
+
+                            <!-- Save address checkbox -->
+                            <div class="form-control md:col-span-2">
+                                <label class="cursor-pointer flex items-center gap-2 mt-2">
+                                    <input type="checkbox" checked class="checkbox checkbox-primary">
+                                    <span class="label-text">Save this address for future orders</span>
+                                </label>
                             </div>
                         </div>
                     </div>
