@@ -28,7 +28,6 @@ const loadCart = () => {
   isLoading.value = true
   try {
     cartItems.value = cartService.getCart()
-    // Initially select all items
     selectedItemIds.value = cartItems.value.map(item => item.id)
   } catch (error) {
     console.error('Error loading cart:', error)
@@ -57,10 +56,8 @@ const toggleItem = (id: number, event?: Event): void => {
 const toggleSelectAll = (): void => {
   console.log("Toggle select all")
   if (isAllItemsSelected.value) {
-    // Deselect all items
     selectedItemIds.value = []
   } else {
-    // Select all items
     selectedItemIds.value = cartItems.value.map(item => item.id)
   }
 }
@@ -151,7 +148,7 @@ const continueShopping = (): void => {
       
       <!-- Loading State -->
       <div v-if="isLoading" class="flex justify-center py-12">
-        <div class="loading loading-spinner loading-lg text-orange-500"></div>
+        <div class="loading loading-spinner loading-lg text-orange-500"/>
       </div>
       
       <!-- Cart Content -->
@@ -174,7 +171,7 @@ const continueShopping = (): void => {
                       <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                     </svg>
                   </div>
-                  <div v-else class="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                  <div v-else class="w-5 h-5 border-2 border-gray-300 rounded-full"/>
                 </div>
                 <span>{{ isAllItemsSelected ? 'Deselect All' : 'Select All Items' }}</span>
               </div>

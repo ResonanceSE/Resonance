@@ -58,8 +58,6 @@ const loadCart = () => {
         } else {
             cartItems.value = []
         }
-        
-        // Additional logging to see exactly what product IDs you're working with
         console.log("Product IDs in cart:", cartItems.value.map(item => item.id))
         
         if (cartItems.value.length === 0 && !orderPlaced.value) {

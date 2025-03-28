@@ -1,4 +1,3 @@
-//frontend/pages/admin/products.vue
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/useAuth';
 import { definePageMeta } from '#imports'
@@ -298,7 +297,8 @@ onMounted(() => {
       <ul class="divide-y divide-gray-200">
         <li v-for="product in products" :key="product.id" class="px-6 py-4 flex items-center justify-between">
           <div class="flex items-center">
-            <img v-if="product.image_url" :src="product.image_url" :alt="product.name"
+            <img
+v-if="product.image_url" :src="product.image_url" :alt="product.name"
               class="h-16 w-16 object-cover rounded">
             <div class="ml-4">
               <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
@@ -328,7 +328,8 @@ onMounted(() => {
     </div>
 
     <!-- Add/Edit Modal -->
-    <div v-if="showAddModal || showEditModal"
+    <div
+v-if="showAddModal || showEditModal"
       class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
       <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
         <div class="mt-3">
@@ -338,13 +339,15 @@ onMounted(() => {
           <form class="mt-4" @submit.prevent="handleSubmit">
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Name</label>
-              <input v-model="formData.name" type="text" required
+              <input
+v-model="formData.name" type="text" required
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
-              <select v-model="formData.category" required
+              <select
+v-model="formData.category" required
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                 <option v-for="category in categories" :key="category.id" :value="category.id">
                   {{ category.name }}
@@ -354,44 +357,51 @@ onMounted(() => {
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Brand</label>
-              <input v-model="formData.brand" type="text" required
+              <input
+v-model="formData.brand" type="text" required
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Price</label>
-              <input v-model.number="formData.price" type="number" step="0.01" required
+              <input
+v-model.number="formData.price" type="number" step="0.01" required
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Sale Price</label>
-              <input v-model.number="formData.sale_price" type="number" step="0.01"
+              <input
+v-model.number="formData.sale_price" type="number" step="0.01"
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Stock</label>
-              <input v-model.number="formData.stock" type="number" required
+              <input
+v-model.number="formData.stock" type="number" required
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">SKU</label>
-              <input v-model="formData.sku" type="text"
+              <input
+v-model="formData.sku" type="text"
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
-              <textarea v-model="formData.description" required rows="3"
+              <textarea
+v-model="formData.description" required rows="3"
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
             </div>
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Product Image</label>
               <div class="flex items-center space-x-4">
-                <input type="file" @change="handleImageUpload" accept="image/*"
-                  class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                <input
+type="file" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  @change="handleImageUpload">
                 <span v-if="isUploading">Uploading...</span>
               </div>
               <div v-if="imagePreview" class="mt-2">
@@ -400,7 +410,8 @@ onMounted(() => {
             </div>
             <div class="mb-4">
               <label class="block text-gray-700 text-sm font-bold mb-2">Connections</label>
-              <input v-model="formData.connections" type="text" required
+              <input
+v-model="formData.connections" type="text" required
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
             </div>
 
@@ -422,11 +433,13 @@ onMounted(() => {
             </div>
 
             <div class="flex justify-end space-x-4">
-              <button type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+              <button
+type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
                 @click="closeModal">
                 Cancel
               </button>
-              <button type="submit" :disabled="submitting"
+              <button
+type="submit" :disabled="submitting"
                 class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
                 {{ submitting ? 'Saving...' : 'Save' }}
               </button>
@@ -444,11 +457,13 @@ onMounted(() => {
           Are you sure you want to delete "{{ productToDelete?.name }}"? This action cannot be undone.
         </p>
         <div class="mt-4 flex justify-end space-x-4">
-          <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
+          <button
+class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
             @click="showDeleteModal = false">
             Cancel
           </button>
-          <button :disabled="deleting"
+          <button
+:disabled="deleting"
             class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50" @click="deleteProduct">
             {{ deleting ? 'Deleting...' : 'Delete' }}
           </button>

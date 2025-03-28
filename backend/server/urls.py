@@ -38,6 +38,10 @@ from .controller.customer_order_controller import (
     get_order_details,
     get_user_by_id,
 )
+from .controller.product_controller import (
+    upload_product_image,
+    delete_product_image,
+)
 
 urlpatterns = [
     path("", home_view),
@@ -78,6 +82,8 @@ urlpatterns = [
         admin_controller.manage_orders,
         name="staff-order-detail",
     ),
+    path('api/staff/products/<int:product_id>/upload-image/', upload_product_image, name='upload-product-image'),
+    path('api/staff/products/<int:product_id>/delete-image/', delete_product_image, name='delete-product-image'),
     path(
         "api/user/get_user_by_id/<int:user_id>/", get_user_by_id, name="get-user-by-id"
     ),

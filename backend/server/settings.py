@@ -113,7 +113,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "server.wsgi.application"
 
-
+IMGBB_API_KEY = os.getenv("API_IMG_KEY")
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
