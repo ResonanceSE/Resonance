@@ -11,13 +11,9 @@ from ..models import Order, OrderItem, Product, Customer
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_order(request):
-    """
-    Create a new order from the items provided in the request
-    """
     user = request.user
     data = request.data
 
-    # Check if we have the required data
     if not data.get("shipping_address"):
         return Response(
             {"status": "error", "message": "Shipping address is required"},
@@ -34,7 +30,6 @@ def create_order(request):
     try:
         with transaction.atomic():
             order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
-
             total_amount = Decimal("0.00")
 
             # Create order
@@ -46,16 +41,21 @@ def create_order(request):
                 payment_status=False,
             )
 
-            # Process items
+            # Create order items
             for item_data in items_data:
                 product_id = item_data.get("product_id")
                 quantity = item_data.get("quantity", 1)
-                price = (
-                    Decimal(str(item_data.get("price"))) / 100
-                ) 
-
+                price = Decimal(str(item_data.get("price"))) / 10
                 try:
                     product = Product.objects.get(id=product_id)
+                    if product.stock < quantity:
+                        raise ValueError(
+                            f"Not enough stock for {product.name}. Available: {product.stock}"
+                        )
+
+                    product.stock -= quantity
+                    product.save()
+
                 except Product.DoesNotExist:
                     raise ValueError(f"Product with ID {product_id} not found")
 

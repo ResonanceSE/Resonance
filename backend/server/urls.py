@@ -41,6 +41,8 @@ from .controller.customer_order_controller import (
 from .controller.product_controller import (
     upload_product_image,
     delete_product_image,
+    check_product_stock,
+    get_recommended_products,
 )
 
 urlpatterns = [
@@ -48,6 +50,16 @@ urlpatterns = [
     path("keepalive/", keep_alive),
     # Product api urls
     path("api/products/", get_all_products, name="all-products"),
+    path(
+        "api/products/recommendations/",
+        get_recommended_products,
+        name="recommended-products",
+    ),
+    path(
+        "api/products/check-stock/<int:id>/",
+        check_product_stock,
+        name="check-product-stock",
+    ),
     path("api/products/filters/", get_product_filters, name="product-filters"),
     path("api/products/<str:category>/", get_product_by_category, name="category"),
     path("api/products/<int:id>/", get_product_detailed_single_route, name="product"),
@@ -82,8 +94,16 @@ urlpatterns = [
         admin_controller.manage_orders,
         name="staff-order-detail",
     ),
-    path('api/staff/products/<int:product_id>/upload-image/', upload_product_image, name='upload-product-image'),
-    path('api/staff/products/<int:product_id>/delete-image/', delete_product_image, name='delete-product-image'),
+    path(
+        "api/staff/products/<int:product_id>/upload-image/",
+        upload_product_image,
+        name="upload-product-image",
+    ),
+    path(
+        "api/staff/products/<int:product_id>/delete-image/",
+        delete_product_image,
+        name="delete-product-image",
+    ),
     path(
         "api/user/get_user_by_id/<int:user_id>/", get_user_by_id, name="get-user-by-id"
     ),

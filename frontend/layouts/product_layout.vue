@@ -1,17 +1,14 @@
 <script setup>
-// Import the product filtering composable
 import { useProductFiltering } from '~/composables/useProductFiltering';
 
-// Shared layout state
 const pageTitle = inject('pageTitle', ref('Products'));
 const route = useRoute();
 const currentCategory = inject('currentCategory', ref(''));
 currentCategory.value = route.params.category || '';
 
-// Mobile filter modal state
+
 const filterModalOpen = ref(false);
 
-// Use the product filtering composable
 const {
   products,
   filteredProducts,
@@ -24,30 +21,24 @@ const {
   updateFilters
 } = useProductFiltering();
 
-// IMPORTANT: Define all reactive variables BEFORE using them in watchers
-// Filter data structures that will be populated from the API
+
 const brands = ref([]);
 const connections = ref([]);
 const priceRanges = ref([]);
 const searchQuery = ref('');
 const sortBy = ref('default');
 
-// Expandable sections state in the sidebar (desktop)
 const brandExpanded = ref(true);
 const connectionExpanded = ref(true);
 const priceExpanded = ref(true);
 
-// Expandable sections state in the modal (mobile)
 const modalBrandExpanded = ref(true);
 const modalConnectionExpanded = ref(true);
 const modalPriceExpanded = ref(true);
 
-// Initial loading state for filters
 const isLoadingFilters = ref(true);
 const filtersError = ref(null);
 
-// AFTER all variables are defined, set up watchers
-// Watch for route changes and update category accordingly
 watch(
   () => route.params.category,
   (newCategory) => {
@@ -55,10 +46,8 @@ watch(
     const category = newCategory || '';
     currentCategory.value = category;
     
-    // Update filter state with new category
     updateFilters({ 
       category: category,
-      // Reset other filters when changing categories
       brands: [],
       connections: [],
       priceRanges: [],
@@ -66,10 +55,8 @@ watch(
       sortBy: 'default'
     });
     
-    // Fetch products for new category
     fetchProducts(category);
     
-    // Reset UI state when category changes
     searchQuery.value = '';
     sortBy.value = 'default';
     brands.value.forEach(b => b.selected = false);
@@ -79,10 +66,8 @@ watch(
   { immediate: true }
 );
 
-// Convert API filter data to UI-compatible format
 const convertFiltersForUI = (apiFilterData) => {
   try {
-    // Map brands to UI format
     brands.value = (apiFilterData.brands || []).map(brand => ({
       name: brand.brand,
       selected: filters.brands.includes(brand.brand),
@@ -105,42 +90,10 @@ const convertFiltersForUI = (apiFilterData) => {
     }));
   } catch (error) {
     console.error('Error converting filters for UI:', error);
-    setDefaultFilters();
   }
 };
 
-// Set default filters if API fails
-const setDefaultFilters = () => {
-  if (brands.value.length === 0) {
-    brands.value = [
-      { name: 'Sony', selected: false },
-      { name: 'Bose', selected: false },
-      { name: 'JBL', selected: false },
-      { name: 'Sonos', selected: false },
-      { name: 'Harman Kardon', selected: false },
-    ];
-  }
-  
-  if (connections.value.length === 0) {
-    connections.value = [
-      { name: 'Bluetooth', selected: false },
-      { name: 'Wireless', selected: false },
-      { name: 'Wired', selected: false },
-      { name: 'USB-C', selected: false },
-    ];
-  }
-  
-  if (priceRanges.value.length === 0) {
-    priceRanges.value = [
-      { name: 'Under $100', selected: false },
-      { name: '$100 - $300', selected: false },
-      { name: '$300 - $500', selected: false },
-      { name: 'Over $500', selected: false },
-    ];
-  }
-};
 
-// Load filters from the API
 const loadFilters = async () => {
   isLoadingFilters.value = true;
   filtersError.value = null;

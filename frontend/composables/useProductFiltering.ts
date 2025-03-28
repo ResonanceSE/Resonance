@@ -180,7 +180,6 @@ interface Product {
       error,
       fetchProducts,
       fetchFilters,
-      applyFilters,
       updateFilters
     };
   }

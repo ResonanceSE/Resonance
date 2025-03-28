@@ -114,9 +114,10 @@ const processCheckout = (): void => {
     alert('Please select at least one item to checkout')
     return
   }
-  
   const checkoutCart = JSON.stringify(itemsForCheckout)
-  localStorage.setItem('checkout_cart', checkoutCart)
+  if (import.meta.client) {
+    localStorage.setItem('checkout_cart', checkoutCart)
+  }
   router.push('/checkout')
 }
 

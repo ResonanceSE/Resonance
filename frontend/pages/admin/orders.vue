@@ -14,7 +14,7 @@ interface OrderItem {
 }
 
 interface Order {
-  user : string;
+  user: string;
   id: number;
   order_number: string;
   status: string;
@@ -123,21 +123,53 @@ const formatDate = (dateString: string) => {
     minute: '2-digit'
   });
 };
-// Get status class for coloring
-const getStatusClass = (status: string) => {
+
+// Helper function to capitalize first letter
+const capitalize = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
+// Get customer initials for avatar
+const getInitials = (name: string) => {
+  if (!name) return 'A';
+  const parts = name.split(' ');
+  if (parts.length === 1) return name.charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+};
+
+// Get badge class for status
+const getBadgeClass = (status: string) => {
   switch (status.toLowerCase()) {
     case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'badge-warning';
     case 'processing':
-      return 'bg-blue-100 text-blue-800';
+      return 'badge-info';
     case 'shipped':
-      return 'bg-purple-100 text-purple-800';
+      return 'badge-secondary';
     case 'delivered':
-      return 'bg-green-100 text-green-800';
+      return 'badge-success';
     case 'cancelled':
-      return 'bg-red-100 text-red-800';
+      return 'badge-error';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'badge-ghost';
+  }
+};
+
+// Get select class for status dropdown
+const getSelectClass = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'pending':
+      return 'select-warning';
+    case 'processing':
+      return 'select-info';
+    case 'shipped':
+      return 'select-secondary';
+    case 'delivered':
+      return 'select-success';
+    case 'cancelled':
+      return 'select-error';
+    default:
+      return '';
   }
 };
 
@@ -164,15 +196,22 @@ const printOrderDetails = () => {
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: #f4f4f4; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: bold; font-size: 24px; color: #f97316; }
+        .order-id { font-size: 18px; }
+        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
       </style>
     </head>
     <body>
-      <h1>Order #${order.order_number}</h1>
+      <div class="header">
+        <div class="logo">Resonance</div>
+        <div class="order-id">Order #${order.order_number}</div>
+      </div>
       
       <div class="section">
         <h2>Order Information</h2>
         <p><strong>Date:</strong> ${formatDate(order.created_at)}</p>
-        <p><strong>Status:</strong> ${order.status}</p>
+        <p><strong>Status:</strong> ${capitalize(order.status)}</p>
         <p><strong>Payment Status:</strong> ${order.payment_status ? 'Paid' : 'Unpaid'}</p>
       </div>
       
@@ -188,9 +227,9 @@ const printOrderDetails = () => {
           <thead>
             <tr>
               <th>Product</th>
-              <th>Quantity</th>
-              <th>Price</th>
-              <th>Total</th>
+              <th style="text-align: center;">Quantity</th>
+              <th style="text-align: right;">Price</th>
+              <th style="text-align: right;">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -198,27 +237,38 @@ const printOrderDetails = () => {
   
   if (order.items && order.items.length > 0) {
     order.items.forEach(item => {
+      const itemTotal = (item.quantity * item.price).toFixed(2);
       printContent += `
         <tr>
           <td>${item.product}</td>
-          <td>${item.quantity}</td>
-          <td>${item.price}</td>
-          <td>${(item.quantity * item.price).toFixed(2)}</td>
+          <td style="text-align: center;">${item.quantity}</td>
+          <td style="text-align: right;">$${item.price}</td>
+          <td style="text-align: right;">$${itemTotal}</td>
         </tr>
       `;
     });
   } else {
     printContent += `
       <tr>
-        <td colspan="4">No items found in this order</td>
+        <td colspan="4" style="text-align: center;">No items found in this order</td>
       </tr>
     `;
   }
   
   printContent += `
           </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
+              <td style="text-align: right; font-weight: bold;">$${order.total_amount}</td>
+            </tr>
+          </tfoot>
         </table>
-        <p><strong>Total Amount:</strong> ${order.total_amount}</p>
+      </div>
+      
+      <div class="footer">
+        <p>Thank you for your order! If you have any questions, please contact us at support@resonance.com</p>
+        <p>© ${new Date().getFullYear()} Resonance - All rights reserved</p>
       </div>
     </body>
     </html>
@@ -234,117 +284,137 @@ const printOrderDetails = () => {
 };
 
 onMounted(fetchOrders);
-
 </script>
 <template>
   <div>
-    <h1 class="text-2xl font-bold mb-6">Orders Management</h1>
+    <h1 class="text-2xl font-bold mb-6 flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+      </svg>
+      Orders Management
+    </h1>
 
     <!-- Loading state -->
     <div v-if="loading" class="flex justify-center my-12">
-      <div class="loader animate-spin h-12 w-12 border-4 border-gray-300 rounded-full border-t-blue-600"/>
+      <div class="loading loading-spinner loading-lg text-primary"/>
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="bg-red-100 p-4 rounded-lg mb-6">
-      <p class="text-red-700">{{ error }}</p>
-      <button class="mt-2 text-blue-600 hover:text-blue-800" @click="fetchOrders">Try again</button>
+    <div v-else-if="error" class="alert alert-error mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Error</h3>
+        <div class="text-sm">{{ error }}</div>
+      </div>
+      <button class="btn btn-sm" @click="fetchOrders">Try again</button>
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="orders.length === 0" class="bg-gray-50 p-8 rounded-lg text-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
-      <p class="text-gray-500">Orders will appear here when customers make purchases.</p>
+    <div v-else-if="orders.length === 0" class="card bg-base-100 shadow-lg p-8 text-center">
+      <div class="card-body items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        <h3 class="text-xl font-bold mb-2">No orders found</h3>
+        <p class="text-gray-500">Orders will appear here when customers make purchases.</p>
+      </div>
     </div>
 
     <!-- Orders Table -->
-    <div v-else class="bg-white rounded-lg shadow overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order #</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50">
-            <td class="px-6 py-4 whitespace-nowrap font-medium">{{ order.order_number }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ order.user || 'Anonymous' }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ formatDate(order.created_at) }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">${{ order.total_amount }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span :class="getStatusClass(order.status)" class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full">
-                {{ order.status }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <button
-                class="text-blue-600 hover:text-blue-900"
-                @click="viewOrderDetails(order)"
-              >
-                View Details
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div v-else class="card bg-base-100 shadow-lg overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="table table-zebra w-full">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="order in orders" :key="order.id" class="hover">
+              <td class="font-medium">{{ order.order_number }}</td>
+              <td>{{ order.user || 'Anonymous' }}</td>
+              <td>{{ formatDate(order.created_at) }}</td>
+              <td>${{ order.total_amount }}</td>
+              <td>
+                <div :class="getBadgeClass(order.status)" class="badge">
+                  {{ capitalize(order.status) }}
+                </div>
+              </td>
+              <td>
+                <button
+                  class="btn btn-sm btn-outline btn-info"
+                  @click="viewOrderDetails(order)"
+                >
+                  View Details
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Order Details Modal -->
-    <div v-if="selectedOrder" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-semibold">
-            Order #{{ selectedOrder.order_number }}
-          </h2>
-          <button 
-            class="text-gray-500 hover:text-gray-700" 
-            @click="selectedOrder = null"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <div v-if="selectedOrder" class="modal modal-open">
+      <div class="modal-box max-w-3xl">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="font-bold text-xl flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-          </button>
+            Order #{{ selectedOrder.order_number }}
+          </h3>
+          <button class="btn btn-sm btn-circle" @click="selectedOrder = null">✕</button>
         </div>
 
         <div class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Order Information -->
             <div>
-              <h3 class="font-medium text-gray-900 mb-2">Order Information</h3>
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <p class="text-sm text-gray-500">Order Date</p>
-                    <p class="font-medium">{{ formatDate(selectedOrder.created_at) }}</p>
-                  </div>
-                  <div>
-                    <p class="text-sm text-gray-500">Total Amount</p>
-                    <p class="font-medium">${{ selectedOrder.total_amount }}</p>
-                  </div>
-                  <div>
-                    <p class="text-sm text-gray-500">Payment Status</p>
-                    <p class="font-medium">{{ selectedOrder.payment_status ? 'Paid' : 'Unpaid' }}</p>
-                  </div>
-                  <div>
-                    <p class="text-sm text-gray-500">Status</p>
-                    <div class="mt-1">
-                      <select
-                        v-model="selectedOrder.status"
-                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                        @change="updateOrderStatus(selectedOrder)"
-                      >
-                        <option v-for="status in orderStatuses" :key="status" :value="status">
-                          {{ status }}
-                        </option>
-                      </select>
+              <h3 class="font-medium text-gray-900 mb-2 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Order Information
+              </h3>
+              <div class="card bg-base-200 shadow-sm">
+                <div class="card-body p-4">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <p class="text-sm opacity-70">Order Date</p>
+                      <p class="font-medium">{{ formatDate(selectedOrder.created_at) }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm opacity-70">Total Amount</p>
+                      <p class="font-medium text-primary">${{ selectedOrder.total_amount }}</p>
+                    </div>
+                    <div>
+                      <p class="text-sm opacity-70">Payment Status</p>
+                      <div class="badge mt-1" :class="selectedOrder.payment_status ? 'badge-success' : 'badge-warning'">
+                        {{ selectedOrder.payment_status ? 'Paid' : 'Unpaid' }}
+                      </div>
+                    </div>
+                    <div>
+                      <p class="text-sm opacity-70">Status</p>
+                      <div class="mt-1">
+                        <select
+                          v-model="selectedOrder.status"
+                          class="select select-bordered select-sm w-full"
+                          :class="getSelectClass(selectedOrder.status)"
+                          @change="updateOrderStatus(selectedOrder)"
+                        >
+                          <option v-for="status in orderStatuses" :key="status" :value="status">
+                            {{ capitalize(status) }}
+                          </option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -353,80 +423,106 @@ onMounted(fetchOrders);
 
             <!-- Customer Information -->
             <div>
-              <h3 class="font-medium text-gray-900 mb-2">Customer Information</h3>
-              <div class="bg-gray-50 p-4 rounded-lg">
-                <p class="font-medium">{{ selectedOrder.user || 'Anonymous' }}</p>
-                <p class="text-sm text-gray-500 mt-2">Shipping Address</p>
-                <p class="whitespace-pre-line">{{ selectedOrder.shipping_address }}</p>
+              <h3 class="font-medium text-gray-900 mb-2 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                Customer Information
+              </h3>
+              <div class="card bg-base-200 shadow-sm">
+                <div class="card-body p-4">
+                  <div class="flex items-center mb-3">
+                    <div class="avatar placeholder mr-3">
+                      <div class="bg-neutral-focus text-neutral-content rounded-full w-8">
+                        <span>{{ getInitials(selectedOrder.user) }}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p class="font-medium">{{ selectedOrder.user || 'Anonymous Customer' }}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-sm opacity-70 mb-1">Shipping Address</p>
+                    <div class="p-3 bg-base-100 rounded-md">
+                      <p class="whitespace-pre-line text-sm">{{ selectedOrder.shipping_address }}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           <!-- Order Items -->
           <div>
-            <h3 class="font-medium text-gray-900 mb-2">Order Items</h3>
-            <div class="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-100">
-                  <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  <tr v-if="!selectedOrder.items || selectedOrder.items.length === 0">
-                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">No items found in this order</td>
-                  </tr>
-                  <tr v-for="item in selectedOrder.items" :key="item.id" class="hover:bg-gray-50">
-                    <td class="px-6 py-4">{{ item.product }}</td>
-                    <td class="px-6 py-4">{{ item.quantity }}</td>
-                    <td class="px-6 py-4">${{ item.price }}</td>
-                    <td class="px-6 py-4">${{ (item.quantity * item.price).toFixed(2) }}</td>
-                  </tr>
-                </tbody>
-              </table>
+            <h3 class="font-medium text-gray-900 mb-2 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+              </svg>
+              Order Items
+            </h3>
+            <div class="card bg-base-200 shadow-sm overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="table table-compact w-full">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th class="text-center">Quantity</th>
+                      <th class="text-right">Price</th>
+                      <th class="text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-if="!selectedOrder.items || selectedOrder.items.length === 0">
+                      <td colspan="4" class="text-center py-4 text-gray-500">No items found in this order</td>
+                    </tr>
+                    <tr v-for="item in selectedOrder.items" :key="item.id" class="hover">
+                      <td class="font-medium">{{ item.product }}</td>
+                      <td class="text-center">{{ item.quantity }}</td>
+                      <td class="text-right">${{ item.price }}</td>
+                      <td class="text-right font-medium">${{ (item.quantity * item.price).toFixed(2) }}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="3" class="text-right font-bold">Total:</td>
+                      <td class="text-right font-bold">${{ selectedOrder.total_amount }}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
 
           <!-- Order Actions -->
-          <div class="flex justify-end space-x-3">
+          <div class="modal-action border-t pt-4">
             <button
-              class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+              class="btn btn-outline"
               @click="selectedOrder = null"
             >
               Close
             </button>
             <button
               v-if="isUpdatingOrderStatus"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md"
+              class="btn btn-primary"
               disabled
             >
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-              </svg>
+              <span class="loading loading-spinner loading-xs mr-2"/>
               Updating...
             </button>
             <button
               v-else
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              class="btn btn-primary"
               @click="printOrderDetails"
             >
-              Print
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print Order
             </button>
           </div>
         </div>
       </div>
+      <label class="modal-backdrop" @click="selectedOrder = null"/>
     </div>
   </div>
 </template>
-
-
-
-<style scoped>
-.loader {
-  border-top-color: #3B82F6;
-}
-</style>

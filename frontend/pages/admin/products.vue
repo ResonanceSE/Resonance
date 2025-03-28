@@ -338,249 +338,390 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-bold">Products Management</h1>
-      <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" @click="showAddModal = true">
+      <button class="btn btn-primary" @click="showAddModal = true">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+        </svg>
         Add Product
       </button>
     </div>
 
     <!-- Loading state -->
     <div v-if="loading" class="flex justify-center my-12">
-      <div class="loader animate-spin h-12 w-12 border-4 border-gray-300 rounded-full border-t-blue-600" />
+      <div class="loading loading-spinner loading-lg text-primary"/>
     </div>
 
     <!-- Error state -->
-    <div v-else-if="error" class="bg-red-100 p-4 rounded-lg mb-6">
-      <p class="text-red-700">{{ error }}</p>
-      <button class="mt-2 text-blue-600 hover:text-blue-800" @click="fetchProducts">Try again</button>
+    <div v-else-if="error" class="alert alert-error mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <h3 class="font-bold">Error</h3>
+        <div class="text-sm">{{ error }}</div>
+      </div>
+      <button class="btn btn-sm btn-outline" @click="fetchProducts">Try again</button>
     </div>
 
     <!-- Product list -->
-    <div v-else class="bg-white shadow overflow-hidden sm:rounded-md">
+    <div v-else class="bg-white shadow rounded-lg overflow-hidden">
       <ul class="divide-y divide-gray-200">
-        <li v-for="product in products" :key="product.id" class="px-6 py-4 flex items-center justify-between">
-          <div class="flex items-center">
-            <img
-v-if="product.image_url" :src="product.image_url" :alt="product.name"
-              class="h-16 w-16 object-cover rounded">
-            <div v-else class="h-16 w-16 bg-gray-200 rounded flex items-center justify-center text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <div class="ml-4">
-              <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
-              <div class="mt-1 text-sm text-gray-500">
-                <p>Category: {{ getCategoryName(product.category) }}</p>
-                <p>Brand: {{ product.brand }}</p>
-                <p>Price: ${{ product.price }}</p>
-                <p class="mt-1">
-                  Stock: <span :class="getStockClass(product.stock)">{{ product.stock }}</span>
-                </p>
+        <li v-for="product in products" :key="product.id" class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 h-16 w-16 bg-gray-100 rounded-md overflow-hidden">
+                <img
+                  v-if="product.image_url" 
+                  :src="product.image_url" 
+                  :alt="product.name"
+                  class="h-full w-full object-cover"
+                >
+                <div v-else class="h-full w-full flex items-center justify-center text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
+                <div class="mt-1 text-sm text-gray-500 grid grid-cols-2 gap-x-4 gap-y-1">
+                  <p>Category: <span class="font-medium">{{ getCategoryName(product.category) }}</span></p>
+                  <p>Brand: <span class="font-medium">{{ product.brand }}</span></p>
+                  <p>Price: <span class="font-medium">${{ product.price }}</span></p>
+                  <p>
+                    Stock: <span :class="getStockClass(product.stock)" class="font-medium">{{ product.stock }}</span>
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span :class="getStatusBadgeClass(product.is_active)">
-              {{ product.is_active ? 'Active' : 'Inactive' }}
-            </span>
-            <button class="text-blue-600 hover:text-blue-900" @click="editProduct(product)">
-              Edit
-            </button>
-            <button class="text-red-600 hover:text-red-900" @click="confirmDelete(product)">
-              Delete
-            </button>
+            <div class="flex items-center space-x-3">
+              <span :class="getStatusBadgeClass(product.is_active)">
+                {{ product.is_active ? 'Active' : 'Inactive' }}
+              </span>
+              <button 
+                class="btn btn-sm btn-outline btn-info" 
+                @click="editProduct(product)"
+              >
+                Edit
+              </button>
+              <button 
+                class="btn btn-sm btn-outline btn-error" 
+                @click="confirmDelete(product)"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </li>
       </ul>
     </div>
-    <div
-v-if="showAddModal || showEditModal"
-      class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-      <div class="relative top-20 mx-auto p-5 border w-full max-w-xl shadow-lg rounded-md bg-white">
-        <div class="mt-3">
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ showEditModal ? 'Edit Product' : 'Add New Product' }}
-          </h3>
-          <form class="mt-4" @submit.prevent="handleSubmit">
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Name</label>
-              <input
-v-model="formData.name" type="text" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
 
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
-              <select
-v-model="formData.category" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                <option v-for="category in categories" :key="category.id" :value="category.id">
-                  {{ category.name }}
-                </option>
-              </select>
-            </div>
-
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Brand</label>
-              <input
-v-model="formData.brand" type="text" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Price</label>
-              <input
-v-model.number="formData.price" type="number" step="0.01" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Sale Price</label>
-              <input
-v-model.number="formData.sale_price" type="number" step="0.01"
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Stock</label>
-              <input
-v-model.number="formData.stock" type="number" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">SKU</label>
-              <input
-v-model="formData.sku" type="text"
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
-              <textarea
-v-model="formData.description" required rows="3"
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-            </div>
-            
-            <!-- Enhanced Image Upload UI -->
-            <div class="mb-6">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Product Image</label>
-              
-              <div v-if="formData.image_url && imagePreview" class="mb-4">
-                <div class="relative rounded-lg border overflow-hidden" style="width: 200px; height: 150px;">
-                  <img :src="imagePreview" alt="Product image" class="w-full h-full object-contain">
-                  <button
-                    type="button"
-                    class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                    @click="removeImage"
-                    title="Remove image"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                      <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
-                  </button>
-                </div>
+    <!-- Add/Edit Product Modal -->
+    <div v-if="showAddModal || showEditModal" class="modal modal-open">
+      <div class="modal-box max-w-3xl">
+        <h3 class="font-bold text-lg mb-6 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          {{ showEditModal ? 'Edit Product' : 'Add New Product' }}
+        </h3>
+        
+        <form class="space-y-6" @submit.prevent="handleSubmit">
+          <!-- Two-column layout for form -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left column: Basic info -->
+            <div class="space-y-4">
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Product Name*</span>
+                </label>
+                <input
+                  v-model="formData.name" 
+                  type="text" 
+                  required
+                  placeholder="Enter product name"
+                  class="input input-bordered w-full"
+                >
               </div>
-              
-              <div class="mb-2">
-                <div class="flex items-center space-x-4">
-                  <label class="flex-grow block cursor-pointer px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg hover:bg-gray-100 transition">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      class="hidden"
-                      @change="handleImageUpload"
-                    >
-                    <div class="flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span class="text-sm">{{ formData.image_url ? 'Change Image' : 'Upload Image' }}</span>
-                    </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Category*</span>
+                </label>
+                <select
+                  v-model="formData.category" 
+                  required
+                  class="select select-bordered w-full"
+                >
+                  <option disabled value="0">Select a category</option>
+                  <option v-for="category in categories" :key="category.id" :value="category.id">
+                    {{ category.name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Brand*</span>
+                </label>
+                <input
+                  v-model="formData.brand" 
+                  type="text" 
+                  required
+                  placeholder="Enter brand name"
+                  class="input input-bordered w-full"
+                >
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Connections*</span>
+                </label>
+                <input
+                  v-model="formData.connections" 
+                  type="text" 
+                  required
+                  placeholder="e.g. Bluetooth 5.0, 3.5mm"
+                  class="input input-bordered w-full"
+                >
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text font-semibold">Price*</span>
                   </label>
-                  
-                  <div v-if="isUploading" class="flex items-center text-gray-600">
-                    <div class="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin mr-2"></div>
-                    <span class="text-sm">Uploading...</span>
+                  <div class="input-group">
+                    <span>$</span>
+                    <input
+                      v-model.number="formData.price" 
+                      type="number" 
+                      step="0.01" 
+                      required
+                      min="0.01"
+                      placeholder="0.00"
+                      class="input input-bordered w-full"
+                    >
+                  </div>
+                </div>
+
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text font-semibold">Sale Price</span>
+                  </label>
+                  <div class="input-group">
+                    <span>$</span>
+                    <input
+                      v-model.number="formData.sale_price" 
+                      type="number" 
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      class="input input-bordered w-full"
+                    >
                   </div>
                 </div>
               </div>
-              
-              <!-- Error message -->
-              <p v-if="uploadError" class="text-red-500 text-sm mt-1">{{ uploadError }}</p>
-              
-              <!-- Success message -->
-              <p v-if="uploadSuccess" class="text-green-500 text-sm mt-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-                Image uploaded successfully
-              </p>
-              
-              <p class="text-gray-500 text-xs mt-1">Supports JPEG, PNG, GIF, WEBP. Max size: 5MB</p>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="form-control">
+                  <label class="label">
+                    <span class="label-text font-semibold">Stock*</span>
+                  </label>
+                  <input
+                    v-model.number="formData.stock" 
+                    type="number" 
+                    required
+                    min="0"
+                    placeholder="0"
+                    class="input input-bordered w-full"
+                  >
+                </div>
+              </div>
             </div>
 
-            <div class="mb-4">
-              <label class="block text-gray-700 text-sm font-bold mb-2">Connections</label>
-              <input
-v-model="formData.connections" type="text" required
-                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            <!-- Right column: Image, description, flags -->
+            <div class="space-y-4">
+              <!-- Image upload area with preview -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Product Image</span>
+                </label>
+                <div class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-4">
+                  <!-- Image preview -->
+                  <div v-if="formData.image_url && imagePreview" class="mb-4 flex justify-center">
+                    <div class="relative rounded-lg border overflow-hidden" style="width: 200px; height: 150px;">
+                      <img :src="imagePreview" alt="Product image" class="w-full h-full object-contain">
+                      <button
+                        type="button"
+                        class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        title="Remove image"
+                        @click="removeImage"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Upload button -->
+                  <div v-if="!formData.image_url || !imagePreview" class="flex flex-col items-center justify-center">
+                    <label class="w-full flex flex-col items-center px-4 py-6 bg-white text-blue rounded-lg shadow-lg tracking-wide border border-blue cursor-pointer hover:bg-blue-50 transition">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      <span class="mt-2 text-base leading-normal">Select an image</span>
+                      <input 
+                        type="file" 
+                        class="hidden" 
+                        accept="image/*"
+                        @change="handleImageUpload"
+                      >
+                    </label>
+                  </div>
+                  
+                  <!-- Change image button when image exists -->
+                  <div v-else class="flex justify-center mt-2">
+                    <label class="cursor-pointer inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>Change Image</span>
+                      <input 
+                        type="file" 
+                        class="hidden" 
+                        accept="image/*"
+                        @change="handleImageUpload"
+                      >
+                    </label>
+                  </div>
+                  
+                  <!-- Loading indicator -->
+                  <div v-if="isUploading" class="flex justify-center mt-4">
+                    <div class="flex items-center space-x-2">
+                      <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"/>
+                      <span class="text-sm text-gray-600">Uploading...</span>
+                    </div>
+                  </div>
+                  
+                  <!-- Error message -->
+                  <p v-if="uploadError" class="mt-2 text-sm text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    {{ uploadError }}
+                  </p>
+                  
+                  <!-- Success message -->
+                  <p v-if="uploadSuccess" class="mt-2 text-sm text-green-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline mr-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                    Image uploaded successfully
+                  </p>
+                </div>
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Description*</span>
+                </label>
+                <textarea
+                  v-model="formData.description" 
+                  rows="5"
+                  required
+                  placeholder="Enter product description"
+                  class="textarea textarea-bordered w-full h-32"
+                />
+              </div>
+
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Product Status</span>
+                </label>
+                <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                  <label class="cursor-pointer flex items-center gap-3">
+                    <input v-model="formData.is_active" type="checkbox" class="toggle toggle-primary" >
+                    <span>Active</span>
+                    <span class="text-xs text-gray-500">— Product is available for purchase</span>
+                  </label>
+
+                  <label class="cursor-pointer flex items-center gap-3">
+                    <input v-model="formData.is_featured" type="checkbox" class="toggle toggle-accent" >
+                    <span>Featured</span>
+                    <span class="text-xs text-gray-500">— Highlight product on homepage</span>
+                  </label>
+
+                  <label class="cursor-pointer flex items-center gap-3">
+                    <input v-model="formData.is_new" type="checkbox" class="toggle toggle-secondary" >
+                    <span>New</span>
+                    <span class="text-xs text-gray-500">— Mark as new product</span>
+                  </label>
+                </div>
+              </div>
             </div>
-
-            <div class="mb-4 space-y-2">
-              <label class="flex items-center">
-                <input v-model="formData.is_active" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                <span class="ml-2">Active</span>
-              </label>
-
-              <label class="flex items-center">
-                <input v-model="formData.is_featured" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                <span class="ml-2">Featured</span>
-              </label>
-
-              <label class="flex items-center">
-                <input v-model="formData.is_new" type="checkbox" class="form-checkbox h-4 w-4 text-blue-600">
-                <span class="ml-2">New</span>
-              </label>
-            </div>
-
-            <div class="flex justify-end space-x-4">
-              <button
-type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-                @click="closeModal">
-                Cancel
-              </button>
-              <button
-type="submit" :disabled="submitting"
-                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50">
-                {{ submitting ? 'Saving...' : 'Save' }}
-              </button>
-            </div>
-          </form>
-        </div>
+          </div>
+          
+          <div class="modal-action border-t pt-4">
+            <button
+              type="button" 
+              class="btn btn-outline"
+              @click="closeModal"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit" 
+              class="btn btn-primary"
+              :disabled="submitting"
+            >
+              <div v-if="submitting" class="flex items-center">
+                <span class="loading loading-spinner loading-xs mr-2"/>
+                Saving...
+              </div>
+              <span v-else>{{ showEditModal ? 'Update Product' : 'Create Product' }}</span>
+            </button>
+          </div>
+        </form>
       </div>
+      
+      <label class="modal-backdrop" @click="closeModal"/>
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-        <h3 class="text-lg font-medium text-gray-900">Confirm Delete</h3>
-        <p class="mt-2 text-sm text-gray-500">
-          Are you sure you want to delete "{{ productToDelete?.name }}"? This action cannot be undone.
+    <div v-if="showDeleteModal" class="modal modal-open">
+      <div class="modal-box">
+        <h3 class="font-bold text-lg text-error flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Delete Product
+        </h3>
+        <p class="py-4">
+          Are you sure you want to delete "<span class="font-semibold">{{ productToDelete?.name }}</span>"? This action cannot be undone.
         </p>
-        <div class="mt-4 flex justify-end space-x-4">
+        <div class="modal-action">
           <button
-class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300"
-            @click="showDeleteModal = false">
+            class="btn btn-outline"
+            @click="showDeleteModal = false"
+          >
             Cancel
           </button>
           <button
-:disabled="deleting"
-            class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50" @click="deleteProduct">
-            {{ deleting ? 'Deleting...' : 'Delete' }}
+            class="btn btn-error"
+            :disabled="deleting"
+            @click="deleteProduct"
+          >
+            <div v-if="deleting" class="flex items-center">
+              <span class="loading loading-spinner loading-xs mr-2"/>
+              Deleting...
+            </div>
+            <span v-else>Delete</span>
           </button>
         </div>
       </div>
+      <label class="modal-backdrop" @click="showDeleteModal = false"/>
     </div>
   </div>
 </template>

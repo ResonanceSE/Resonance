@@ -5,11 +5,11 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 
-// Add loading state
 const isLoading = ref(true);
 
-const userName = ref('Admin User');
-// Current route information
+const userName = computed(() => authStore.user?.username || 'Admin User');
+const userEmail = computed(() => authStore.user?.email || 'admin@example.com');
+
 const currentRoute = computed(() => route.path);
 const formattedRouteName = computed(() => {
   const parts = route.path.split('/');
@@ -31,9 +31,9 @@ const pageTitle = computed(() => {
 
 const getActiveClass = (path: string) => {
   if (path === '/admin') {
-    return route.path === path ? 'active bg-orange-600' : '';
+    return route.path === path ? 'active bg-primary text-primary-content' : '';
   }
-  return route.path.startsWith(path) ? 'active bg-gray-700' : '';
+  return route.path.startsWith(path) ? 'active bg-primary/10 text-primary' : '';
 };
 
 const logout = async () => {
@@ -77,14 +77,14 @@ definePageMeta({
 </script>
 
 <template>
-  <div class="drawer lg:drawer-open min-h-screen bg-gray-100">
+  <div class="drawer lg:drawer-open min-h-screen bg-base-100">
     <!-- Mobile drawer toggle -->
-    <input id="admin-drawer" type="checkbox" class="drawer-toggle" >
+    <input id="admin-drawer" type="checkbox" class="drawer-toggle">
     
     <!-- Page content -->
     <div class="drawer-content flex flex-col">
       <!-- Top header -->
-      <header class="bg-white shadow sticky top-0 z-10">
+      <header class="bg-base-100 shadow sticky top-0 z-10">
         <div class="navbar px-4">
           <!-- Mobile menu button -->
           <div class="flex-none lg:hidden">
@@ -97,19 +97,14 @@ definePageMeta({
           
           <!-- Title -->
           <div class="flex-1">
-            <h2 class="text-xl font-semibold text-gray-800">{{ pageTitle }}</h2>
+            <h2 class="text-xl font-semibold">{{ pageTitle }}</h2>
           </div>
           
           <!-- Logout button -->
-          <div class="flex-none">
-            <button class="btn btn-ghost text-red-600 hover:text-red-800" @click="logout">
-              Logout
-            </button>
-          </div>
         </div>
         
         <!-- Breadcrumbs -->
-        <div class="text-sm breadcrumbs px-4 py-2 bg-gray-50 border-t border-gray-200">
+        <div class="text-sm breadcrumbs px-4 py-2 bg-base-200 border-t border-base-300">
           <ul>
             <li><NuxtLink to="/admin">Admin</NuxtLink></li>
             <li v-if="currentRoute !== '/admin'">{{ formattedRouteName }}</li>
@@ -123,85 +118,132 @@ definePageMeta({
       </main>
       
       <!-- Footer -->
-      <footer class="footer footer-center p-4 bg-white text-base-content border-t">
+      <footer class="footer footer-center p-4 bg-base-100 text-base-content border-t">
         <div>
           <p>© {{ new Date().getFullYear() }} Resonance - All rights reserved</p>
         </div>
       </footer>
     </div>
     
-    <!-- Sidebar -->
     <div class="drawer-side z-20">
       <label for="admin-drawer" class="drawer-overlay"/>
-      <aside class="w-64 bg-slate-200 min-h-screen">
-        <!-- Logo -->
-        <div class="flex items-center justify-center h-16 bg-gray-900">
-          <h1 class="text-white text-xl font-semibold">Resonance System</h1>
+      <aside class="w-80 bg-gradient-to-b from-base-100 to-base-200 min-h-screen border-r border-base-300">
+        <div class="relative h-24 bg-gradient-to-r from-primary to-secondary flex items-center justify-center overflow-hidden">
+          <!-- Decorative circles -->
+          <div class="absolute -left-6 -top-6 w-16 h-16 bg-primary/30 rounded-full blur-sm"/>
+          <div class="absolute right-12 bottom-4 w-8 h-8 bg-secondary/30 rounded-full blur-sm"/>
+          
+          <!-- Logo -->
+          <div class="relative z-10 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-lg">
+              <span class="text-2xl font-bold text-primary">R</span>
+            </div>
+            <h1 class="text-white text-2xl font-bold tracking-wider">Resonance</h1>
+          </div>
         </div>
         
-        <!-- Navigation -->
-        <nav class="mt-5">
-          <ul class="menu menu-md p-0 [&_li>*]:rounded-none">
+        <!-- User profile section -->
+        <div class="p-4 border-b border-base-300">
+          <div class="flex items-center space-x-3">
+            <div class="avatar placeholder">
+              <div class="bg-neutral text-neutral-content rounded-full w-12">
+                <span>{{ userName.charAt(0).toUpperCase() }}</span>
+              </div>
+            </div>
+            <div>
+              <div class="font-bold">{{ userName }}</div>
+              <div class="text-xs opacity-70">{{ userEmail }}</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Navigation with enhanced styling -->
+        <div class="px-3 py-4">
+          <div class="mb-2 px-4 text-xs font-semibold uppercase text-base-content/50">Main Menu</div>
+          <ul class="menu menu-md rounded-box w-full">
             <li>
-              <NuxtLink to="/admin" :class="getActiveClass('/admin')" exact>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Dashboard
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/admin/products" :class="getActiveClass('/admin/products')">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-                Products
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/admin/orders" :class="getActiveClass('/admin/orders')">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                </svg>
-                Orders
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="/admin/support" :class="getActiveClass('/admin/support')">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                Support
+              <NuxtLink to="/admin" :class="getActiveClass('/admin')" class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </div>
+                <span>Dashboard</span>
               </NuxtLink>
             </li>
           </ul>
-        </nav>
-        
-        <!-- Logout button (mobile only) -->
-        <div class="absolute bottom-0 w-full p-4 bg-gray-900 lg:hidden">
-          <button class="btn btn-block btn-sm text-red-400 hover:text-red-300" @click="logout">
-            Logout
-          </button>
+          
+          <div class="divider">Management</div>
+          
+          <ul class="menu menu-md rounded-box w-full">
+            <li>
+              <NuxtLink to="/admin/products" :class="getActiveClass('/admin/products')" class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <span>Products</span>
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="/admin/orders" :class="getActiveClass('/admin/orders')" class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                </div>
+                <span>Orders</span>
+              </NuxtLink>
+            </li>
+          </ul>
+          
+          <div class="divider">Others</div>
+          
+          <ul class="menu menu-md rounded-box w-full">
+            <li>
+              <button class="flex items-center gap-3 font-medium hover:bg-error/10 text-error hover:text-error transition-all duration-200" @click="logout">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-error/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+                <span>Logout</span>
+              </button>
+            </li>
+          </ul>
         </div>
+        
       </aside>
     </div>
   </div>
 </template>
 
-
-
 <style scoped>
-.loader {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: #f97316;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
+.menu li .active {
+  position: relative;
+  font-weight: 600;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.menu li .active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  background-color: hsl(var(--p));
+  border-radius: 0 4px 4px 0;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.radial-progress {
+  animation: pulse 2s infinite;
 }
 </style>

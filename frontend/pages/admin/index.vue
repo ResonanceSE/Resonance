@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+
 import { useAuthStore } from '~/stores/useAuth';
 import { useOrderStore } from '~/stores/useOrderStore';
 import { definePageMeta } from '#imports'

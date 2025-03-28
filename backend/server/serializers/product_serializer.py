@@ -23,16 +23,6 @@ class ProductSerializer(serializers.ModelSerializer):
 
         validated_data["slug"] = slug
 
-        # Generate SKU if not provided
-        if "sku" not in validated_data:
-            # Generate a unique SKU based on product name and counter
-            base_sku = "".join(word[0].upper() for word in name.split())[:5]
-            sku = f"{base_sku}{counter:04d}"
-            while Product.objects.filter(sku=sku).exists():
-                counter += 1
-                sku = f"{base_sku}{counter:04d}"
-            validated_data["sku"] = sku
-
         return super().create(validated_data)
 
     def validate(self, data):

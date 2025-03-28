@@ -50,7 +50,7 @@ const loadCart = () => {
     try {
         const cartString = localStorage.getItem(`cart_${authStore.user.username || 'guest'}`)
         console.log("Raw cart data from localStorage:", cartString)
-        
+
         if (cartString) {
             const parsedCart = JSON.parse(cartString)
             console.log("Parsed cart data:", parsedCart)
@@ -59,7 +59,7 @@ const loadCart = () => {
             cartItems.value = []
         }
         console.log("Product IDs in cart:", cartItems.value.map(item => item.id))
-        
+
         if (cartItems.value.length === 0 && !orderPlaced.value) {
             router.push('/cart')
         }
@@ -70,6 +70,34 @@ const loadCart = () => {
         isLoading.value = false
     }
 }
+const verifyStockBeforeCheckout = async () => {
+    if (cartItems.value.length === 0) return true;
+
+    try {
+        for (const item of cartItems.value) {
+            console.log(`Verifying stock for ${item.name}` , 'id ', item.id);
+            const response = await fetch(`${apiUrl}/api/products/check-stock/${item.id}/`);
+            if (!response.ok) {
+                throw new Error(`Failed to check stock for ${item.name}`);
+            }
+
+            const stockData = await response.json();
+            console.log('Current stock:', stockData.data);
+            const currentStock = stockData.data.stock;
+
+            if (currentStock < item.quantity) {
+                errorMessage.value = `Sorry, there are only ${currentStock} units of "${item.name}" available. Please update your cart.`;
+                return false;
+            }
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error verifying stock:', error);
+        errorMessage.value = 'There was a problem verifying product availability. Please try again.';
+        return false;
+    }
+};
 
 const subtotal = computed(() => {
     return cartItems.value.reduce((sum, item) => sum + (item.price * item.quantity), 0)
@@ -102,35 +130,41 @@ const getFormattedAddress = () => {
 
 const placeOrder = async () => {
     if (!authStore.isLoggedIn) {
-        router.push('/login?redirect=/checkout')
-        return
+        router.push('/login?redirect=/checkout');
+        return;
     }
-    
+
     if (!useExistingAddress.value) {
         if (!addressForm.recipient || !addressForm.line1 || !addressForm.city) {
-            errorMessage.value = 'Please fill in all required address fields'
-            return
+            errorMessage.value = 'Please fill in all required address fields';
+            return;
         }
     }
-    
+
     if (cartItems.value.length === 0) {
-        errorMessage.value = 'Your cart is empty'
-        return
+        errorMessage.value = 'Your cart is empty';
+        return;
     }
-    
-    isSubmitting.value = true
-    errorMessage.value = ''
-    
+
+    isSubmitting.value = true;
+    errorMessage.value = '';
+
+    // Verify stock availability before proceeding
+    const stockAvailable = await verifyStockBeforeCheckout();
+    if (!stockAvailable) {
+        isSubmitting.value = false;
+        return;
+    }
+
     try {
         const shippingAddress = getFormattedAddress()
+
         const items = cartItems.value.map(item => ({
             product_id: item.id,
             quantity: item.quantity,
             price: item.price
         }))
-        
-        console.log("Sending order with items:", items)
-        
+
         const response = await fetch(`${apiUrl}/api/orders/create/`, {
             method: 'POST',
             headers: {
@@ -142,13 +176,16 @@ const placeOrder = async () => {
                 items: items
             })
         })
-        
+
         const result = await response.json()
-        
+
         if (response.ok && result.status === 'success') {
             orderNumber.value = result.data.order_number
             orderPlaced.value = true
-            localStorage.removeItem('cart')
+
+            if (import.meta.client) {
+                localStorage.removeItem(`cart_${authStore.user?.username || 'guest'}`)
+            }
             cartItems.value = []
         } else {
             throw new Error(result.message || 'Failed to create order')
@@ -172,45 +209,44 @@ const continueShopping = () => {
             <!-- Page header -->
             <div class="mb-8 text-center">
                 <h1 class="text-3xl font-bold text-gray-800">Checkout</h1>
-                <div class="w-24 h-1 bg-orange-500 mx-auto mt-2"/>
+                <div class="w-24 h-1 bg-orange-500 mx-auto mt-2" />
             </div>
-            
+
             <!-- Error message -->
             <div v-if="errorMessage" class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
                 <p>{{ errorMessage }}</p>
             </div>
-            
+
             <!-- Loading indicator -->
             <div v-if="isLoading" class="flex justify-center py-12">
-                <div class="loading loading-spinner loading-lg text-orange-500"/>
+                <div class="loading loading-spinner loading-lg text-orange-500" />
             </div>
-            
+
             <!-- Order Confirmation -->
             <div v-else-if="orderPlaced" class="bg-white rounded-lg shadow-lg p-8 text-center">
                 <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg
+xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
-                
+
                 <h2 class="text-2xl font-bold text-gray-800 mb-4">Order Placed Successfully!</h2>
                 <p class="mb-2">Your order number is: <span class="font-bold">{{ orderNumber }}</span></p>
                 <p class="text-gray-600 mb-6">Thank you for your order. We'll process it as soon as possible.</p>
-                
-                <button 
-                    class="btn btn-primary"
-                    @click="continueShopping"
-                >
+
+                <button class="btn btn-primary" @click="continueShopping">
                     Continue Shopping
                 </button>
             </div>
-            
+
             <!-- Checkout Form -->
             <div v-else class="bg-white rounded-lg shadow-lg overflow-hidden">
                 <!-- Cart Summary -->
                 <div class="p-6 bg-gray-50 border-b">
                     <h2 class="text-xl font-bold mb-4">Order Summary</h2>
-                    
+
                     <div class="divide-y divide-gray-200">
                         <div v-for="item in cartItems" :key="item.id" class="py-3 flex justify-between">
                             <div>
@@ -222,7 +258,7 @@ const continueShopping = () => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="mt-4 pt-4 border-t border-gray-200">
                         <div class="flex justify-between text-sm">
                             <span>Subtotal</span>
@@ -238,32 +274,38 @@ const continueShopping = () => {
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Shipping Address -->
                 <div class="p-6">
                     <h2 class="text-xl font-bold mb-4">Shipping Address</h2>
-                    
+
                     <!-- Address selection toggle -->
                     <div class="mb-6 flex space-x-4">
                         <label class="flex items-center">
-                            <input v-model="useExistingAddress" type="radio" :value="true" class="radio radio-primary mr-2">
+                            <input
+v-model="useExistingAddress" type="radio" :value="true"
+                                class="radio radio-primary mr-2">
                             <span>Use existing address</span>
                         </label>
                         <label class="flex items-center">
-                            <input v-model="useExistingAddress" type="radio" :value="false" class="radio radio-primary mr-2">
+                            <input
+v-model="useExistingAddress" type="radio" :value="false"
+                                class="radio radio-primary mr-2">
                             <span>Enter new address</span>
                         </label>
                     </div>
-                    
+
                     <!-- Existing addresses -->
                     <div v-if="useExistingAddress" class="mb-6">
                         <div
-v-for="address in addresses" :key="address.id" 
+v-for="address in addresses" :key="address.id"
                             class="border rounded-lg p-4 mb-3 cursor-pointer"
-                            :class="{'border-orange-500 bg-orange-50': selectedAddressId === address.id}"
+                            :class="{ 'border-orange-500 bg-orange-50': selectedAddressId === address.id }"
                             @click="selectedAddressId = address.id">
                             <div class="flex items-start">
-                                <input type="radio" :checked="selectedAddressId === address.id" class="radio radio-primary mt-1 mr-3">
+                                <input
+type="radio" :checked="selectedAddressId === address.id"
+                                    class="radio radio-primary mt-1 mr-3">
                                 <div>
                                     <p class="font-medium">{{ address.recipient }}</p>
                                     <p>{{ address.line1 }}</p>
@@ -274,7 +316,7 @@ v-for="address in addresses" :key="address.id"
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- New address form -->
                     <div v-else class="mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -282,37 +324,41 @@ v-for="address in addresses" :key="address.id"
                                 <label class="label">
                                     <span class="label-text">Full Name</span>
                                 </label>
-                                <input v-model="addressForm.recipient" type="text" class="input input-bordered" required>
+                                <input
+v-model="addressForm.recipient" type="text" class="input input-bordered"
+                                    required>
                             </div>
-                            
+
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Address Line 1</span>
                                 </label>
                                 <input v-model="addressForm.line1" type="text" class="input input-bordered" required>
                             </div>
-                            
+
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Address Line 2</span>
                                 </label>
                                 <input v-model="addressForm.line2" type="text" class="input input-bordered">
                             </div>
-                            
+
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">City</span>
                                 </label>
                                 <input v-model="addressForm.city" type="text" class="input input-bordered" required>
                             </div>
-                            
+
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Postal Code</span>
                                 </label>
-                                <input v-model="addressForm.postal_code" type="text" class="input input-bordered" required>
+                                <input
+v-model="addressForm.postal_code" type="text" class="input input-bordered"
+                                    required>
                             </div>
-                            
+
                             <div class="form-control">
                                 <label class="label">
                                     <span class="label-text">Country</span>
@@ -321,16 +367,12 @@ v-for="address in addresses" :key="address.id"
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Place Order Button -->
                     <div class="mt-6">
-                        <button 
-                            class="btn btn-primary btn-block"
-                            :disabled="isSubmitting"
-                            @click="placeOrder"
-                        >
+                        <button class="btn btn-primary btn-block" :disabled="isSubmitting" @click="placeOrder">
                             <span v-if="isSubmitting">
-                                <span class="loading loading-spinner loading-xs mr-2"/>
+                                <span class="loading loading-spinner loading-xs mr-2" />
                                 Processing...
                             </span>
                             <span v-else>Place Order</span>
@@ -344,9 +386,10 @@ v-for="address in addresses" :key="address.id"
 
 <style scoped>
 .btn-primary {
-  @apply bg-orange-500 hover:bg-orange-600 border-orange-500;
+    @apply bg-orange-500 hover:bg-orange-600 border-orange-500;
 }
+
 .radio-primary:checked {
-  @apply bg-orange-500 border-orange-500;
+    @apply bg-orange-500 border-orange-500;
 }
 </style>
