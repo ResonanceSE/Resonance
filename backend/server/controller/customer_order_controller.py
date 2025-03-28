@@ -45,7 +45,7 @@ def create_order(request):
             for item_data in items_data:
                 product_id = item_data.get("product_id")
                 quantity = item_data.get("quantity", 1)
-                price = Decimal(str(item_data.get("price"))) / 10
+                price = Decimal(str(item_data.get("price")))
                 try:
                     product = Product.objects.get(id=product_id)
                     if product.stock < quantity:

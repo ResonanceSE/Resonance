@@ -255,6 +255,7 @@ const handleLogout = async () => {
           <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
             <li v-if="!isLogin"><NuxtLink to="/login">Log In</NuxtLink></li>
             <li v-if="isLogin"><a>Settings</a></li>
+            <li v-if="authStore.isAdmin"><NuxtLink to="/admin">Admin</NuxtLink></li>
             <li v-if="isLogin"><a class="text-red-700" @click="openLogoutModal">Logout</a></li>
           </ul>
         </div>
@@ -376,6 +377,9 @@ const handleLogout = async () => {
               <Icon name="heroicons:user-circle" class="h-5 w-5" />
               Log In
             </NuxtLink>
+          </li>
+            <li v-if="authStore.isAdmin"><NuxtLink to="/admin">
+              Admin</NuxtLink>
           </li>
           <li v-if="isLogin">
             <a class="flex items-center text-warning gap-2 py-2" @click="openLogoutModal">
