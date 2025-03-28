@@ -100,7 +100,6 @@ class LoginAPI(APIView):
     def post(self, request):
         data = request.data
 
-        # Check required fields
         if not all(k in data for k in ["username", "password"]):
             return Response(
                 {

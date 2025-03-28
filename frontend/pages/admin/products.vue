@@ -44,13 +44,13 @@ const error = ref<string | null>(null);
 const submitting = ref(false);
 const deleting = ref(false);
 
-// UI control
+
 const showAddModal = ref(false);
 const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const productToDelete = ref<Product | null>(null);
 
-// Form data for adding/editing
+
 const formData = ref<Partial<Product>>({
   name: '',
   category: 0,
@@ -67,7 +67,7 @@ const formData = ref<Partial<Product>>({
   is_new: false
 });
 
-// Fetch products and categories on component mount
+
 const fetchProducts = async () => {
   loading.value = true;
   error.value = null;
@@ -94,7 +94,6 @@ const fetchProducts = async () => {
 };
 
 
-// CRUD operations
 const handleSubmit = async () => {
   submitting.value = true;
   
@@ -166,10 +165,32 @@ const deleteProduct = async () => {
     deleting.value = false;
   }
 };
+const fetchCategories = async () => {
+  try {
+    const response = await fetch(`${apiUrl}/api/categories/`, {
+      headers: {
+        'Authorization': `Token ${authStore.token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch categories: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    categories.value = data;
+  } catch (err) {
+    console.error('Error fetching categories:', err);
+  }
+};
 
 const getCategoryName = (categoryId: number): string => {
   const category = categories.value.find(c => c.id === categoryId);
-  return category ? category.name : 'Uncategorized';
+  if (category) return category.name;
+  if (categories.value.length === 0 && categoryId > 0) {
+    return `Category ID: ${categoryId}`;
+  }
+  return 'Uncategorized';
 };
 
 const getStockClass = (stock: number): string => {
@@ -204,7 +225,11 @@ const closeModal = () => {
   };
 };
 
-onMounted(fetchProducts);
+onMounted(() => {
+  fetchProducts();
+  fetchCategories();
+});
+
 </script>
 
 <template>

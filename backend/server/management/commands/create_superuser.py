@@ -10,7 +10,7 @@ class Command(BaseCommand):
         try:
             admin_data = {
                 "username": "kkhamwiset",
-                "email": "admin@example.com",
+                "email": "kritsakorn224@gmail.com",
                 "password": "ruflesis2210",
                 "first_name": "Admin",
                 "last_name": "User",

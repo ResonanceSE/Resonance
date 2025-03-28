@@ -11,7 +11,6 @@ class initializeController_Product:
         return "Initialize Controller"
 
 
-# Get all products
 @api_view(["GET"])
 def get_all_products(request):
     products = Product.objects.all()
@@ -122,16 +121,12 @@ def get_product_filters(request):
                 }
             )
     else:
-        # Default price ranges if no products exist
         price_ranges = [
             {"name": "Under $100", "min": 0, "max": 99.99, "count": 0},
             {"name": "$100 - $300", "min": 100, "max": 299.99, "count": 0},
             {"name": "$300 - $500", "min": 300, "max": 499.99, "count": 0},
             {"name": "Over $500", "min": 500, "max": None, "count": 0},
         ]
-
-    # Product types (you could extend your model to include a 'type' field)
-    # For now, let's return some default types based on product descriptions
 
     return Response(
         {

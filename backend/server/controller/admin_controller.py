@@ -4,8 +4,8 @@ from rest_framework import status
 from django.db.models import Sum
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Product, Order
-from ..serializers import ProductSerializer
+from ..models import Product, Order , Category
+from ..serializers import ProductSerializer , CategorySerializer
 
 
 @api_view(["GET"])
@@ -171,3 +171,8 @@ def manage_orders(request, order_id=None):
             return Response(
                 {"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND
             )
+@api_view(["GET"])
+def get_categories(request):
+        categories = Category.objects.all()
+        serializer = CategorySerializer(categories, many=True)
+        return Response(serializer.data)

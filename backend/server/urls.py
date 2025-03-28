@@ -81,6 +81,7 @@ urlpatterns = [
     path(
         "api/user/get_user_by_id/<int:user_id>/", get_user_by_id, name="get-user-by-id"
     ),
+    path("api/categories/", admin_controller.get_categories, name="categories"),
     path("api/orders/create/", create_order, name="create-order"),
     path("api/orders/", get_user_orders, name="user-orders"),
     path("api/orders/<int:order_id>/", get_order_details, name="order-details"),
