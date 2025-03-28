@@ -10,8 +10,6 @@ from ..serializers import ProductSerializer
 
 @api_view(["GET"])
 def get_admin_stats(request):
-    """Get sales statistics and analytics for admin dashboard"""
-    # Custom permission check
     if not request.user.is_authenticated:
         return Response(
             {"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED
@@ -22,11 +20,9 @@ def get_admin_stats(request):
             {"error": "Admin access required"}, status=status.HTTP_403_FORBIDDEN
         )
 
-    # Get date range (default: last 30 days)
     days = int(request.GET.get("days", 30))
     start_date = timezone.now() - timedelta(days=days)
 
-    # Calculate statistics
     stats = {
         "total_sales": Order.objects.filter(
             created_at__gte=start_date, status="delivered"

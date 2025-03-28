@@ -52,16 +52,11 @@ const showLogoutSuccessModal = ref(false);
 
 const loadCart = () => {
   try {
-    const cartData = localStorage.getItem('cart');
+    const username = authStore.user?.username || 'guest';
+    const cartData = localStorage.getItem(`cart_${username}`);
+    
     if (cartData) {
-      const parsedCart = JSON.parse(cartData);
-      const validCart = parsedCart.filter(item => item.id !== 4);
-      
-      cartItems.value = validCart;
-      return;
-    }
-    if (authStore.isLoggedIn) {
-      fetchCartFromAPI();
+      cartItems.value = JSON.parse(cartData);
     } else {
       cartItems.value = [];
     }
@@ -70,25 +65,13 @@ const loadCart = () => {
     cartItems.value = [];
   }
 };
-
-const fetchCartFromAPI = async () => {
-  try {
-    const response = await fetch(`${apiUrl}/api/cart/`, {
-      headers: {
-        'Authorization': `Token ${authStore.token}`
-      }
-    });
-    
-    if (response.ok) {
-      const data = await response.json();
-      if (data.status === 'success' && data.data && data.data.items) {
-        cartItems.value = data.data.items;
-      }
-    }
-  } catch (error) {
-    console.error('Error fetching cart from API:', error);
+watch(() => authStore.user?.username, (newUsername) => {
+  if (newUsername) {
+    loadCart();
+  } else {
+    cartItems.value = [];
   }
-};
+});
 
 const subtotal = computed(() => {
   return cartItems.value.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -465,7 +448,6 @@ class="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-200"
   transform: translateX(0);
 }
 
-/* Add spinner style for loading state */
 .spinner-white {
   border: 2px solid rgba(255, 255, 255, 0.3);
   border-top: 2px solid white;

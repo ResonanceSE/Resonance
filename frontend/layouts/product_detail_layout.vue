@@ -1,18 +1,34 @@
 <script setup>
 import { useAuthStore } from '~/stores/useAuth';
 const route = useRoute();
-const productId = route.params.id || route.query.id;
-const category = route.params.category || extractCategoryFromPath(route.path) || route.query.category;
+const router = useRouter();
 const authStore = useAuthStore();
-function extractCategoryFromPath(path) {
-  const parts = path.split('/');
-  if (parts.length >= 3 && parts[1] === 'products') {
-    return parts[2];
-  }
-  return null;
-}
 
-console.log("Product detail params:", { category, productId, path: route.path });
+const storeProductParams = (category, id) => {
+  if (category && id) {
+    localStorage.setItem('lastProductCategory', category);
+    localStorage.setItem('lastProductId', id);
+    console.log('Stored product params:', { category, id });
+  }
+};
+
+const getProductId = () => {
+  const routeId = route.params.id || route.query.id;
+  return routeId || localStorage.getItem('lastProductId');
+};
+
+const getCategory = () => {
+  const routeCategory = route.params.category || route.query.category;
+  return routeCategory || localStorage.getItem('lastProductCategory');
+};
+
+const productId = computed(() => getProductId());
+const category = computed(() => getCategory());
+
+watch([productId, category], ([newId, newCategory]) => {
+  console.log("Product parameters:", { category: newCategory, productId: newId, path: route.path });
+}, { immediate: true });
+
 const apiUrl = useRuntimeConfig().public.apiUrl || 'http://localhost:8000';
 
 const product = ref(null);
@@ -21,11 +37,12 @@ const error = ref(null);
 const addToCartSuccess = ref(false);
 const selectedImage = ref(0);
 const quantity = ref(1);
+const attemptedFetch = ref(false);
 
 const breadcrumbs = computed(() => [
   { name: 'Home', path: '/' },
   { name: 'Products', path: '/products' },
-  { name: capitalizeFirstLetter(category), path: `/products/${category}` },
+  { name: capitalizeFirstLetter(category.value), path: `/products/${category.value}` },
   { name: product.value?.name || 'Product Details', path: '' }
 ]);
 
@@ -44,7 +61,6 @@ const layoutProps = computed(() => {
     stock: product.value.stock || 0
   };
 });
-
 
 const capitalizeFirstLetter = (string) => {
   if (!string) return '';
@@ -96,8 +112,6 @@ const handleAddToCart = () => {
       quantity: quantity.value
     });
   }
-  console.log("Updated cart:", cart);
-  console.log("Username : ", authStore.user.username);
   localStorage.setItem(`cart_${authStore.user.username || 'guest'}`, JSON.stringify(cart));
   
   addToCartSuccess.value = true;
@@ -107,18 +121,25 @@ const handleAddToCart = () => {
 };
 
 const fetchProduct = async () => {
-  isLoading.value = true;
-  error.value = null;
-
-  if (!category || !productId) {
-    console.error('Missing required parameters for product fetch');
+  const currentCategory = category.value;
+  const currentProductId = productId.value;
+  
+  if (!currentCategory || !currentProductId) {
+    console.error('Missing required parameters for product fetch', { currentCategory, currentProductId });
     error.value = 'Invalid product URL. Missing category or ID.';
     isLoading.value = false;
+    attemptedFetch.value = true;
+    return;
   }
+  isLoading.value = true;
+  error.value = null;
+  attemptedFetch.value = true;
 
-  console.log(`Fetching product: ${apiUrl}/api/products/${category}/${productId}`);
+  const url = `${apiUrl}/api/products/${currentCategory}/${currentProductId}`;
+  console.log(`Fetching product: ${url}`);
+  
   try {
-    const response = await fetch(`${apiUrl}/api/products/${category}/${productId}`);
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`Failed to fetch product: ${response.status}`);
@@ -126,71 +147,75 @@ const fetchProduct = async () => {
     
     const data = await response.json();
     product.value = data;
+    
+    storeProductParams(currentCategory, currentProductId);
 
     selectedImage.value = 0;
     quantity.value = 1;
   } catch (err) {
     console.error('Error fetching product:', err);
     error.value = 'Failed to load product details. Please try again.';
-    
-    // Use mock data during development
-    if (process.env.NODE_ENV !== 'production') {
-      product.value = getMockProduct();
-    }
   } finally {
     isLoading.value = false;
   }
 };
 
-const getMockProduct = () => {
-  return {
-    id: productId,
-    name: `Premium ${category.charAt(0).toUpperCase() + category.slice(1, -1)}`,
-    brand: "Resonance",
-    category: category,
-    price: 349.99,
-    description: `Experience premium audio quality with our ${category} line. Designed for comfort and exceptional sound performance.`,
-    stock: 35,
-    images: [
-      `https://via.placeholder.com/500x500?text=${category}+Main`,
-      `https://via.placeholder.com/500x500?text=${category}+Side`,
-      `https://via.placeholder.com/500x500?text=${category}+Top`
-    ],
-    features: [
-      "Premium sound quality",
-      "30-hour battery life",
-      "Comfortable design"
-    ],
-    colors: [
-      { value: "black", label: "Black", hex: "#000000" },
-      { value: "silver", label: "Silver", hex: "#C0C0C0" },
-      { value: "blue", label: "Midnight Blue", hex: "#191970" }
-    ]
-  };
-};
-
-watch(() => route.fullPath, (newPath, oldPath) => {
-  if (newPath !== oldPath) {
-    console.log('Route changed, fetching new product data');
+const tryAgain = () => {
+  error.value = null;
+  const urlCategory = route.params.category || extractCategoryFromPath(route.path) || route.query.category;
+  const urlProductId = route.params.id || route.query.id;
+  
+  if (urlCategory && urlProductId) {
     fetchProduct();
+  } else {
+    const lastCategory = localStorage.getItem('lastProductCategory');
+    const lastProductId = localStorage.getItem('lastProductId');
+    
+    if (lastCategory && lastProductId) {
+      console.log('Redirecting to last known product:', { lastCategory, lastProductId });
+      router.replace(`/products/${lastCategory}/${lastProductId}`);
+    } else {
+      error.value = 'Cannot find product information. Please browse products from the main page.';
+      isLoading.value = false;
+    }
+  }
+};
+watch([productId, category], ([newId, newCategory]) => {
+  if (newId && newCategory) {
+    fetchProduct();
+  } else if (attemptedFetch.value) {
+    error.value = 'Invalid product URL. Missing category or ID.';
+    isLoading.value = false;
   }
 }, { immediate: true });
 
-let initialFetchDone = false;
 onMounted(() => {
-  if (!initialFetchDone) {
-    initialFetchDone = true;
-    fetchProduct();
-  }
+  window.addEventListener('popstate', () => {
+    console.log('Back/forward navigation detected');
+    setTimeout(() => {
+      const currentCategory = getCategory();
+      const currentProductId = getProductId();
+      
+      console.log('After popstate:', { currentCategory, currentProductId });
+      
+      if (currentCategory && currentProductId) {
+        fetchProduct();
+      }
+    }, 50);
+  });
 });
 
-// Provide data to child components
+onUnmounted(() => {
+  window.removeEventListener('popstate', () => {});
+});
+
 provide('product', product);
 provide('isLoading', isLoading);
 provide('error', error);
 provide('layoutProps', layoutProps);
 provide('handleAddToCart', handleAddToCart);
 provide('formatCurrency', formatCurrency);
+provide('tryAgain', tryAgain);
 </script>
 
 <template>

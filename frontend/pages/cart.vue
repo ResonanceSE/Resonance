@@ -1,6 +1,5 @@
 <script setup lang="ts">
-
-import { cartService} from '~/services/cartService'
+import { cartService } from '~/services/cartService'
 
 interface CartItem {
   id: number
@@ -18,7 +17,7 @@ definePageMeta({
 const router = useRouter()
 
 const cartItems = ref<CartItem[]>([])
-const selectedItems = ref<Record<number, boolean>>({})
+const selectedItemIds = ref<number[]>([])
 const isLoading = ref(true)
 
 onMounted(() => {
@@ -29,12 +28,8 @@ const loadCart = () => {
   isLoading.value = true
   try {
     cartItems.value = cartService.getCart()
-    console.log("Cart items:", cartItems.value)
-    const newSelectedItems: Record<number, boolean> = {}
-    cartItems.value.forEach(item => {
-      newSelectedItems[item.id] = true
-    })
-    selectedItems.value = newSelectedItems
+    // Initially select all items
+    selectedItemIds.value = cartItems.value.map(item => item.id)
   } catch (error) {
     console.error('Error loading cart:', error)
   } finally {
@@ -42,67 +37,82 @@ const loadCart = () => {
   }
 }
 
-const toggleItemSelection = (itemId: number) => {
-  selectedItems[itemId] = !selectedItems[itemId];
-};
+const isItemSelected = (id: number): boolean => {
+  return selectedItemIds.value.includes(id)
+}
 
-
-const selectAll = computed({
-  get: () => {
-    return cartItems.value.length > 0 && 
-           cartItems.value.every(item => selectedItems.value[item.id] === true)
-  },
-  set: (value: boolean) => {
-    const updatedSelection: Record<number, boolean> = { ...selectedItems.value }
-    cartItems.value.forEach(item => {
-      updatedSelection[item.id] = value
-    })
-    selectedItems.value = updatedSelection
+const toggleItem = (id: number, event?: Event): void => {
+  if (event) {
+    event.stopPropagation()
   }
+  
+  console.log("Toggle item:", id)
+  if (isItemSelected(id)) {
+    selectedItemIds.value = selectedItemIds.value.filter(itemId => itemId !== id)
+  } else {
+    selectedItemIds.value.push(id)
+  }
+}
+
+const toggleSelectAll = (): void => {
+  console.log("Toggle select all")
+  if (isAllItemsSelected.value) {
+    // Deselect all items
+    selectedItemIds.value = []
+  } else {
+    // Select all items
+    selectedItemIds.value = cartItems.value.map(item => item.id)
+  }
+}
+
+const isAllItemsSelected = computed(() => {
+  return cartItems.value.length > 0 && 
+         cartItems.value.every(item => isItemSelected(item.id))
 })
 
-
-const decreaseQuantity = (item : CartItem) => {
+const decreaseQuantity = (item: CartItem, event: Event): void => {
+  event.stopPropagation()
   if (item.quantity > 1) {
     item.quantity--
     cartService.updateQuantity(item.id, item.quantity)
   }
 }
 
-const increaseQuantity = (item : CartItem) => {
+const increaseQuantity = (item: CartItem, event: Event): void => {
+  event.stopPropagation()
   item.quantity++
   cartService.updateQuantity(item.id, item.quantity)
 }
 
-const removeItem = (itemId: number) => {
-  cartItems.value = cartItems.value.filter(item => item.id !== itemId);
-  selectedItems[itemId] = false;
-};
+const removeItem = (itemId: number, event: Event): void => {
+  event.stopPropagation()
+  cartItems.value = cartItems.value.filter(item => item.id !== itemId)
+  selectedItemIds.value = selectedItemIds.value.filter(id => id !== itemId)
+  cartService.removeItem(itemId)
+}
 
-
-const getTotalPrice = computed(() => {
+const totalPrice = computed(() => {
   let total = 0
   for (const item of cartItems.value) {
-    if (selectedItems[item.id]) {
+    if (isItemSelected(item.id)) {
       total += item.price * item.quantity
     }
   }
   return total
 })
 
-const formatPrice = (price : number) => {
+const formatPrice = (price: number) => {
   return '$' + (price / 100).toFixed(2)
 }
 
-const getSelectedItemsCount = computed(() => {
-  return Object.values(selectedItems).filter(Boolean).length
+const selectedItemsCount = computed(() => {
+  return selectedItemIds.value.length
 })
 
 const shippingFee = ref(100)
 
-const processCheckout = () => {
-  const itemsForCheckout = cartItems.value.filter(item => selectedItems[item.id])
-  
+const processCheckout = (): void => {
+  const itemsForCheckout = cartItems.value.filter(item => isItemSelected(item.id))
   if (itemsForCheckout.length === 0) {
     alert('Please select at least one item to checkout')
     return
@@ -113,14 +123,15 @@ const processCheckout = () => {
   router.push('/checkout')
 }
 
-const continueShopping = () => {
+const continueShopping = (): void => {
   router.push('/products')
 }
+
 </script>
 
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 py-12 relative overflow-hidden">
-    <!-- Decorative circles using CSS only -->
+    <!-- Decorative circles -->
     <div class="absolute top-20 left-10 w-64 h-64 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"/>
     <div class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"/>
     <div class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"/>
@@ -140,7 +151,7 @@ const continueShopping = () => {
       
       <!-- Loading State -->
       <div v-if="isLoading" class="flex justify-center py-12">
-        <div class="loader border-4 rounded-full border-t-orange-500 border-gray-200 h-12 w-12 animate-spin"/>
+        <div class="loading loading-spinner loading-lg text-orange-500"></div>
       </div>
       
       <!-- Cart Content -->
@@ -150,14 +161,24 @@ const continueShopping = () => {
           <div class="bg-white rounded-lg shadow-xl p-6">
             <h2 class="text-xl font-semibold mb-4">Your Items</h2>
             
-            <!-- Select all -->
-            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200">
-              <div class="flex items-center">
-                <input
-v-model="selectAll" type="checkbox"
-                  class="w-5 h-5 rounded text-orange-500 focus:ring-orange-500 border-gray-400">
-                <span class="ml-2 text-gray-700">Select All ({{ getSelectedItemsCount }} items)</span>
+            <!-- Select all toggle -->
+            <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-200" style="z-index: 10; position: relative;">
+              <div
+                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-full cursor-pointer hover:bg-orange-500 transition duration-300 ease-in-out"
+                :class="{'bg-primary text-white border-primary hover:bg-primary-focus': isAllItemsSelected}"
+                @click="toggleSelectAll"
+              >
+                <div class="w-5 h-5 mr-2 flex items-center justify-center">
+                  <div v-if="isAllItemsSelected" class="w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-primary">
+                      <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <div v-else class="w-5 h-5 border-2 border-gray-300 rounded-full"></div>
+                </div>
+                <span>{{ isAllItemsSelected ? 'Deselect All' : 'Select All Items' }}</span>
               </div>
+              <span class="text-gray-700">{{ selectedItemsCount }} items selected</span>
             </div>
             
             <!-- Empty Cart State -->
@@ -177,16 +198,32 @@ v-model="selectAll" type="checkbox"
             
             <!-- Cart Items List -->
             <div v-else class="divide-y divide-gray-100">
-              <div v-for="item in cartItems" :key="item.id" class="py-4 flex items-center">
-                <div class="mr-4">
-                  <input
-type="checkbox"
-                    class="w-5 h-5 rounded text-orange-500 focus:ring-orange-500 border-gray-400"
-                    :checked="selectedItems[item.id]" 
-                    @change="toggleItemSelection(item.id)">
+              <div 
+                v-for="item in cartItems" 
+                :key="item.id" 
+                class="p-4 flex items-center cursor-pointer"
+                :class="{'bg-blue-50 rounded-lg': isItemSelected(item.id)}"
+                @click="(event) => toggleItem(item.id, event)"
+              >
+                <!-- Selection indicator with explicit z-index -->
+                <div class="mr-4 z-10" @click.stop="(event) => toggleItem(item.id, event)">
+                  <div 
+                    class="w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200"
+                    :class="isItemSelected(item.id) ? 'bg-primary text-white' : 'bg-gray-200'"
+                  >
+                    <svg 
+                      v-if="isItemSelected(item.id)"
+                      xmlns="http://www.w3.org/2000/svg" 
+                      class="h-4 w-4" 
+                      viewBox="0 0 20 20" 
+                      fill="currentColor"
+                    >
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
                 </div>
                 
-                <!-- Product image -->
+                <!-- Item image -->
                 <div class="w-16 h-16 bg-gray-100 rounded-md mr-4">
                   <img 
                     v-if="item.image" 
@@ -196,36 +233,38 @@ type="checkbox"
                   >
                 </div>
                 
-                <!-- Product details -->
+                <!-- Item details - no click handler to avoid conflicts -->
                 <div class="flex-grow">
                   <h3 class="font-medium text-gray-800">{{ item.name }}</h3>
                   <p class="text-sm text-gray-500">{{ item.category }}</p>
                   <p class="font-semibold text-gray-900 mt-1">{{ formatPrice(item.price) }}</p>
                 </div>
                 
-                <!-- Quantity control -->
-                <div class="flex items-center border rounded-md mr-6 border-gray-300">
+                <!-- Quantity controls with explicit stop propagation -->
+                <div class="join border border-gray-300 mr-6" @click.stop>
                   <button 
-                    class="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                    @click="decreaseQuantity(item)"
+                    class="join-item btn btn-sm btn-ghost"
+                    @click.stop="(event) => decreaseQuantity(item, event)"
                   >
                     -
                   </button>
-                  <span class="px-4 py-1 text-gray-800">{{ item.quantity }}</span>
+                  <div class="join-item px-3 flex items-center justify-center">
+                    {{ item.quantity }}
+                  </div>
                   <button 
-                    class="px-3 py-1 text-gray-600 hover:bg-gray-100"
-                    @click="increaseQuantity(item)"
+                    class="join-item btn btn-sm btn-ghost"
+                    @click.stop="(event) => increaseQuantity(item, event)"
                   >
                     +
                   </button>
                 </div>
                 
                 <!-- Total price -->
-                <div class="text-right">
+                <div class="text-right" @click.stop>
                   <p class="font-semibold text-orange-500">{{ formatPrice(item.price * item.quantity) }}</p>
                   <button 
                     class="text-sm text-red-500 hover:text-red-700"
-                    @click="removeItem(item.id)"
+                    @click.stop="(event) => removeItem(item.id, event)"
                   >
                     Remove
                   </button>
@@ -244,8 +283,8 @@ type="checkbox"
               <!-- Summary Details -->
               <div class="space-y-3 mb-4">
                 <div class="flex justify-between text-gray-700">
-                  <span>Subtotal ({{ getSelectedItemsCount }} items)</span>
-                  <span>{{ formatPrice(getTotalPrice) }}</span>
+                  <span>Subtotal ({{ selectedItemsCount }} items)</span>
+                  <span>{{ formatPrice(totalPrice) }}</span>
                 </div>
                 <div class="flex justify-between text-gray-700">
                   <span>Shipping Fee</span>
@@ -254,16 +293,15 @@ type="checkbox"
                 <div class="border-t border-gray-200 pt-3 mt-3">
                   <div class="flex justify-between font-bold text-lg text-gray-900">
                     <span>Total</span>
-                    <span>{{ formatPrice(getTotalPrice + shippingFee) }}</span>
+                    <span>{{ formatPrice(totalPrice + shippingFee) }}</span>
                   </div>
                 </div>
               </div>
               
               <!-- Checkout Button -->
               <button 
-                class="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg active:shadow-sm transform hover:-translate-y-0.5 active:translate-y-0 duration-150"
-                :disabled="getSelectedItemsCount === 0"
-                :class="{ 'opacity-50 cursor-not-allowed': getSelectedItemsCount === 0 }"
+                class="btn btn-primary btn-block hover:bg-orange-500 transition ease-out duration-200"
+                :disabled="selectedItemsCount === 0"
                 @click="processCheckout"
               >
                 Proceed to Checkout
@@ -271,7 +309,7 @@ type="checkbox"
               
               <!-- Continue Shopping -->
               <button 
-                class="w-full py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors duration-150"
+                class="btn btn-outline btn-block"
                 @click="continueShopping"
               >
                 Continue Shopping
@@ -315,14 +353,5 @@ type="checkbox"
   100% {
     transform: translate(0px, 0px) scale(1);
   }
-}
-
-.btn-primary {
-  background-color: #f97316;
-  color: white;
-}
-
-.btn-primary:hover {
-  background-color: #ea580c;
 }
 </style>
