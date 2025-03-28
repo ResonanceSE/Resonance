@@ -210,3 +210,107 @@ class ValidatePasswordAPI(APIView):
             {"status": "success", "message": "Password meets requirements"},
             status=status.HTTP_200_OK,
         )
+
+
+class UpdateAddressAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        data = request.data
+
+        if "address" not in data:
+            return Response(
+                {"status": "error", "message": "Address is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Update address fields
+            address = data["address"]
+
+            # Split the address to update the fields
+            address_parts = address.split("\n")
+
+            # Update user fields
+            if len(address_parts) >= 1:
+                user.address = address
+
+            # Extract city, state, postal code
+            if len(address_parts) >= 4:
+                address_line = address_parts[3]
+                parts = address_line.split(",")
+                if len(parts) >= 1:
+                    user.city = parts[0].strip()
+
+                if len(parts) >= 2:
+                    state_zip = parts[1].strip().split(" ", 1)
+                    if len(state_zip) >= 1:
+                        user.state = state_zip[0]
+                    if len(state_zip) >= 2:
+                        user.postal_code = state_zip[1]
+
+            # Extract country
+            if len(address_parts) >= 5:
+                user.country = address_parts[4]
+
+            user.save()
+
+            return Response(
+                {
+                    "status": "success",
+                    "message": "Address updated successfully",
+                    "data": {
+                        "address": user.address,
+                    },
+                }
+            )
+        except Exception as e:
+            return Response(
+                {"status": "error", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class UpdateUsernameAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        data = request.data
+
+        if "username" not in data:
+            return Response(
+                {"status": "error", "message": "Username is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        new_username = data["username"]
+
+        # Check if username is already taken
+        from ..models.customer_model import Customer
+
+        if Customer.objects.filter(username=new_username).exclude(id=user.id).exists():
+            return Response(
+                {"status": "error", "message": "Username already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user.username = new_username
+            user.save()
+
+            return Response(
+                {
+                    "status": "success",
+                    "message": "Username updated successfully",
+                    "data": {
+                        "username": user.username,
+                    },
+                }
+            )
+        except Exception as e:
+            return Response(
+                {"status": "error", "message": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

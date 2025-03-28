@@ -5,6 +5,8 @@ from .auth_controller import (
     LogoutAPI,
     UserAPI,
     ValidatePasswordAPI,
+    UpdateUsernameAPI,
+    UpdateAddressAPI,
 )
 from .admin_controller import (
     get_admin_stats,
@@ -24,6 +26,8 @@ __all__ = [
     "LogoutAPI",
     "UserAPI",
     "ValidatePasswordAPI",
+    "UpdateUsernameAPI",
+    "UpdateAddressAPI",
     "get_admin_stats",
     "get_user_by_id",
     "get_user_orders",

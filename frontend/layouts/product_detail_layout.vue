@@ -150,13 +150,17 @@ const handleAddToCart = async () => {
       return;
     }
 
+    const priceToUse = product.value.sale_price && parseFloat(product.value.sale_price) > 0
+      ? parseFloat(product.value.sale_price)
+      : parseFloat(product.value.price);
+
     if (existingProductIndex >= 0) {
       cart[existingProductIndex].quantity += quantity.value;
     } else {
       cart.push({
         id: product.value.id,
         name: product.value.name,
-        price: product.value.price,
+        price: priceToUse,
         image: product.value.image_url || '',
         category: product.value.category,
         quantity: quantity.value,
@@ -165,6 +169,10 @@ const handleAddToCart = async () => {
     }
 
     localStorage.setItem(`cart_${authStore.user?.username || 'guest'}`, JSON.stringify(cart));
+
+    if (import.meta.client) {
+      window.dispatchEvent(new CustomEvent('cart-updated'));
+    }
 
     addToCartSuccess.value = true;
     setTimeout(() => {
@@ -203,8 +211,6 @@ const fetchProduct = async () => {
 
     const data = await response.json();
     product.value = data;
-
-    // Fetch related products (simulated)
     fetchRelatedProducts(data.category);
 
     storeProductParams(currentCategory, currentProductId);
@@ -221,11 +227,10 @@ const fetchProduct = async () => {
 
 const fetchRelatedProducts = async (categoryId) => {
   try {
-    // This would typically be a specific API endpoint, but for this example we'll use the category API
+
     const response = await fetch(`${apiUrl}/api/products/${category.value}/`);
     if (response.ok) {
       const data = await response.json();
-      // Filter out the current product and limit to 4 related products
       relatedProducts.value = data
         .filter(p => p.id !== product.value.id)
         .slice(0, 4);

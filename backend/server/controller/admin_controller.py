@@ -6,6 +6,8 @@ from django.utils import timezone
 from datetime import timedelta
 from ..models import Product, Order, Category
 from ..serializers import ProductSerializer, CategorySerializer
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
 
 @api_view(["GET"])
@@ -178,3 +180,8 @@ def get_categories(request):
     categories = Category.objects.all()
     serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data)
+
+
+
+
+
