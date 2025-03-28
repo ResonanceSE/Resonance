@@ -99,14 +99,14 @@ const totalPrice = computed(() => {
 })
 
 const formatPrice = (price: number) => {
-  return '$' + (price / 100).toFixed(2)
+  return '$' + Number(price).toFixed(2)
 }
 
 const selectedItemsCount = computed(() => {
   return selectedItemIds.value.length
 })
 
-const shippingFee = ref(100)
+const shippingFee = ref(0.12)
 
 const processCheckout = (): void => {
   const itemsForCheckout = cartItems.value.filter(item => isItemSelected(item.id))

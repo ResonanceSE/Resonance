@@ -82,7 +82,7 @@ const verifyStockBeforeCheckout = async () => {
             }
 
             const stockData = await response.json();
-            console.log('Current stock:', stockData.data);
+            console.log('Current stock:', stockData.data.stock);
             const currentStock = stockData.data.stock;
 
             if (currentStock < item.quantity) {
@@ -104,7 +104,7 @@ const subtotal = computed(() => {
 })
 
 const shippingFee = computed(() => {
-    return cartItems.value.length > 0 ? 999 : 0
+    return cartItems.value.length > 0 ? 0.125 : 0
 })
 
 const total = computed(() => {
@@ -112,7 +112,7 @@ const total = computed(() => {
 })
 
 const formatPrice = (price) => {
-    return '$' + (price / 100).toFixed(2)
+    return '$' + Number(price).toFixed(2)
 }
 
 const selectedAddress = computed(() => {
@@ -225,8 +225,7 @@ const continueShopping = () => {
             <!-- Order Confirmation -->
             <div v-else-if="orderPlaced" class="bg-white rounded-lg shadow-lg p-8 text-center">
                 <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg
-xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
@@ -282,14 +281,12 @@ xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
                     <!-- Address selection toggle -->
                     <div class="mb-6 flex space-x-4">
                         <label class="flex items-center">
-                            <input
-v-model="useExistingAddress" type="radio" :value="true"
+                            <input v-model="useExistingAddress" type="radio" :value="true"
                                 class="radio radio-primary mr-2">
                             <span>Use existing address</span>
                         </label>
                         <label class="flex items-center">
-                            <input
-v-model="useExistingAddress" type="radio" :value="false"
+                            <input v-model="useExistingAddress" type="radio" :value="false"
                                 class="radio radio-primary mr-2">
                             <span>Enter new address</span>
                         </label>
@@ -297,14 +294,12 @@ v-model="useExistingAddress" type="radio" :value="false"
 
                     <!-- Existing addresses -->
                     <div v-if="useExistingAddress" class="mb-6">
-                        <div
-v-for="address in addresses" :key="address.id"
+                        <div v-for="address in addresses" :key="address.id"
                             class="border rounded-lg p-4 mb-3 cursor-pointer"
                             :class="{ 'border-orange-500 bg-orange-50': selectedAddressId === address.id }"
                             @click="selectedAddressId = address.id">
                             <div class="flex items-start">
-                                <input
-type="radio" :checked="selectedAddressId === address.id"
+                                <input type="radio" :checked="selectedAddressId === address.id"
                                     class="radio radio-primary mt-1 mr-3">
                                 <div>
                                     <p class="font-medium">{{ address.recipient }}</p>
@@ -324,8 +319,7 @@ type="radio" :checked="selectedAddressId === address.id"
                                 <label class="label">
                                     <span class="label-text">Full Name</span>
                                 </label>
-                                <input
-v-model="addressForm.recipient" type="text" class="input input-bordered"
+                                <input v-model="addressForm.recipient" type="text" class="input input-bordered"
                                     required>
                             </div>
 
@@ -354,8 +348,7 @@ v-model="addressForm.recipient" type="text" class="input input-bordered"
                                 <label class="label">
                                     <span class="label-text">Postal Code</span>
                                 </label>
-                                <input
-v-model="addressForm.postal_code" type="text" class="input input-bordered"
+                                <input v-model="addressForm.postal_code" type="text" class="input input-bordered"
                                     required>
                             </div>
 

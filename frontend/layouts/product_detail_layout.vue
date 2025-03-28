@@ -307,9 +307,15 @@ provide('tryAgain', tryAgain);
     <div class="container mx-auto pt-4 pb-2 px-4">
       <div class="text-sm breadcrumbs">
         <ul>
-          <li><NuxtLink to="/">Home</NuxtLink></li>
-          <li><NuxtLink to="/products">Products</NuxtLink></li>
-          <li><NuxtLink :to="`/products/${category}`">{{ capitalizeFirstLetter(category) }}</NuxtLink></li>
+          <li>
+            <NuxtLink to="/">Home</NuxtLink>
+          </li>
+          <li>
+            <NuxtLink to="/products">Products</NuxtLink>
+          </li>
+          <li>
+            <NuxtLink :to="`/products/${category}`">{{ capitalizeFirstLetter(category) }}</NuxtLink>
+          </li>
           <li class="text-primary">{{ product?.name || 'Product' }}</li>
         </ul>
       </div>
@@ -318,7 +324,7 @@ provide('tryAgain', tryAgain);
     <!-- Loading State with DaisyUI spinner -->
     <div v-if="isLoading" class="flex justify-center items-center py-32">
       <div class="text-center">
-        <span class="loading loading-spinner loading-lg text-primary"/>
+        <span class="loading loading-spinner loading-lg text-primary" />
         <p class="mt-4 text-gray-600">Loading product details...</p>
       </div>
     </div>
@@ -326,8 +332,10 @@ provide('tryAgain', tryAgain);
     <!-- Error State with DaisyUI alert -->
     <div v-else-if="error" class="container mx-auto px-4 py-12">
       <div class="alert alert-error max-w-lg mx-auto shadow-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div>
           <h3 class="font-bold">Unable to load product</h3>
@@ -342,54 +350,57 @@ provide('tryAgain', tryAgain);
       <div class="card lg:card-side bg-base-100 shadow-xl">
         <!-- Left side - Product Image Gallery -->
         <div class="card-body p-6 md:p-8 lg:w-1/2">
-          <div class="relative bg-base-200 rounded-xl overflow-hidden flex justify-center items-center h-72 sm:h-96 mb-4">
-            <img 
-              :src="layoutProps.mainImage" 
-              :alt="layoutProps.name"
-              class="max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105"
-            >
-            
+          <div
+            class="relative bg-base-200 rounded-xl overflow-hidden flex justify-center items-center h-72 sm:h-96 mb-4">
+            <img :src="layoutProps.mainImage" :alt="layoutProps.name"
+              class="max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105">
+
             <div class="absolute top-3 left-3">
               <div v-if="product.sale_price" class="badge badge-accent">SALE</div>
             </div>
           </div>
           <div v-if="layoutProps.images.length > 1" class="flex justify-center gap-2 overflow-x-auto pb-2">
-            <div 
-              v-for="(image, i) in layoutProps.images" 
-              :key="i"
+            <div v-for="(image, i) in layoutProps.images" :key="i"
               class="w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all"
               :class="selectedImage === i ? 'border-primary' : 'border-transparent hover:border-base-300'"
-              @click="selectImage(i)"
-            >
-              <img :src="image" :alt="`${layoutProps.name} - view ${i+1}`" class="w-full h-full object-cover">
+              @click="selectImage(i)">
+              <img :src="image" :alt="`${layoutProps.name} - view ${i + 1}`" class="w-full h-full object-cover">
             </div>
           </div>
-           <div class="mt-4">
+          <div class="mt-4">
             <h3 class="font-medium mb-2">Description</h3>
             <p class="text-base-content/80">{{ layoutProps.description }}</p>
           </div>
         </div>
-        <div class="divider lg:divider-horizontal"/>
+        <div class="divider lg:divider-horizontal" />
         <!-- Right side - Product Info -->
         <div class="card-body p-6 md:p-8 lg:w-1/2">
           <!-- Brand badge -->
           <div class="badge badge-outline mb-1">{{ layoutProps.brand }}</div>
-          
+
           <!-- Product name -->
           <h1 class="card-title text-2xl sm:text-3xl font-bold text-base-content">{{ layoutProps.name }}</h1>
-          
+
           <!-- Price display with sale price -->
           <div class="flex items-baseline gap-2 mt-2">
-            <span class="text-2xl font-bold text-primary">{{ formatCurrency(product.sale_price) }}</span>
+            <!-- If product has a sale price, show it as the main price -->
+            <span v-if="product.sale_price" class="text-2xl font-bold text-primary">
+              {{ formatCurrency(product.sale_price) }}
+            </span>
+            <!-- If product has a sale price, show regular price with strikethrough -->
             <span v-if="product.sale_price" class="text-sm text-base-content/60 line-through">
+              {{ formatCurrency(product.price) }}
+            </span>
+            <!-- If no sale price, just show the regular price -->
+            <span v-else class="text-2xl font-bold text-primary">
               {{ formatCurrency(product.price) }}
             </span>
           </div>
 
-          
+
           <!-- Divider -->
           <div class="divider">Specifications</div>
-          
+
           <!-- Product Specs -->
           <div class="grid grid-cols-2 gap-2 text-sm">
             <div>
@@ -402,79 +413,63 @@ provide('tryAgain', tryAgain);
               <span class="font-semibold">Category:</span> {{ capitalizeFirstLetter(category) }}
             </div>
           </div>
-          
+
           <!-- Stock Status -->
           <div class="mt-4">
             <div v-if="layoutProps.stock > 0" class="badge badge-success gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-4 h-4 stroke-current">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                class="inline-block w-4 h-4 stroke-current">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
               In Stock ({{ layoutProps.stock }} available)
             </div>
             <div v-else class="badge badge-error gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-4 h-4 stroke-current">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                class="inline-block w-4 h-4 stroke-current">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
               Out of Stock
             </div>
           </div>
-          
+
           <div class="card-actions justify-start gap-8 items-center mt-auto">
             <div class="join">
-              <button 
-                class="btn join-item"
-                :disabled="quantity <= 1"
-                @click="decreaseQuantity"
-              >-</button>
+              <button class="btn join-item" :disabled="quantity <= 1" @click="decreaseQuantity">-</button>
               <span class="join-item px-4 flex items-center justify-center border border-base-300 min-w-12">
                 {{ quantity }}
               </span>
-              <button 
-                class="btn join-item"
-                :disabled="quantity >= layoutProps.stock"
-                @click="increaseQuantity"
-              >+</button>
+              <button class="btn join-item" :disabled="quantity >= layoutProps.stock"
+                @click="increaseQuantity">+</button>
             </div>
-            
+
             <!-- Add to cart button -->
-            <button 
-              class="btn btn-primary"
-              :disabled="layoutProps.stock <= 0"
-              @click="handleAddToCart"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            <button class="btn btn-primary" :disabled="layoutProps.stock <= 0" @click="handleAddToCart">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {{ layoutProps.stock > 0 ? 'Add to Cart' : 'Out of Stock' }}
             </button>
-          </div>          
+          </div>
         </div>
       </div>
-      
+
       <!-- Related Products Section -->
       <div v-if="relatedProducts.length > 0" class="mt-12">
         <h2 class="text-2xl font-bold mb-4">You Might Also Like</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div 
-            v-for="relatedProduct in relatedProducts" 
-            :key="relatedProduct.id"
-            class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow"
-          >
+          <div v-for="relatedProduct in relatedProducts" :key="relatedProduct.id"
+            class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
             <figure class="px-4 pt-4">
-              <img 
-                :src="relatedProduct.image_url || 'https://via.placeholder.com/150'" 
-                :alt="relatedProduct.name"
-                class="rounded-xl h-32 object-contain"
-              >
+              <img :src="relatedProduct.image_url || 'https://via.placeholder.com/150'" :alt="relatedProduct.name"
+                class="rounded-xl h-32 object-contain">
             </figure>
             <div class="card-body p-4">
               <h3 class="card-title text-sm">{{ relatedProduct.name }}</h3>
               <p class="text-primary font-semibold">{{ formatCurrency(relatedProduct.price) }}</p>
               <div class="card-actions justify-end">
-                <NuxtLink 
-                  :to="`/products/${category}/${relatedProduct.id}`" 
-                  class="btn btn-xs btn-outline btn-primary"
-                >
+                <NuxtLink :to="`/products/${category}/${relatedProduct.id}`" class="btn btn-xs btn-outline btn-primary">
                   View
                 </NuxtLink>
               </div>
@@ -489,8 +484,10 @@ provide('tryAgain', tryAgain);
       <div class="card w-96 bg-base-100 shadow-xl">
         <div class="card-body items-center text-center">
           <div class="text-error">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <h2 class="card-title">Product Not Found</h2>
@@ -505,7 +502,8 @@ provide('tryAgain', tryAgain);
     <div v-if="addToCartSuccess" class="toast toast-right z-50">
       <div class="alert alert-success">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div>
           <h3 class="font-bold">Added to Cart!</h3>
@@ -530,7 +528,8 @@ provide('tryAgain', tryAgain);
 }
 
 /* Smooth transitions */
-.btn, img {
+.btn,
+img {
   transition: all 0.3s ease;
 }
 
@@ -540,11 +539,12 @@ provide('tryAgain', tryAgain);
 }
 
 @keyframes slideUp {
-  from { 
+  from {
     opacity: 0;
     transform: translateY(20px);
   }
-  to { 
+
+  to {
     opacity: 1;
     transform: translateY(0);
   }
