@@ -14,6 +14,8 @@ interface RegisterData {
   last_name?: string;
 }
 
+const CURRENT_USER_KEY = 'currentUsername';
+
 const getBaseUrl = (): string => {
   const config = useRuntimeConfig();
   return config.public.apiUrl || 'http://127.0.0.1:8000';
@@ -21,16 +23,16 @@ const getBaseUrl = (): string => {
 
 export async function login(credentials: LoginCredentials): Promise<User> {
   try {
-
-    
     const response = await fetch(`${getBaseUrl()}/api/auth/login/`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'      },
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(credentials),
       credentials: 'include',
     });
     console.log("Response:", response);
+    
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || errorData.detail || `Login failed with status ${response.status}`);
@@ -42,10 +44,8 @@ export async function login(credentials: LoginCredentials): Promise<User> {
     let user: User;
     
     if (data.status === 'success' && data.data) {
-      // Your custom API format
       user = data.data;
     } else if (data.token || data.key) {
-      // DRF Token auth format (data.key for django-rest-auth)
       user = {
         token: data.token || data.key,
         username: credentials.username,
@@ -62,9 +62,9 @@ export async function login(credentials: LoginCredentials): Promise<User> {
       throw new Error('No authentication token received');
     }
     
-    // Store token and user data
-    localStorage.setItem('auth_token', user.token);
-    localStorage.setItem('user', JSON.stringify(user));
+    sessionStorage.setItem(CURRENT_USER_KEY, credentials.username);
+    localStorage.setItem(`auth_token_${credentials.username}`, user.token);
+    localStorage.setItem(`user_${credentials.username}`, JSON.stringify(user));
     
     return user;
   } catch (error) {
@@ -97,7 +97,6 @@ export async function register(userData: RegisterData): Promise<User> {
     const data = await response.json();
     console.error('Registration response:', data);
     
-    // Handle different response formats
     let user: User;
     
     if (data.status === 'success' && data.data) {
@@ -119,8 +118,10 @@ export async function register(userData: RegisterData): Promise<User> {
       throw new Error('No authentication token received');
     }
     
-    localStorage.setItem('auth_token', user.token);
-    localStorage.setItem('user', JSON.stringify(user));
+
+    sessionStorage.setItem(CURRENT_USER_KEY, userData.username);
+    localStorage.setItem(`auth_token_${userData.username}`, user.token);
+    localStorage.setItem(`user_${userData.username}`, JSON.stringify(user));
     
     return user;
   } catch (error) {
@@ -133,7 +134,14 @@ export async function register(userData: RegisterData): Promise<User> {
 }
 
 export async function logout(): Promise<void> {
-  const token = localStorage.getItem('auth_token');
+  const currentUsername = sessionStorage.getItem(CURRENT_USER_KEY);
+  
+  if (!currentUsername) {
+    console.error('No current user found for logout');
+    return;
+  }
+  
+  const token = localStorage.getItem(`auth_token_${currentUsername}`);
   
   if (token) {
     try {
@@ -149,13 +157,16 @@ export async function logout(): Promise<void> {
     }
   }
   
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('user');
+  // Clear only the current tab's session
+  sessionStorage.removeItem(CURRENT_USER_KEY);
 }
 
 export function getUser(): User | null {
   if (import.meta.client) {
-    const userJson = localStorage.getItem('user');
+    const currentUsername = sessionStorage.getItem(CURRENT_USER_KEY);
+    if (!currentUsername) return null;
+    
+    const userJson = localStorage.getItem(`user_${currentUsername}`);
     return userJson ? JSON.parse(userJson) : null;
   }
   return null;
@@ -163,17 +174,51 @@ export function getUser(): User | null {
 
 export function getToken(): string | null {
   if (import.meta.client) {
-    return localStorage.getItem('auth_token');
+    const currentUsername = sessionStorage.getItem(CURRENT_USER_KEY);
+    if (!currentUsername) return null;
+    
+    return localStorage.getItem(`auth_token_${currentUsername}`);
   }
   return null;
 }
 
 export function isAuthenticated(): boolean {
   if (import.meta.client) {
-    return !!localStorage.getItem('auth_token');
+    const currentUsername = sessionStorage.getItem(CURRENT_USER_KEY);
+    if (!currentUsername) return false;
+    
+    return !!localStorage.getItem(`auth_token_${currentUsername}`);
   }
   return false;
 }
+
+export function switchUser(username: string): boolean {
+  if (import.meta.client) {
+    // Check if this user exists in localStorage
+    const userToken = localStorage.getItem(`auth_token_${username}`);
+    if (!userToken) return false;
+    
+    // Switch to this user in current tab only
+    sessionStorage.setItem(CURRENT_USER_KEY, username);
+    return true;
+  }
+  return false;
+}
+
+export function getStoredUsers(): string[] {
+  if (import.meta.client) {
+    const users: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('user_')) {
+        users.push(key.replace('user_', ''));
+      }
+    }
+    return users;
+  }
+  return [];
+}
+
 export async function validatePassword(password: string) {
   try {
     const response = await fetch(`${getBaseUrl()}/api/auth/validate-password/`, {

@@ -48,7 +48,7 @@ onMounted(() => {
 const loadCart = () => {
     isLoading.value = true
     try {
-        const cartString = localStorage.getItem('cart')
+        const cartString = localStorage.getItem(`cart_${authStore.user.username || 'guest'}`)
         console.log("Raw cart data from localStorage:", cartString)
         
         if (cartString) {

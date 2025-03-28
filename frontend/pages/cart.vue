@@ -21,7 +21,6 @@ const cartItems = ref<CartItem[]>([])
 const selectedItems = ref<Record<number, boolean>>({})
 const isLoading = ref(true)
 
-// Load cart on component mount
 onMounted(() => {
   loadCart()
 })
@@ -30,6 +29,7 @@ const loadCart = () => {
   isLoading.value = true
   try {
     cartItems.value = cartService.getCart()
+    console.log("Cart items:", cartItems.value)
     const newSelectedItems: Record<number, boolean> = {}
     cartItems.value.forEach(item => {
       newSelectedItems[item.id] = true

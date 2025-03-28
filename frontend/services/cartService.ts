@@ -1,5 +1,7 @@
 import { useAuthStore } from '~/stores/useAuth'
 
+
+const user_data = useAuthStore();
 export interface CartItem {
   id: number
   name: string
@@ -11,9 +13,12 @@ export interface CartItem {
 
 export const cartService = {
   getCart(): CartItem[] {
+    const getCurrentUser = user_data.user
     if (import.meta.client) {
       try {
-        const cartData = localStorage.getItem('cart')
+        
+        const cartData = localStorage.getItem(`cart_${getCurrentUser?.username || 'guest'}`)
+        console.log("Cart data:", cartData)
         return cartData ? JSON.parse(cartData) : []
       } catch (error) {
         console.error('Error getting cart:', error)

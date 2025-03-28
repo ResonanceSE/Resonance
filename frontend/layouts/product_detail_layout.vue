@@ -1,8 +1,9 @@
 <script setup>
+import { useAuthStore } from '~/stores/useAuth';
 const route = useRoute();
 const productId = route.params.id || route.query.id;
 const category = route.params.category || extractCategoryFromPath(route.path) || route.query.category;
-
+const authStore = useAuthStore();
 function extractCategoryFromPath(path) {
   const parts = path.split('/');
   if (parts.length >= 3 && parts[1] === 'products') {
@@ -14,7 +15,6 @@ function extractCategoryFromPath(path) {
 console.log("Product detail params:", { category, productId, path: route.path });
 const apiUrl = useRuntimeConfig().public.apiUrl || 'http://localhost:8000';
 
-// Core state
 const product = ref(null);
 const isLoading = ref(true);
 const error = ref(null);
@@ -22,7 +22,6 @@ const addToCartSuccess = ref(false);
 const selectedImage = ref(0);
 const quantity = ref(1);
 
-// Simple breadcrumbs
 const breadcrumbs = computed(() => [
   { name: 'Home', path: '/' },
   { name: 'Products', path: '/products' },
@@ -30,7 +29,6 @@ const breadcrumbs = computed(() => [
   { name: product.value?.name || 'Product Details', path: '' }
 ]);
 
-// Compute props for product page layout
 const layoutProps = computed(() => {
   if (!product.value) return {};
   
@@ -80,7 +78,7 @@ const increaseQuantity = () => {
 
 const handleAddToCart = () => {
   if (!product.value) return;
-  const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+  const cart = JSON.parse(localStorage.getItem(`cart_${authStore.user.username || 'guest'}`) || '[]');
   const existingProductIndex = cart.findIndex(item => 
     item.id === product.value.id && 
     item.category === product.value.category
@@ -98,8 +96,9 @@ const handleAddToCart = () => {
       quantity: quantity.value
     });
   }
-  
-  localStorage.setItem('cart', JSON.stringify(cart));
+  console.log("Updated cart:", cart);
+  console.log("Username : ", authStore.user.username);
+  localStorage.setItem(`cart_${authStore.user.username || 'guest'}`, JSON.stringify(cart));
   
   addToCartSuccess.value = true;
   setTimeout(() => {
