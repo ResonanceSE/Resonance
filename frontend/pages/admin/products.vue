@@ -459,5 +459,4 @@ onMounted(() => {
 </template>
 
 <style scoped>
-/* You can add any specific styles here */
 </style>
