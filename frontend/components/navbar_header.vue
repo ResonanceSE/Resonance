@@ -4,6 +4,7 @@ import { useAuthStore } from '~/stores/useAuth';
 const navbar_left_placeholder = ref<string[]>([
   'Home',
   'Products',
+  'Orders',
   'Contact'
 ]);
 
@@ -359,7 +360,8 @@ const handleLogout = async () => {
               <Icon 
                 :name="
                   item === 'Home' ? 'heroicons:home' : 
-                  item === 'Contact' ? 'heroicons:envelope' : 'heroicons:document-text'
+                  item === 'Contact' ? 'heroicons:envelope' : 
+                  item === 'Orders' ? 'heroicons:clipboard-document-list' : 'heroicons:document-text'
                 " 
                 class="h-5 w-5" 
               />

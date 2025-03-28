@@ -9,9 +9,9 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs):
         try:
             admin_data = {
-                "username": "kkhamwiset",
-                "email": "kritsakorn224@gmail.com",
-                "password": "ruflesis2210",
+                "username": "Than",
+                "email": "kuy.siriphiwat@gmail.com",
+                "password": "than1234",
                 "first_name": "Admin",
                 "last_name": "User",
                 "is_staff": True,
