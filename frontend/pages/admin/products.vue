@@ -63,7 +63,6 @@ const formData = ref<Partial<Product>>({
   price: 0,
   sale_price: undefined,
   stock: 0,
-  sku: '',
   description: '',
   image_url: '',
   connections: '',
@@ -182,7 +181,6 @@ const handleSubmit = async () => {
 
     const method = showEditModal.value ? 'PUT' : 'POST';
     
-    // Log the data being sent
     console.log('Sending product data:', formData.value);
 
     const response = await fetch(url, {
@@ -210,10 +208,7 @@ const handleSubmit = async () => {
 };
 
 const editProduct = (product: Product) => {
-  // Make a deep copy of the product to avoid reference issues
   formData.value = JSON.parse(JSON.stringify(product));
-  
-  // Set the image preview when editing
   if (product.image_url) {
     imagePreview.value = product.image_url;
   } else {
