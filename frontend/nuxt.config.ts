@@ -15,7 +15,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiUrl: process.env.API_URL,
-      NODE_ENV: process.env.ENVIRONMENT
+      NODE_ENV: process.env.ENVIRONMENT,
+      imgApiKey: process.env.API_IMG_KEY
     }
   }
   

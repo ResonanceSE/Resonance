@@ -173,15 +173,11 @@ def upload_product_image(request, product_id):
 
         image_data = data['data']
         product.image_url = image_data['url']
-        product.image_thumb_url = image_data['thumb']['url']
-        product.image_delete_url = image_data['delete_url']
         product.save()
-        
         return Response({
             'status': 'success',
             'message': 'Image uploaded successfully',
             'image_url': image_data['url'],
-            'thumbnail': image_data['thumb']['url']
         })
     
     except Exception as e:

@@ -20,9 +20,6 @@ class Product(models.Model):
     is_new = models.BooleanField(default=True)
     
     image_url = models.CharField(max_length=500, blank=True, null=True)
-    image_thumb_url = models.CharField(max_length=500, blank=True, null=True, help_text="Thumbnail URL")
-    image_delete_url = models.CharField(max_length=500, blank=True, null=True, help_text="URL to delete image")
-    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

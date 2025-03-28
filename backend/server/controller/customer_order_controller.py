@@ -42,7 +42,7 @@ def create_order(request):
                 user=user,
                 order_number=order_number,
                 shipping_address=data["shipping_address"],
-                total_amount=total_amount,  # Will update after adding items
+                total_amount=total_amount,
                 payment_status=False,
             )
 
@@ -52,23 +52,19 @@ def create_order(request):
                 quantity = item_data.get("quantity", 1)
                 price = (
                     Decimal(str(item_data.get("price"))) / 100
-                )  # Convert from cents to dollars
+                ) 
 
-                # Validate product exists
                 try:
                     product = Product.objects.get(id=product_id)
                 except Product.DoesNotExist:
                     raise ValueError(f"Product with ID {product_id} not found")
 
-                # Create order item
                 OrderItem.objects.create(
                     order=order, product=product, quantity=quantity, price=price
                 )
 
-                # Add to total
                 total_amount += price * quantity
 
-            # Update order with final total
             order.total_amount = total_amount
             order.save()
 
