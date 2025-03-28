@@ -26,8 +26,6 @@ class Command(BaseCommand):
                 "connections": "Bluetooth 5.0, 3.5mm",
                 "price": Decimal("349.99"),
                 "stock": 50,
-                "weight": Decimal("0.25"),
-                "dimensions": "7.3 x 3.0 x 9.9 inches",
                 "is_featured": True,
                 "image_url": "https://example.com/sony-wh1000xm4.jpg",
             },
