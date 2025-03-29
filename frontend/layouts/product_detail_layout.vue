@@ -317,22 +317,62 @@ watch([productId, category], ([newId, newCategory]) => {
   }
 }, { immediate: true });
 
+const handlePopState = () => {
+  const currentCategory = getCategory();
+  const currentProductId = getProductId();
+  
+  console.log('After popstate:', { currentCategory, currentProductId });
+  
+  if (currentCategory && currentProductId) {
+    fetchProduct();
+  } else {
+    // Handle case when back navigation doesn't have proper params
+    if (route.path.includes('/products/')) {
+      error.value = 'Product information not found. Redirecting to products page...';
+      setTimeout(() => {
+        router.push('/products');
+      }, 1500);
+    }
+  }
+};
+
 onMounted(() => {
   if (import.meta.client) {
-    window.addEventListener('popstate', () => {
-      setTimeout(() => {
-        const currentCategory = getCategory();
-        const currentProductId = getProductId();
-
-        console.log('After popstate:', { currentCategory, currentProductId });
-
-        if (currentCategory && currentProductId) {
-          fetchProduct();
-        }
-      }, 50);
-    });
+    const currentCategory = getCategory();
+    const currentProductId = getProductId();
+    if (currentCategory && currentProductId && !product.value) {
+      fetchProduct();
+    }
+    
+    window.addEventListener('popstate', handlePopState);
   }
 });
+
+onUnmounted(() => {
+  if (import.meta.client) {
+    window.removeEventListener('popstate', handlePopState);
+  }
+});
+
+watch(
+  () => route.fullPath,
+  (newPath) => {
+    console.log('Route changed:', newPath);
+    const newCategory = route.params.category;
+    const newProductId = route.params.id;
+    
+    if (newCategory && newProductId) {
+      if (
+        !product.value || 
+        String(product.value.id) !== String(newProductId) || 
+        getCategorySlug(product.value.category) !== newCategory
+      ) {
+        fetchProduct();
+      }
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   if (import.meta.client) {
