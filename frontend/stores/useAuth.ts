@@ -20,6 +20,7 @@ interface RegisterData {
   password: string;
   first_name?: string;
   last_name?: string;
+  user_type?: 'customer' | 'admin';
 }
 
 export const useAuthStore = defineStore('auth', {
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore('auth', {
     currentUser: (state) => state.user,
     isAuthenticated: (state) => state.isLoggedIn,
     isAdmin: (state) => state.user?.is_admin === true,
+    userType: (state) => state.user?.user_type || 'customer',
     loginDuration: (state) => {
       if (!state.loginTime) return 0;
       return new Date().getTime() - state.loginTime.getTime();

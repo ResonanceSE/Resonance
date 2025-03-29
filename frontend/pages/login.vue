@@ -31,7 +31,7 @@ const handleLogin = async () => {
     
     showSuccessModal.value = true;
     const redirectPath = route.query.redirect ? route.query.redirect.toString() : null;
-    if (authStore.user?.is_admin) {
+    if (authStore.user?.user_type === 'admin') {
       setTimeout(() => {
         if (redirectPath && redirectPath.startsWith('/admin')) {
           router.push(redirectPath);
