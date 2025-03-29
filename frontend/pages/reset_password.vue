@@ -101,7 +101,7 @@ const handleResetPassword = async () => {
         <!-- Logo/Branding -->
         <div class="flex items-center gap-2 mb-8">
           <div class="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full flex items-center justify-center">
-            <div class="w-4 h-4 bg-white rounded-sm transform rotate-45"></div>
+            <div class="w-4 h-4 bg-white rounded-sm transform rotate-45"/>
           </div>
           <h3 class="text-xl font-bold">Resonance Sound Shop</h3>
         </div>
@@ -222,7 +222,7 @@ const handleResetPassword = async () => {
               :disabled="isSubmitting"
             >
               <div v-if="isSubmitting" class="flex items-center justify-center">
-                <div class="spinner-white mr-2"></div>
+                <div class="spinner-white mr-2"/>
                 <span>Resetting Password...</span>
               </div>
               <span v-else>Reset Password</span>

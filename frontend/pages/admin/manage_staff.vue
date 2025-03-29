@@ -1,6 +1,25 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/useAuth';
 
+// Define proper interface for User data
+interface StaffUser {
+  id: number;
+  username: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  password?: string;
+  is_admin?: boolean;
+  user_type?: string;
+  token?: string;
+}
+
+// Define form interface with validation properties
+interface StaffForm extends Partial<StaffUser> {
+  is_submitting: boolean;
+  error: string;
+}
+
 definePageMeta({
   layout: 'admin',
   middleware: ['auth']
@@ -11,13 +30,13 @@ const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl || 'http://localhost:8000';
 
 // State variables
-const staffList = ref<any[]>([]);
+const staffList = ref<StaffUser[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const successMessage = ref<string | null>(null);
 
 // Staff form
-const newStaffForm = reactive({
+const newStaffForm = reactive<StaffForm>({
   username: '',
   email: '',
   password: '',
@@ -29,8 +48,8 @@ const newStaffForm = reactive({
 
 // Edit staff modal state
 const showEditModal = ref(false);
-const editStaffForm = reactive({
-  id: null as number | null,
+const editStaffForm = reactive<StaffForm>({
+  id: null as unknown as number,
   username: '',
   email: '',
   first_name: '',
@@ -41,11 +60,11 @@ const editStaffForm = reactive({
 
 // Confirmation modal for deletion
 const showDeleteModal = ref(false);
-const staffToDelete = ref<any>(null);
+const staffToDelete = ref<StaffUser | null>(null);
 const isDeleting = ref(false);
 
 // Form validation
-const validateStaffForm = (form: any) => {
+const validateStaffForm = (form: StaffForm): string => {
   if (!form.username || !form.email) {
     return 'Username and email are required';
   }
@@ -121,9 +140,7 @@ const addStaff = async () => {
     // Clear form and show success message
     successMessage.value = `Staff member ${newStaffForm.username} added successfully!`;
     resetNewStaffForm();
-    fetchStaff(); // Refresh the list
-    
-    // Hide success message after 3 seconds
+    fetchStaff();
     setTimeout(() => {
       successMessage.value = null;
     }, 3000);
@@ -136,7 +153,7 @@ const addStaff = async () => {
 };
 
 // Edit staff member
-const editStaff = (staff: any) => {
+const editStaff = (staff: StaffUser) => {
   editStaffForm.id = staff.id;
   editStaffForm.username = staff.username;
   editStaffForm.email = staff.email;
@@ -189,7 +206,7 @@ const saveStaffChanges = async () => {
 };
 
 // Delete staff member confirmation
-const confirmDeleteStaff = (staff: any) => {
+const confirmDeleteStaff = (staff: StaffUser) => {
   staffToDelete.value = staff;
   showDeleteModal.value = true;
 };
@@ -296,35 +313,35 @@ onMounted(fetchStaff);
             <label class="label">
               <span class="label-text">Username</span>
             </label>
-            <input v-model="newStaffForm.username" type="text" class="input input-bordered" required />
+            <input v-model="newStaffForm.username" type="text" class="input input-bordered" required >
           </div>
           
           <div class="form-control">
             <label class="label">
               <span class="label-text">Email</span>
             </label>
-            <input v-model="newStaffForm.email" type="email" class="input input-bordered" required />
+            <input v-model="newStaffForm.email" type="email" class="input input-bordered" required >
           </div>
           
           <div class="form-control">
             <label class="label">
               <span class="label-text">First Name</span>
             </label>
-            <input v-model="newStaffForm.first_name" type="text" class="input input-bordered" />
+            <input v-model="newStaffForm.first_name" type="text" class="input input-bordered" >
           </div>
           
           <div class="form-control">
             <label class="label">
               <span class="label-text">Last Name</span>
             </label>
-            <input v-model="newStaffForm.last_name" type="text" class="input input-bordered" />
+            <input v-model="newStaffForm.last_name" type="text" class="input input-bordered" >
           </div>
           
           <div class="form-control md:col-span-2">
             <label class="label">
               <span class="label-text">Password</span>
             </label>
-            <input v-model="newStaffForm.password" type="password" class="input input-bordered" required />
+            <input v-model="newStaffForm.password" type="password" class="input input-bordered" required >
           </div>
         </div>
         
@@ -335,7 +352,7 @@ onMounted(fetchStaff);
             @click="addStaff"
           >
             <span v-if="newStaffForm.is_submitting">
-              <span class="loading loading-spinner loading-xs mr-2"></span>
+              <span class="loading loading-spinner loading-xs mr-2"/>
               Adding...
             </span>
             <span v-else>Add Staff Member</span>
@@ -351,7 +368,7 @@ onMounted(fetchStaff);
         
         <!-- Loading state -->
         <div v-if="loading" class="flex justify-center py-8">
-          <div class="loading loading-spinner loading-lg text-primary"></div>
+          <div class="loading loading-spinner loading-lg text-primary"/>
         </div>
         
         <!-- Empty state -->
@@ -385,8 +402,8 @@ onMounted(fetchStaff);
                     </button>
                     <button 
                       class="btn btn-sm btn-error" 
-                      @click="confirmDeleteStaff(staff)"
                       :disabled="staff.id === authStore.user?.id"
+                      @click="confirmDeleteStaff(staff)"
                     >
                       Remove
                     </button>
@@ -415,28 +432,28 @@ onMounted(fetchStaff);
           <label class="label">
             <span class="label-text">Username</span>
           </label>
-          <input v-model="editStaffForm.username" type="text" class="input input-bordered" required />
+          <input v-model="editStaffForm.username" type="text" class="input input-bordered" required >
         </div>
         
         <div class="form-control mb-4">
           <label class="label">
             <span class="label-text">Email</span>
           </label>
-          <input v-model="editStaffForm.email" type="email" class="input input-bordered" required />
+          <input v-model="editStaffForm.email" type="email" class="input input-bordered" required >
         </div>
         
         <div class="form-control mb-4">
           <label class="label">
             <span class="label-text">First Name</span>
           </label>
-          <input v-model="editStaffForm.first_name" type="text" class="input input-bordered" />
+          <input v-model="editStaffForm.first_name" type="text" class="input input-bordered" >
         </div>
         
         <div class="form-control mb-4">
           <label class="label">
             <span class="label-text">Last Name</span>
           </label>
-          <input v-model="editStaffForm.last_name" type="text" class="input input-bordered" />
+          <input v-model="editStaffForm.last_name" type="text" class="input input-bordered" >
         </div>
         
         <div class="modal-action">
@@ -452,14 +469,14 @@ onMounted(fetchStaff);
             @click="saveStaffChanges"
           >
             <span v-if="editStaffForm.is_submitting">
-              <span class="loading loading-spinner loading-xs mr-2"></span>
+              <span class="loading loading-spinner loading-xs mr-2"/>
               Saving...
             </span>
             <span v-else>Save Changes</span>
           </button>
         </div>
       </div>
-      <div class="modal-backdrop bg-neutral bg-opacity-50" @click="closeEditModal"></div>
+      <div class="modal-backdrop bg-neutral bg-opacity-50" @click="closeEditModal"/>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -484,14 +501,14 @@ onMounted(fetchStaff);
             @click="deleteStaff"
           >
             <span v-if="isDeleting">
-              <span class="loading loading-spinner loading-xs mr-2"></span>
+              <span class="loading loading-spinner loading-xs mr-2"/>
               Removing...
             </span>
             <span v-else>Remove Staff</span>
           </button>
         </div>
       </div>
-      <div class="modal-backdrop bg-neutral bg-opacity-50" @click="closeDeleteModal"></div>
+      <div class="modal-backdrop bg-neutral bg-opacity-50" @click="closeDeleteModal"/>
     </div>
   </div>
 </template>

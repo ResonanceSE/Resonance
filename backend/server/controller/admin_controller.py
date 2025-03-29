@@ -198,7 +198,7 @@ def get_staff_list(request):
     # Get all staff members using AdminStaff proxy model
     try:
         staff_members = AdminStaff.objects.all()
-        
+
         staff_data = [
             {
                 "id": staff.id,
@@ -211,7 +211,7 @@ def get_staff_list(request):
             }
             for staff in staff_members
         ]
-        
+
         return Response(
             {"status": "success", "data": staff_data},
             status=status.HTTP_200_OK,
@@ -253,26 +253,30 @@ def manage_staff(request, staff_id):
             "is_superuser": staff.is_superuser,
             "created_at": staff.created_at,
         }
-        
+
         return Response(
             {"status": "success", "data": staff_data},
             status=status.HTTP_200_OK,
         )
-    
+
     # PUT request - update staff details
     elif request.method == "PUT":
         data = request.data
-        
+
         # Update basic fields
         if "username" in data and data["username"] != staff.username:
             # Check if username is already taken
-            if User.objects.filter(username=data["username"]).exclude(id=staff_id).exists():
+            if (
+                User.objects.filter(username=data["username"])
+                .exclude(id=staff_id)
+                .exists()
+            ):
                 return Response(
                     {"status": "error", "message": "Username already exists"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             staff.username = data["username"]
-        
+
         if "email" in data and data["email"] != staff.email:
             # Check if email is already taken
             if User.objects.filter(email=data["email"]).exclude(id=staff_id).exists():
@@ -281,14 +285,14 @@ def manage_staff(request, staff_id):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             staff.email = data["email"]
-        
+
         # Update name fields
         if "first_name" in data:
             staff.first_name = data["first_name"]
-        
+
         if "last_name" in data:
             staff.last_name = data["last_name"]
-        
+
         # Update password if provided
         if "password" in data and data["password"]:
             try:
@@ -299,14 +303,14 @@ def manage_staff(request, staff_id):
                     {"status": "error", "message": e.messages},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        
+
         staff.save()
-        
+
         return Response(
             {"status": "success", "message": "Staff member updated successfully"},
             status=status.HTTP_200_OK,
         )
-    
+
     # DELETE request - remove staff member
     elif request.method == "DELETE":
         # Prevent self-deletion
@@ -315,10 +319,10 @@ def manage_staff(request, staff_id):
                 {"status": "error", "message": "You cannot delete your own account"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Delete the staff member
         staff.delete()
-        
+
         return Response(
             {"status": "success", "message": "Staff member deleted successfully"},
             status=status.HTTP_200_OK,

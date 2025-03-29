@@ -85,7 +85,11 @@ urlpatterns = [
     ),
     # Staff api endpoints
     path("api/admin/staff/", admin_controller.get_staff_list, name="staff-list"),
-    path("api/admin/staff/<int:staff_id>/", admin_controller.manage_staff, name="staff-detail"),
+    path(
+        "api/admin/staff/<int:staff_id>/",
+        admin_controller.manage_staff,
+        name="staff-detail",
+    ),
     path("api/staff/stats/", admin_controller.get_admin_stats, name="staff-stats"),
     path(
         "api/staff/products/", admin_controller.manage_products, name="staff-products"

@@ -541,8 +541,7 @@ href="#"
                             </div>
 
                             <div class="grid gap-4 pt-4">
-                                <div class="grid place-items-center">
-                                </div>
+                                <div class="grid place-items-center"/>
                                 <div class="text-gray-600 mt-2">
                                     <div class="flex flex-row gap-2 justify-center">
                                         <span class="text-gray-600">Already have an account?</span>

@@ -355,19 +355,21 @@ class UpdateUsernameAPI(APIView):
                 {"status": "error", "message": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
 class ForgotPasswordAPI(APIView):
     def post(self, request):
         """
         Process forgot password request and send reset email
         """
         data = request.data
-        
+
         if "email" not in data:
             return Response(
                 {"status": "error", "message": "Email address is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         email = data["email"].lower().strip()
         try:
             user = User.objects.get(email=email)
@@ -376,22 +378,22 @@ class ForgotPasswordAPI(APIView):
             return Response(
                 {
                     "status": "success",
-                    "message": "If your email is registered, you will receive reset instructions shortly."
+                    "message": "If your email is registered, you will receive reset instructions shortly.",
                 },
                 status=status.HTTP_200_OK,
             )
-        
+
         # Generate reset token
         reset_token = uuid.uuid4().hex
-        
+
         # Set reset token and expiration
         user.reset_token = reset_token
         user.reset_token_expiry = timezone.now() + timedelta(hours=24)
         user.save()
-        
+
         # Build reset URL (frontend will handle this route)
         reset_url = f"{settings.FRONTEND_URL}/reset_password?token={reset_token}"
-        
+
         # Email content
         email_subject = "Resonance Sound Shop - Password Reset"
         email_body = f"""Hello {user.first_name or user.username},
@@ -407,7 +409,7 @@ class ForgotPasswordAPI(APIView):
         Thanks,
         The Resonance Sound Shop Team
         """
-        
+
         # Send email
         try:
             send_mail(
@@ -422,11 +424,11 @@ class ForgotPasswordAPI(APIView):
                 {"status": "error", "message": f"Failed to send email: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        
+
         return Response(
             {
                 "status": "success",
-                "message": "Password reset instructions have been sent to your email."
+                "message": "Password reset instructions have been sent to your email.",
             },
             status=status.HTTP_200_OK,
         )
@@ -438,16 +440,16 @@ class ResetPasswordAPI(APIView):
         Process password reset using token
         """
         data = request.data
-        
+
         if not all(k in data for k in ["token", "password"]):
             return Response(
                 {"status": "error", "message": "Token and new password are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         token = data["token"]
         new_password = data["password"]
-        
+
         try:
             user = User.objects.get(reset_token=token)
         except User.DoesNotExist:
@@ -455,14 +457,14 @@ class ResetPasswordAPI(APIView):
                 {"status": "error", "message": "Invalid or expired token"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Check if token is expired
         if not user.reset_token_expiry or user.reset_token_expiry < timezone.now():
             return Response(
                 {"status": "error", "message": "Reset token has expired"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Validate new password
         try:
             password_validation.validate_password(new_password, user)
@@ -471,17 +473,17 @@ class ResetPasswordAPI(APIView):
                 {"status": "error", "message": e.messages},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         user.set_password(new_password)
-        
+
         user.reset_token = None
         user.reset_token_expiry = None
         user.save()
-        
+
         return Response(
             {
                 "status": "success",
-                "message": "Your password has been reset successfully"
+                "message": "Your password has been reset successfully",
             },
             status=status.HTTP_200_OK,
         )
