@@ -217,7 +217,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         <!-- Cart -->
         <div class="dropdown dropdown-end">
           <label tabindex="0" class="btn btn-ghost btn-circle">
-            <NuxtLink :to="`/cart`">
+            <NuxtLink to="/cart">
               <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
             </NuxtLink>
           </label>
