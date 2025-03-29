@@ -38,7 +38,6 @@ onMounted(() => {
     loadSavedAddress()
 })
 
-// Load the user's saved address from the server
 const loadSavedAddress = async () => {
     if (!authStore.isLoggedIn) return
 
@@ -353,16 +352,10 @@ v-model="useExistingAddress" type="radio" :value="false"
 
 
                     <!-- Existing addresses -->
-                    <div v-if="useExistingAddress" class="mb-6">
-                        <div
-v-for="address in addresses" :key="address.id"
-                            class="border rounded-lg p-4 mb-3 cursor-pointer"
-                            :class="{ 'border-orange-500 bg-orange-50': selectedAddressId === address.id }"
-                            @click="selectedAddressId = address.id">
+                    <div v-if="useExistingAddress && existingAddress" class="mb-6">
+                        <div class="border rounded-lg p-4 mb-3 border-orange-500 bg-orange-50">
                             <div class="flex items-start">
-                                <input
-type="radio" :checked="selectedAddressId === address.id"
-                                    class="radio radio-primary mt-1 mr-3">
+                                <input type="radio" checked class="radio radio-primary mt-1 mr-3">
                                 <div>
                                     <p class="font-medium">{{ existingAddress.recipient }}</p>
                                     <p>{{ existingAddress.line1 }}</p>

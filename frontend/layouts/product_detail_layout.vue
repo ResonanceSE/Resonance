@@ -46,27 +46,16 @@ const getCategory = () => {
 const productId = computed(() => getProductId());
 const category = computed(() => getCategory());
 
-// Convert category ID to slug if needed
+
 const categorySlug = computed(() => {
-  if (category.value && categoryMapping[category.value]) {
-    return categoryMapping[category.value];
-  }
-  return category.value;
+    return route.params.category;
 });
 
 // Get display name for category
 const categoryDisplayName = computed(() => {
-  // First check if we have a direct mapping for the slug
-  if (categorySlug.value && categoryDisplayNames[categorySlug.value]) {
-    return categoryDisplayNames[categorySlug.value];
+  if (route.params.category && categoryDisplayNames[route.params.category]) {
+    return categoryDisplayNames[route.params.category];
   }
-  
-  // Then check if we have a mapping for the original category (in case it's an ID)
-  if (category.value && categoryDisplayNames[categoryMapping[category.value]]) {
-    return categoryDisplayNames[categoryMapping[category.value]];
-  }
-  
-  // Fallback to capitalized category value
   return capitalizeFirstLetter(categorySlug.value);
 });
 
