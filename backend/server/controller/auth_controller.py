@@ -30,6 +30,7 @@ class RegisterAPI(APIView):
             )
 
         user_type = data.get("user_type", "customer").lower()
+        user_is_superuser = data.get("is_superuser", False)
 
         if user_type == "admin" and not (
             request.user and request.user.is_authenticated and request.user.is_superuser
@@ -89,6 +90,8 @@ class RegisterAPI(APIView):
             if user_type == "admin":
                 user = User.objects.create_user(**user_data)
                 user.is_staff = True
+                if (user_is_superuser):
+                    user.is_superuser = True
                 user.save()
             else:
                 user = User.objects.create_user(**user_data)
@@ -107,6 +110,7 @@ class RegisterAPI(APIView):
                         "address": user.get_full_address(),
                         "user_type": user_type,
                         "is_admin": user_type == "admin",
+                        "is_superuser": user.is_superuser,
                     },
                 },
                 status=status.HTTP_201_CREATED,

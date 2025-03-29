@@ -21,6 +21,7 @@ interface RegisterData {
   first_name?: string;
   last_name?: string;
   user_type?: 'customer' | 'admin';
+  is_superuser?: boolean
 }
 
 export const useAuthStore = defineStore('auth', {

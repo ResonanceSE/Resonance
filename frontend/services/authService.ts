@@ -13,6 +13,7 @@ interface RegisterData {
   first_name?: string;
   last_name?: string;
   user_type?: 'customer' | 'admin';
+  is_superuser?: boolean;
 }
 interface Address {
   address : string
