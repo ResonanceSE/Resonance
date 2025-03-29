@@ -1,4 +1,4 @@
-from django.contrib.auth import authenticate, password_validation
+from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -24,16 +24,14 @@ class RegisterAPI(APIView):
 
         user_type = data.get("user_type", "customer").lower()
 
-        # # Only allow admin creation if the request has admin token or from superuser
-        # if user_type == "admin" and not (
-        #     request.user and request.user.is_authenticated and request.user.is_superuser
-        # ):
-        #     return Response(
-        #         {"status": "error", "message": "Unauthorized to create admin users"},
-        #         status=status.HTTP_403_FORBIDDEN,
-        #     )
+        if user_type == "admin" and not (
+            request.user and request.user.is_authenticated and request.user.is_superuser
+        ):
+            return Response(
+                {"status": "error", "message": "Unauthorized to create admin users"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
-        # username/email uniqueness
         if User.objects.filter(username=data["username"]).exists():
             return Response(
                 {"status": "error", "message": "Username already exists"},
