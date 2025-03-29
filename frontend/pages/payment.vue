@@ -1,6 +1,5 @@
 <script setup>
 import { useAuthStore } from '~/stores/useAuth'
-import { useRouter } from 'vue-router'
 
 definePageMeta({
     layout: 'default'
@@ -18,6 +17,10 @@ const processingPayment = ref(false)
 const paymentSuccess = ref(false)
 const orderNumber = ref('')
 const countdown = ref(5)
+
+// Selected payment method
+const paymentMethod = ref(null) // 'qr' or 'cod'
+const showQrCode = ref(false)
 
 // Get order details from localStorage (passed from checkout page)
 const orderDetails = ref(null)
@@ -46,12 +49,26 @@ const loadOrderDetails = () => {
 }
 
 const formatPrice = (price) => {
-    return '$' + Number(price).toFixed(2)
+    return '฿' + Number(price).toFixed(2)
+}
+
+const selectPaymentMethod = (method) => {
+    paymentMethod.value = method
+    if (method === 'qr') {
+        showQrCode.value = true
+    } else {
+        showQrCode.value = false
+    }
 }
 
 const processPayment = async () => {
     if (!orderDetails.value) {
         paymentError.value = 'No order details found'
+        return
+    }
+    
+    if (!paymentMethod.value) {
+        paymentError.value = 'Please select a payment method'
         return
     }
     
@@ -70,8 +87,8 @@ const processPayment = async () => {
                 'Authorization': `Token ${authStore.token}`
             },
             body: JSON.stringify({
-                payment_status: true,
-                payment_method: 'credit_card'
+                payment_status: paymentMethod.value === 'qr', // true for QR payment, false for COD
+                payment_method: paymentMethod.value
             })
         })
         
@@ -121,7 +138,7 @@ const cancelPayment = () => {
         <div class="container max-w-3xl mx-auto px-4">
             <!-- Page header -->
             <div class="mb-8 text-center">
-                <h1 class="text-3xl font-bold text-gray-800">Payment</h1>
+                <h1 class="text-3xl font-bold text-gray-800">การชำระเงิน</h1>
                 <div class="w-24 h-1 bg-orange-500 mx-auto mt-2"/>
             </div>
             
@@ -133,7 +150,7 @@ const cancelPayment = () => {
             <!-- Error state -->
             <div v-else-if="paymentError" class="mb-6 bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
                 <p>{{ paymentError }}</p>
-                <button class="btn btn-primary mt-4" @click="cancelPayment">Return to Checkout</button>
+                <button class="btn btn-primary mt-4" @click="cancelPayment">กลับสู่ตะกร้าสินค้า</button>
             </div>
             
             <!-- Payment Success -->
@@ -144,102 +161,145 @@ const cancelPayment = () => {
                     </svg>
                 </div>
                 
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Payment Successful!</h2>
-                <p class="mb-2">Your order number is: <span class="font-bold">{{ orderNumber }}</span></p>
-                <p class="text-gray-600 mb-6">Thank you for your purchase. We'll process your order right away.</p>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">การชำระเงินสำเร็จ!</h2>
+                <p class="mb-2">หมายเลขคำสั่งซื้อของคุณคือ: <span class="font-bold">{{ orderNumber }}</span></p>
+                <p v-if="paymentMethod === 'qr'" class="text-gray-600 mb-2">ขอบคุณสำหรับการชำระเงิน เราจะดำเนินการตามคำสั่งซื้อของคุณทันที</p>
+                <p v-else class="text-gray-600 mb-2">คุณได้เลือกการชำระเงินปลายทาง คำสั่งซื้อของคุณกำลังถูกดำเนินการ</p>
+                <p class="text-gray-600 mb-6">คุณสามารถติดตามสถานะคำสั่งซื้อได้ที่หน้าคำสั่งซื้อของฉัน</p>
                 
-                <p class="text-sm text-gray-500 mb-4">Redirecting to orders page in {{ countdown }} seconds...</p>
+                <p class="text-sm text-gray-500 mb-4">กำลังนำคุณไปยังหน้าคำสั่งซื้อในอีก {{ countdown }} วินาที...</p>
                 
                 <button class="btn btn-primary" @click="router.push('/orders')">
-                    View My Orders
+                    ดูคำสั่งซื้อ
                 </button>
             </div>
             
-            <!-- Payment Form -->
-            <div v-else class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Payment Method Selection -->
+            <div v-else-if="orderDetails && !paymentMethod" class="bg-white rounded-lg shadow-lg overflow-hidden">
                 <!-- Order Summary -->
-                <div v-if="orderDetails" class="p-6 bg-gray-50 border-b">
-                    <h2 class="text-xl font-bold mb-4">Order Summary</h2>
+                <div class="p-6 bg-gray-50 border-b">
+                    <h2 class="text-xl font-bold mb-4">สรุปคำสั่งซื้อ</h2>
                     <div class="flex justify-between text-sm mb-2">
-                        <span>Order Number:</span>
+                        <span>หมายเลขคำสั่งซื้อ:</span>
                         <span class="font-medium">{{ orderNumber }}</span>
                     </div>
                     <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-2 mt-2">
-                        <span>Total:</span>
+                        <span>ยอดรวมทั้งหมด:</span>
                         <span>{{ formatPrice(orderDetails.total_amount) }}</span>
                     </div>
                 </div>
                 
-                <!-- Credit Card Form -->
+                <!-- Payment Methods -->
                 <div class="p-6">
-                    <h2 class="text-xl font-bold mb-4">Payment Details</h2>
+                    <h2 class="text-xl font-bold mb-4">เลือกวิธีการชำระเงิน</h2>
                     
                     <div class="space-y-4">
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Card Number</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="input input-bordered" 
-                                placeholder="1234 5678 9012 3456"
-                                value="4242 4242 4242 4242"
-                                disabled
-                            >
-                            <label class="label">
-                                <span class="label-text-alt text-gray-500">Use this test card number</span>
-                            </label>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">Expiration Date</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    class="input input-bordered" 
-                                    placeholder="MM/YY"
-                                    value="12/25"
-                                    disabled
-                                >
-                            </div>
-                            
-                            <div class="form-control">
-                                <label class="label">
-                                    <span class="label-text">CVC</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    class="input input-bordered" 
-                                    placeholder="123"
-                                    value="123"
-                                    disabled
-                                >
+                        <!-- QR Payment Option -->
+                        <div 
+                            class="border rounded-lg p-4 hover:border-orange-500 cursor-pointer transition-all hover:bg-orange-50"
+                            @click="selectPaymentMethod('qr')"
+                        >
+                            <div class="flex items-center space-x-4">
+                                <div class="bg-blue-50 rounded-full p-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                        <path d="M8 8h2v2H8z"/>
+                                        <path d="M14 8h2v2h-2z"/>
+                                        <path d="M8 14h2v2H8z"/>
+                                        <path d="M14 14h2v2h-2z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-lg">QR Payment</h3>
+                                    <p class="text-gray-600">สแกนจ่ายผ่าน QR Code</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                         
-                        <div class="form-control">
-                            <label class="label">
-                                <span class="label-text">Name on Card</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                class="input input-bordered" 
-                                placeholder="John Doe"
-                                value="Test User"
-                                disabled
-                            >
+                        <!-- Cash on Delivery Option -->
+                        <div 
+                            class="border rounded-lg p-4 hover:border-orange-500 cursor-pointer transition-all hover:bg-orange-50"
+                            @click="selectPaymentMethod('cod')"
+                        >
+                            <div class="flex items-center space-x-4">
+                                <div class="bg-orange-50 rounded-full p-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-lg">จ่ายปลายทาง</h3>
+                                    <p class="text-gray-600">ชำระเงินเมื่อได้รับสินค้า</p>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- QR Code Payment Display -->
+            <div v-else-if="showQrCode" class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Order Summary -->
+                <div class="p-6 bg-gray-50 border-b">
+                    <h2 class="text-xl font-bold mb-4">สแกน QR เพื่อชำระเงิน</h2>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span>หมายเลขคำสั่งซื้อ:</span>
+                        <span class="font-medium">{{ orderNumber }}</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-2 mt-2">
+                        <span>ยอดที่ต้องชำระ:</span>
+                        <span>{{ formatPrice(orderDetails.total_amount) }}</span>
+                    </div>
+                </div>
+                
+                <!-- QR Code Display -->
+                <div class="p-6 flex flex-col items-center">
+                    <div class="mb-6 max-w-xs">
+                        <!-- QR Payment Header Removed -->
+                        
+                        <!-- Thai QR Payment Banner -->
+                        <div class="bg-blue-900 p-3 flex justify-center rounded-t-lg">
+                            <div class="text-white font-bold text-lg">THAI QR PAYMENT</div>
+                        </div>
+                        
+                        <!-- PromptPay Label -->
+                        <div class="bg-white p-3 border-b flex justify-center">
+                            <div class="font-bold text-blue-900">พร้อมเพย์</div>
+                        </div>
+                        
+                        <!-- QR Code -->
+                        <div class="bg-white p-4 flex justify-center rounded-b-lg">
+                            <img src="https://i.ibb.co/Vc240585/image-2025-03-29-203931507.png" alt="Payment QR Code" class="w-64 h-64" />
+                        </div>
+                        
+                        <!-- Account Info -->
+                        <div class="mt-4 text-center">
+                            <p class="text-gray-700">ชื่อบัญชี</p>
+                            <p class="font-semibold text-xl">นาย กฤษกร ขามวิเศษ</p>
                         </div>
                     </div>
                     
-                    <div class="mt-6 flex justify-between">
+                    <p class="text-gray-600 mb-6 text-center max-w-lg">
+                        กรุณาสแกน QR Code เพื่อชำระเงิน หลังจากชำระเงินเรียบร้อยแล้ว กดปุ่ม "ยืนยันการชำระเงิน" ด้านล่าง
+                    </p>
+                    
+                    <div class="flex space-x-4">
                         <button 
                             class="btn btn-outline" 
-                            @click="cancelPayment"
+                            @click="selectPaymentMethod(null)"
                             :disabled="processingPayment"
                         >
-                            Cancel
+                            เปลี่ยนวิธีชำระเงิน
                         </button>
                         
                         <button 
@@ -249,9 +309,67 @@ const cancelPayment = () => {
                         >
                             <span v-if="processingPayment">
                                 <span class="loading loading-spinner loading-xs mr-2"/>
-                                Processing...
+                                กำลังประมวลผล...
                             </span>
-                            <span v-else>Complete Payment</span>
+                            <span v-else>ยืนยันการชำระเงิน</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Cash on Delivery Confirmation -->
+            <div v-else-if="paymentMethod === 'cod'" class="bg-white rounded-lg shadow-lg overflow-hidden">
+                <!-- Order Summary -->
+                <div class="p-6 bg-gray-50 border-b">
+                    <h2 class="text-xl font-bold mb-4">ยืนยันการชำระเงินปลายทาง</h2>
+                    <div class="flex justify-between text-sm mb-2">
+                        <span>หมายเลขคำสั่งซื้อ:</span>
+                        <span class="font-medium">{{ orderNumber }}</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-2 mt-2">
+                        <span>ยอดที่ต้องชำระ:</span>
+                        <span>{{ formatPrice(orderDetails.total_amount) }}</span>
+                    </div>
+                </div>
+                
+                <!-- COD Confirmation -->
+                <div class="p-6">
+                    <div class="bg-orange-50 p-4 rounded-lg mb-6">
+                        <div class="flex items-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div>
+                                <h3 class="font-medium text-orange-800 mb-2">รายละเอียดการชำระเงินปลายทาง</h3>
+                                <p class="text-orange-700">คุณจะต้องชำระเงินจำนวน {{ formatPrice(orderDetails.total_amount) }} เมื่อได้รับสินค้า</p>
+                                <p class="text-orange-700 mt-2">การชำระเงินสามารถทำได้โดยเงินสดหรือโอนเงินให้พนักงานส่งสินค้า</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <p class="text-gray-600 mb-6 text-center">
+                        กรุณากดปุ่ม "ยืนยันคำสั่งซื้อ" เพื่อดำเนินการต่อ
+                    </p>
+                    
+                    <div class="flex space-x-4 justify-center">
+                        <button 
+                            class="btn btn-outline" 
+                            @click="selectPaymentMethod(null)"
+                            :disabled="processingPayment"
+                        >
+                            เปลี่ยนวิธีชำระเงิน
+                        </button>
+                        
+                        <button 
+                            class="btn btn-primary" 
+                            @click="processPayment"
+                            :disabled="processingPayment"
+                        >
+                            <span v-if="processingPayment">
+                                <span class="loading loading-spinner loading-xs mr-2"/>
+                                กำลังประมวลผล...
+                            </span>
+                            <span v-else>ยืนยันคำสั่งซื้อ</span>
                         </button>
                     </div>
                 </div>
