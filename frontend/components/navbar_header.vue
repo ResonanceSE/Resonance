@@ -146,7 +146,8 @@ const handleLogout = async () => {
             <li v-for="item in navbar_left_placeholder" :key="item">
               <!-- Products Dropdown -->
               <details v-if="shouldShowDropdown(item)" class="dropdown dropdown-bottom desktop-dropdown">
-                <summary class="m-1 btn btn-ghost items-center"
+                <summary
+class="m-1 btn btn-ghost items-center"
                   :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''">
                   <div class="my-auto py-2">{{ item }}</div>
                 </summary>
@@ -168,7 +169,8 @@ const handleLogout = async () => {
               </details>
 
               <!-- Other Menu Items -->
-              <NuxtLink v-else class="m-1 btn btn-ghost"
+              <NuxtLink
+v-else class="m-1 btn btn-ghost"
                 :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''"
                 :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`">
                 {{ item }}
@@ -255,7 +257,8 @@ const handleLogout = async () => {
           <!-- Mobile Menu Items -->
           <li v-for="item in navbar_left_placeholder" :key="item">
             <!-- Products in Mobile -->
-            <details v-if="shouldShowDropdown(item)"
+            <details
+v-if="shouldShowDropdown(item)"
               class="collapse collapse-arrow bg-base-200 rounded-box mobile-dropdown">
               <summary class="collapse-title flex flex-row items-center gap-2">
                 <div class="flex items-center space-x-2">
@@ -282,7 +285,8 @@ const handleLogout = async () => {
             </details>
 
             <!-- Other Menu Items -->
-            <NuxtLink v-else :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
+            <NuxtLink
+v-else :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
               class="flex items-center gap-2 my-2 py-2" @click="closeMenu">
               <Icon :name="item === 'Home' ? 'heroicons:home' :
                 item === 'Contact' ? 'heroicons:envelope' :

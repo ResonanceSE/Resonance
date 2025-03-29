@@ -4,11 +4,26 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
+// Category mapping for handling numeric IDs
+const categoryMapping = {
+  '1': 'headphones',
+  '2': 'speakers',
+  '3': 'earphones',
+  // Add more mappings as needed
+};
+
+// Display names for categories
+const categoryDisplayNames = {
+  'headphones': 'Headphones',
+  'speakers': 'Speakers',
+  'earphones': 'Earphones',
+  // Add more display names as needed
+};
+
 const storeProductParams = (category, id) => {
   if (import.meta.client && category && id) {
     localStorage.setItem('lastProductCategory', category);
     localStorage.setItem('lastProductId', id);
-    console.log('Stored product params:', { category, id });
   }
 };
 
@@ -27,8 +42,33 @@ const getCategory = () => {
   }
   return routeCategory;
 };
+
 const productId = computed(() => getProductId());
 const category = computed(() => getCategory());
+
+// Convert category ID to slug if needed
+const categorySlug = computed(() => {
+  if (category.value && categoryMapping[category.value]) {
+    return categoryMapping[category.value];
+  }
+  return category.value;
+});
+
+// Get display name for category
+const categoryDisplayName = computed(() => {
+  // First check if we have a direct mapping for the slug
+  if (categorySlug.value && categoryDisplayNames[categorySlug.value]) {
+    return categoryDisplayNames[categorySlug.value];
+  }
+  
+  // Then check if we have a mapping for the original category (in case it's an ID)
+  if (category.value && categoryDisplayNames[categoryMapping[category.value]]) {
+    return categoryDisplayNames[categoryMapping[category.value]];
+  }
+  
+  // Fallback to capitalized category value
+  return capitalizeFirstLetter(categorySlug.value);
+});
 
 watch([productId, category], ([newId, newCategory]) => {
   console.log("Product parameters:", { category: newCategory, productId: newId, path: route.path });
@@ -45,13 +85,6 @@ const quantity = ref(1);
 const attemptedFetch = ref(false);
 const relatedProducts = ref([]);
 
-const breadcrumbs = computed(() => [
-  { name: 'Home', path: '/' },
-  { name: 'Products', path: '/products' },
-  { name: capitalizeFirstLetter(category.value), path: `/products/${category.value}` },
-  { name: product.value?.name || 'Product Details', path: '' }
-]);
-
 const layoutProps = computed(() => {
   if (!product.value) return {};
   const images = [];
@@ -63,7 +96,6 @@ const layoutProps = computed(() => {
     images.push(...product.value.images);
   }
 
-  // Always ensure we have at least one image
   if (images.length === 0) {
     images.push(`https://via.placeholder.com/500x500?text=Product+Image`);
   }
@@ -131,12 +163,20 @@ const handleAddToCart = async () => {
   if (!product.value || !import.meta.client) return;
 
   try {
-    // For stock check, we'd typically have an API endpoint, but I'll simulate it here
-    if (product.value.stock <= 0) {
+    const stockCheckUrl = `${apiUrl}/api/products/check-stock/${product.value.id}/`;
+    const stockResponse = await fetch(stockCheckUrl);
+    
+    if (!stockResponse.ok) {
+      throw new Error('Failed to check product stock');
+    }
+    
+    const stockData = await stockResponse.json();
+    const availableStock = stockData.data.stock || 0;
+    if (availableStock <= 0) {
       alert('Sorry, this item is out of stock.');
       return;
     }
-
+    
     const cart = JSON.parse(localStorage.getItem(`cart_${authStore.user?.username || 'guest'}`) || '[]');
     const existingProductIndex = cart.findIndex(item => item.id === product.value.id);
 
@@ -145,16 +185,28 @@ const handleAddToCart = async () => {
       currentCartQuantity = cart[existingProductIndex].quantity;
     }
 
-    if (currentCartQuantity + quantity.value > product.value.stock) {
-      alert(`Sorry, there are only ${product.value.stock} items in stock. You already have ${currentCartQuantity} in your cart.`);
+    if (quantity.value > availableStock) {
+      alert(`Sorry, you can only add up to ${availableStock} items.`);
       return;
     }
+    product.value.stock = availableStock;
 
     const priceToUse = product.value.sale_price && parseFloat(product.value.sale_price) > 0
       ? parseFloat(product.value.sale_price)
       : parseFloat(product.value.price);
 
     if (existingProductIndex >= 0) {
+      if (currentCartQuantity + quantity.value > availableStock) {
+        const additionalPossible = availableStock - currentCartQuantity;
+        if (additionalPossible <= 0) {
+          alert(`You already have ${currentCartQuantity} items in your cart, which is the maximum available.`);
+          return;
+        } else {
+          alert(`You already have ${currentCartQuantity} items in your cart. You can add ${additionalPossible} more.`);
+          quantity.value = additionalPossible;
+        }
+      }
+      
       cart[existingProductIndex].quantity += quantity.value;
     } else {
       cart.push({
@@ -164,7 +216,7 @@ const handleAddToCart = async () => {
         image: product.value.image_url || '',
         category: product.value.category,
         quantity: quantity.value,
-        stock: product.value.stock
+        stock: availableStock
       });
     }
 
@@ -182,6 +234,13 @@ const handleAddToCart = async () => {
     console.error('Error adding to cart:', error);
     alert('There was a problem adding this product to your cart. Please try again.');
   }
+};
+
+const getCategorySlug = (categoryValue) => {
+  if (categoryValue && categoryMapping[categoryValue]) {
+    return categoryMapping[categoryValue];
+  }
+  return categoryValue;
 };
 
 const fetchProduct = async () => {
@@ -211,8 +270,7 @@ const fetchProduct = async () => {
 
     const data = await response.json();
     product.value = data;
-    fetchRelatedProducts(data.category);
-
+    fetchRelatedProducts();
     storeProductParams(currentCategory, currentProductId);
 
     selectedImage.value = 0;
@@ -225,9 +283,8 @@ const fetchProduct = async () => {
   }
 };
 
-const fetchRelatedProducts = async (categoryId) => {
+const fetchRelatedProducts = async () => {
   try {
-
     const response = await fetch(`${apiUrl}/api/products/${category.value}/`);
     if (response.ok) {
       const data = await response.json();
@@ -308,7 +365,6 @@ provide('tryAgain', tryAgain);
   <div class="min-h-screen bg-base-100">
     <NavbarHeader />
 
-    <!-- Improved Breadcrumbs with DaisyUI -->
     <div class="container mx-auto pt-4 pb-2 px-4">
       <div class="text-sm breadcrumbs">
         <ul>
@@ -319,7 +375,7 @@ provide('tryAgain', tryAgain);
             <NuxtLink to="/products">Products</NuxtLink>
           </li>
           <li>
-            <NuxtLink :to="`/products/${category}`">{{ capitalizeFirstLetter(category) }}</NuxtLink>
+            <NuxtLink :to="`/products/${categorySlug}`">{{ categoryDisplayName }}</NuxtLink>
           </li>
           <li class="text-primary">{{ product?.name || 'Product' }}</li>
         </ul>
@@ -337,9 +393,11 @@ provide('tryAgain', tryAgain);
     <!-- Error State with DaisyUI alert -->
     <div v-else-if="error" class="container mx-auto px-4 py-12">
       <div class="alert alert-error max-w-lg mx-auto shadow-lg">
-        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none"
+        <svg
+xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none"
           viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div>
@@ -357,7 +415,8 @@ provide('tryAgain', tryAgain);
         <div class="card-body p-6 md:p-8 lg:w-1/2">
           <div
             class="relative bg-base-200 rounded-xl overflow-hidden flex justify-center items-center h-72 sm:h-96 mb-4">
-            <img :src="layoutProps.mainImage" :alt="layoutProps.name"
+            <img
+:src="layoutProps.mainImage" :alt="layoutProps.name"
               class="max-h-full max-w-full object-contain transition-transform duration-300 hover:scale-105">
 
             <div class="absolute top-3 left-3">
@@ -365,7 +424,8 @@ provide('tryAgain', tryAgain);
             </div>
           </div>
           <div v-if="layoutProps.images.length > 1" class="flex justify-center gap-2 overflow-x-auto pb-2">
-            <div v-for="(image, i) in layoutProps.images" :key="i"
+            <div
+v-for="(image, i) in layoutProps.images" :key="i"
               class="w-16 h-16 rounded-lg overflow-hidden border-2 cursor-pointer transition-all"
               :class="selectedImage === i ? 'border-primary' : 'border-transparent hover:border-base-300'"
               @click="selectImage(i)">
@@ -415,21 +475,23 @@ provide('tryAgain', tryAgain);
               <span class="font-semibold">Connectivity:</span> {{ layoutProps.connections }}
             </div>
             <div>
-              <span class="font-semibold">Category:</span> {{ capitalizeFirstLetter(category) }}
+              <span class="font-semibold">Category:</span> {{ categoryDisplayName }}
             </div>
           </div>
 
           <!-- Stock Status -->
           <div class="mt-4">
             <div v-if="layoutProps.stock > 0" class="badge badge-success gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              <svg
+xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 class="inline-block w-4 h-4 stroke-current">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
               In Stock ({{ layoutProps.stock }} available)
             </div>
             <div v-else class="badge badge-error gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              <svg
+xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 class="inline-block w-4 h-4 stroke-current">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -443,15 +505,18 @@ provide('tryAgain', tryAgain);
               <span class="join-item px-4 flex items-center justify-center border border-base-300 min-w-12">
                 {{ quantity }}
               </span>
-              <button class="btn join-item" :disabled="quantity >= layoutProps.stock"
+              <button
+class="btn join-item" :disabled="quantity >= layoutProps.stock"
                 @click="increaseQuantity">+</button>
             </div>
 
             <!-- Add to cart button -->
             <button class="btn btn-primary" :disabled="layoutProps.stock <= 0" @click="handleAddToCart">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+              <svg
+xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
               </svg>
               {{ layoutProps.stock > 0 ? 'Add to Cart' : 'Out of Stock' }}
@@ -464,17 +529,23 @@ provide('tryAgain', tryAgain);
       <div v-if="relatedProducts.length > 0" class="mt-12">
         <h2 class="text-2xl font-bold mb-4">You Might Also Like</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div v-for="relatedProduct in relatedProducts" :key="relatedProduct.id"
+          <div
+v-for="relatedProduct in relatedProducts" :key="relatedProduct.id"
             class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
             <figure class="px-4 pt-4">
-              <img :src="relatedProduct.image_url || 'https://via.placeholder.com/150'" :alt="relatedProduct.name"
+              <img
+:src="relatedProduct.image_url || 'https://via.placeholder.com/150'" :alt="relatedProduct.name"
                 class="rounded-xl h-32 object-contain">
             </figure>
             <div class="card-body p-4">
               <h3 class="card-title text-sm">{{ relatedProduct.name }}</h3>
               <p class="text-primary font-semibold">{{ formatCurrency(relatedProduct.price) }}</p>
               <div class="card-actions justify-end">
-                <NuxtLink :to="`/products/${category}/${relatedProduct.id}`" class="btn btn-xs btn-outline btn-primary">
+                <!-- Use helper function to get proper category slug -->
+                <NuxtLink 
+                  :to="`/products/${getCategorySlug(relatedProduct.category)}/${relatedProduct.id}`" 
+                  class="btn btn-xs btn-outline btn-primary"
+                >
                   View
                 </NuxtLink>
               </div>
@@ -489,9 +560,11 @@ provide('tryAgain', tryAgain);
       <div class="card w-96 bg-base-100 shadow-xl">
         <div class="card-body items-center text-center">
           <div class="text-error">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24"
+            <svg
+xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
@@ -507,7 +580,8 @@ provide('tryAgain', tryAgain);
     <div v-if="addToCartSuccess" class="toast toast-right z-50">
       <div class="alert alert-success">
         <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
             d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div>
@@ -531,14 +605,12 @@ provide('tryAgain', tryAgain);
     flex-direction: row;
   }
 }
-
-/* Smooth transitions */
 .btn,
 img {
   transition: all 0.3s ease;
 }
 
-/* Animation for the toast */
+
 .toast {
   animation: slideUp 0.3s ease-out forwards;
 }

@@ -27,12 +27,10 @@ definePageMeta({
 const route = useRoute();
 const categorySlug = ref(route.params.category as string);
 
-// Map of category slugs to readable names
 const categoryNames: Record<string, string> = {
   'headphones': 'Headphones',
   'speakers': 'Speakers',
   'earphones': 'Earphones',
-  'accessories': 'Accessories'
 };
 
 // Compute the page title from the category
