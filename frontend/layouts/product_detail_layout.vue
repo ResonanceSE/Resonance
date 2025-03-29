@@ -363,7 +363,7 @@ provide('tryAgain', tryAgain);
             <NuxtLink to="/products">Products</NuxtLink>
           </li>
           <li v-if="categorySlug && categoryDisplayName && categoryDisplayName !== 'undefined'">
-            <NuxtLink :to="`/products/${categorySlug}`">{{ categoryDisplayName }}</NuxtLink>
+            <NuxtLink :to="`/products/${categorySlug}`">{{ categoryDisplayName.toLowerCase() === 'earbuds' ? 'Earbuds / IEMs' : categoryDisplayName }}</NuxtLink>
           </li>
           <li class="text-primary">{{ product?.name || 'Product' }}</li>
         </ul>
