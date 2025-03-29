@@ -127,5 +127,5 @@ urlpatterns = [
         "api/auth/update-username/", UpdateUsernameAPI.as_view(), name="update_username"
     ),
     path("api/auth/update-address/", UpdateAddressAPI.as_view(), name="update_address"),
-    path("api/orders/<int:order_id>/payment/",process_payment,name="process-payment"),
+    path("api/orders/<int:order_id>/payment/", process_payment, name="process-payment"),
 ]
