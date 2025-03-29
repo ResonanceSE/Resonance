@@ -8,6 +8,7 @@ class Order(models.Model):
         ("pending", "Pending"),
         ("processing", "Processing"),
         ("shipped", "Shipped"),
+        ("delivered", "Delivered"),
         ("cancelled", "Cancelled"),
     ]
 
@@ -18,12 +19,15 @@ class Order(models.Model):
         max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
     )
     shipping_address = models.TextField()
+    # Payment status
     payment_status = models.BooleanField(default=False)
+    payment_method = models.CharField(max_length=50, blank=True, null=True)
+    payment_date = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Order {self.order_number}"
+        return f"Order {self.order_number} ({self.status})"
 
 
 class OrderItem(models.Model):
