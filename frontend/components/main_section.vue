@@ -30,6 +30,8 @@ const categoryMapping: Record<string | number, string> = {
   '3': 'earphones',
 };
 
+// Manually navigate with window.location instead of Vue Router
+// This is a more direct approach that bypasses potential router issues
 const viewProductDetails = (productId: number, category: string | number): void => {
   console.log("View product details:", { productId, category });
   
