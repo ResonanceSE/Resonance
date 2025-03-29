@@ -196,7 +196,7 @@ const togglePasswordVisibility = () => {
                 
                 <!-- Forgot password link -->
                 <div class="flex justify-end -mt-2">
-                  <a href="#" class="text-sm text-orange-500 hover:text-orange-600 hover:underline">Forgot password?</a>
+                  <NuxtLink to="/forgot_password" class="text-sm text-orange-500 hover:text-orange-600 hover:underline">Forgot password?</NuxtLink>
                 </div>
                 
                 <!-- Enhanced login button with loading state -->

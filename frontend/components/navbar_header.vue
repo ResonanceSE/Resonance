@@ -1,4 +1,3 @@
-\
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/useAuth';
 
@@ -33,11 +32,10 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
 const isMenuOpen = ref(false);
 const route = useRoute();
 const router = useRouter();
-const config = useRuntimeConfig();
 
 const authStore = useAuthStore();
 const isLogin = computed(() => authStore.isLoggedIn);
-const username = computed(() => authStore.user?.username || "User Log In");
+const username = computed(() => authStore.user?.username || authStore.user?.email || "User Log In");
 
 const showLogoutModal = ref(false);
 const isLoggingOut = ref(false);

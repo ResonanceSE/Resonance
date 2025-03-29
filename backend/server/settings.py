@@ -66,6 +66,14 @@ CORS_ALLOWED_ORIGINS = [
     if x.strip()  # Skip empty entries
 ]
 
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_POST = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_APP_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_APP_PASSWORD')  
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",

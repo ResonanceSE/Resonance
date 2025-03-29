@@ -23,7 +23,7 @@ const pageTitle = computed(() => {
     '/admin': 'Dashboard',
     '/admin/products': 'Product Management',
     '/admin/orders': 'Order Management',
-    '/admin/support': 'Customer Support'
+    '/admin/manage_staff': 'Manage Staff',
   };
   
   return routeMap[route.path] || 'Admin Panel';
@@ -177,6 +177,14 @@ definePageMeta({
           
           <ul class="menu menu-md rounded-box w-full">
             <li>
+              <NuxtLink to="/admin/manage_staff" :class="getActiveClass('/admin/manage_staff')" class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
+                  <Icon name="heroicons:users" class="h-5 w-5" />
+                </div>
+                <span>Staffs</span>
+              </NuxtLink>
+            </li>
+            <li>
               <NuxtLink to="/admin/products" :class="getActiveClass('/admin/products')" class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,6 +209,14 @@ definePageMeta({
           <div class="divider">Others</div>
           
           <ul class="menu menu-md rounded-box w-full">
+            <li>
+              <NuxtLink to="/" class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
+                  <Icon name="heroicons:backspace" class="h-5 w-5" />
+                </div>
+                <span>Home Page</span>
+              </NuxtLink>
+            </li>
             <li>
               <button class="flex items-center gap-3 font-medium hover:bg-error/10 text-error hover:text-error transition-all duration-200" @click="logout">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-error/10">

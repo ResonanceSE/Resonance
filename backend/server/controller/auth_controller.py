@@ -1,9 +1,16 @@
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
+import uuid
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+
 from ..models.auth_model import Token
 from ..models.user_model import User
 
@@ -348,3 +355,136 @@ class UpdateUsernameAPI(APIView):
                 {"status": "error", "message": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+class ForgotPasswordAPI(APIView):
+    def post(self, request):
+        """
+        Process forgot password request and send reset email
+        """
+        data = request.data
+        
+        if "email" not in data:
+            return Response(
+                {"status": "error", "message": "Email address is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        email = data["email"].lower().strip()
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # We don't want to reveal if an email exists in our system for security
+            return Response(
+                {
+                    "status": "success",
+                    "message": "If your email is registered, you will receive reset instructions shortly."
+                },
+                status=status.HTTP_200_OK,
+            )
+        
+        # Generate reset token
+        reset_token = uuid.uuid4().hex
+        
+        # Set reset token and expiration
+        user.reset_token = reset_token
+        user.reset_token_expiry = timezone.now() + timedelta(hours=24)
+        user.save()
+        
+        # Build reset URL (frontend will handle this route)
+        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+        
+        # Email content
+        email_subject = "Resonance Sound Shop - Password Reset"
+        email_body = f"""
+        Hello {user.first_name or user.username},
+        
+        You recently requested to reset your password for your Resonance Sound Shop account.
+        
+        Please click the link below to reset your password:
+        
+        {reset_url}
+        
+        This link is valid for 24 hours. If you did not request a password reset, please ignore this email.
+        
+        Thanks,
+        The Resonance Sound Shop Team
+        """
+        
+        # Send email
+        try:
+            send_mail(
+                email_subject,
+                email_body,
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            return Response(
+                {"status": "error", "message": f"Failed to send email: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        
+        return Response(
+            {
+                "status": "success",
+                "message": "Password reset instructions have been sent to your email."
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ResetPasswordAPI(APIView):
+    def post(self, request):
+        """
+        Process password reset using token
+        """
+        data = request.data
+        
+        if not all(k in data for k in ["token", "password"]):
+            return Response(
+                {"status": "error", "message": "Token and new password are required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        token = data["token"]
+        new_password = data["password"]
+        
+        try:
+            user = User.objects.get(reset_token=token)
+        except User.DoesNotExist:
+            return Response(
+                {"status": "error", "message": "Invalid or expired token"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Check if token is expired
+        if not user.reset_token_expiry or user.reset_token_expiry < timezone.now():
+            return Response(
+                {"status": "error", "message": "Reset token has expired"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Validate new password
+        try:
+            password_validation.validate_password(new_password, user)
+        except ValidationError as e:
+            return Response(
+                {"status": "error", "message": e.messages},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        
+        # Set new password
+        user.set_password(new_password)
+        
+        # Clear reset token and expiry
+        user.reset_token = None
+        user.reset_token_expiry = None
+        user.save()
+        
+        return Response(
+            {
+                "status": "success",
+                "message": "Your password has been reset successfully"
+            },
+            status=status.HTTP_200_OK,
+        )
