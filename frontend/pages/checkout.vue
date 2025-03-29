@@ -294,7 +294,8 @@ const continueShopping = () => {
             <!-- Order Confirmation -->
             <div v-else-if="orderPlaced" class="bg-white rounded-lg shadow-lg p-8 text-center">
                 <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
+                    <svg
+xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
@@ -351,12 +352,14 @@ const continueShopping = () => {
                     <!-- Address selection toggle -->
                     <div v-if="existingAddress" class="mb-6 flex space-x-4">
                         <label class="flex items-center">
-                            <input v-model="useExistingAddress" type="radio" :value="true"
+                            <input
+v-model="useExistingAddress" type="radio" :value="true"
                                 class="radio radio-primary mr-2">
                             <span>Use existing address</span>
                         </label>
                         <label class="flex items-center">
-                            <input v-model="useExistingAddress" type="radio" :value="false"
+                            <input
+v-model="useExistingAddress" type="radio" :value="false"
                                 class="radio radio-primary mr-2">
                             <span>Enter new address</span>
                         </label>
@@ -386,7 +389,8 @@ const continueShopping = () => {
                                 <label class="label">
                                     <span class="label-text">Full Name</span>
                                 </label>
-                                <input v-model="addressForm.recipient" type="text" class="input input-bordered"
+                                <input
+v-model="addressForm.recipient" type="text" class="input input-bordered"
                                     required>
                             </div>
 
@@ -422,7 +426,8 @@ const continueShopping = () => {
                                 <label class="label">
                                     <span class="label-text">Postal Code</span>
                                 </label>
-                                <input v-model="addressForm.postal_code" type="text" class="input input-bordered"
+                                <input
+v-model="addressForm.postal_code" type="text" class="input input-bordered"
                                     required>
                             </div>
 

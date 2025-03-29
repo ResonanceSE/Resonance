@@ -435,7 +435,8 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       Edit
                     </button>
                     <button
-class="btn btn-sm btn-error" :disabled="staff.id === authStore.user?.id || staff.is_superuser"
+class="btn btn-sm btn-error"
+                      :disabled="staff.id === authStore.user?.id || staff.is_superuser"
                       @click="confirmDeleteStaff(staff)">
                       Remove
                     </button>
@@ -491,6 +492,15 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           </label>
           <input v-model="editStaffForm.last_name" type="text" class="input input-bordered">
         </div>
+        <div v-if="editStaffForm.id !== authStore.user?.id" class="form-control mb-4">
+          <div class="flex gap-4 cursor-pointer">
+            <span class="bold-text">Superuser?</span>
+            <input
+v-model="editStaffForm.is_superuser" type="checkbox"
+              class="checkbox checkbox-primary small-checkbox">
+          </div>
+        </div>
+
 
         <div class="modal-action">
           <button class="btn btn-outline" @click="closeEditModal">

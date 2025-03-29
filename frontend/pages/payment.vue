@@ -279,7 +279,7 @@ const cancelPayment = () => {
                         
                         <!-- QR Code -->
                         <div class="bg-white p-4 flex justify-center rounded-b-lg">
-                            <img src="https://i.ibb.co/Vc240585/image-2025-03-29-203931507.png" alt="Payment QR Code" class="w-64 h-64" />
+                            <img src="https://i.ibb.co/Vc240585/image-2025-03-29-203931507.png" alt="Payment QR Code" class="w-64 h-64" >
                         </div>
                         
                         <!-- Account Info -->
@@ -296,16 +296,16 @@ const cancelPayment = () => {
                     <div class="flex space-x-4">
                         <button 
                             class="btn btn-outline" 
-                            @click="selectPaymentMethod(null)"
                             :disabled="processingPayment"
+                            @click="selectPaymentMethod(null)"
                         >
                             เปลี่ยนวิธีชำระเงิน
                         </button>
                         
                         <button 
                             class="btn btn-primary" 
-                            @click="processPayment"
                             :disabled="processingPayment"
+                            @click="processPayment"
                         >
                             <span v-if="processingPayment">
                                 <span class="loading loading-spinner loading-xs mr-2"/>
@@ -354,16 +354,16 @@ const cancelPayment = () => {
                     <div class="flex space-x-4 justify-center">
                         <button 
                             class="btn btn-outline" 
-                            @click="selectPaymentMethod(null)"
                             :disabled="processingPayment"
+                            @click="selectPaymentMethod(null)"
                         >
                             เปลี่ยนวิธีชำระเงิน
                         </button>
                         
                         <button 
                             class="btn btn-primary" 
-                            @click="processPayment"
                             :disabled="processingPayment"
+                            @click="processPayment"
                         >
                             <span v-if="processingPayment">
                                 <span class="loading loading-spinner loading-xs mr-2"/>

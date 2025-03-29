@@ -145,6 +145,9 @@ watch(product, (newProduct) => {
 }, { immediate: true });
 
 const handleAddToCart = async () => {
+  if (!authStore.user) {
+    router.push('/login');
+  }
   if (!product.value || !import.meta.client) return;
 
   try {
