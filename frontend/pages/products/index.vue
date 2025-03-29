@@ -50,19 +50,13 @@ const viewProductDetails = (productId: number, category: string | number): void 
   const route = useRoute();
   
   if (category && categoryMapping[category]) {
-    router.push(`/products/${categoryMapping[category]}/${productId}`);
+    window.location.href = (`/products/${categoryMapping[category]}/${productId}`);
     return;
   }
   
   const currentCategory = route.params.category;
   if (currentCategory) {
-    router.push(`/products/${currentCategory}/${productId}`);
-    return;
-  }
-  
-  if (category) {
-    const categorySlug = String(category).toLowerCase();
-    router.push(`/products/${categorySlug}/${productId}`);
+    window.location.href = (`/products/${currentCategory}/${productId}`);
     return;
   }
 };

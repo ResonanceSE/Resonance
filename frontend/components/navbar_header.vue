@@ -21,7 +21,7 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
   },
   {
     slug: "earbuds",
-    name: "Earbuds",
+    name: "Earbuds / IEMS",
     icon: "heroicons:musical-note"
   }
 ]);

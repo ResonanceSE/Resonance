@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/useAuth';
-import { definePageMeta } from '#imports'
 
 definePageMeta({
   layout: 'admin',
@@ -450,7 +449,7 @@ onMounted(() => {
                 >
                   <option disabled value="0">Select a category</option>
                   <option v-for="category in categories" :key="category.id" :value="category.id">
-                    {{ category.name }}
+                    {{ category.name.toLowerCase() === "earbuds" ? "Earbuds / IEMS" : category.name }}
                   </option>
                 </select>
               </div>
@@ -646,12 +645,6 @@ onMounted(() => {
                     <input v-model="formData.is_featured" type="checkbox" class="toggle toggle-accent" >
                     <span>Featured</span>
                     <span class="text-xs text-gray-500">— Highlight product on homepage</span>
-                  </label>
-
-                  <label class="cursor-pointer flex items-center gap-3">
-                    <input v-model="formData.is_new" type="checkbox" class="toggle toggle-secondary" >
-                    <span>New</span>
-                    <span class="text-xs text-gray-500">— Mark as new product</span>
                   </label>
                 </div>
               </div>
