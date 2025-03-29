@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// Simple animation when page loads
-import { onMounted } from 'vue';
 
 onMounted(() => {
   const heroContent = document.querySelector('.hero-content');
@@ -37,14 +35,11 @@ onMounted(() => {
             Experience the difference with fine quality headphones at the best price. Whether you're a music lover or an audio professional, our headphones deliver crisp, clear sound and lasting comfort for every ear.
           </p>
           
-          <!-- Improved button with animation -->
           <div class="flex items-center gap-4">
-            <button class="btn bg-orange-400 hover:bg-orange-500 text-white border-none shadow-lg shadow-orange-400/50 transition-all hover:translate-y-[-2px]">
+            <NuxtLink to="/products" class="btn bg-orange-400 hover:bg-orange-500 text-white border-none shadow-lg shadow-orange-400/50 transition-all hover:translate-y-[-2px]">
               Shop Now
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-            </button>
+              <Icon name="heroicons:arrow-right" class="h-5 w-5" />
+            </NuxtLink>
           </div>
         </div>
       </div>

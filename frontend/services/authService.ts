@@ -12,6 +12,8 @@ interface RegisterData {
   password: string;
   first_name?: string;
   last_name?: string;
+  user_type?: 'customer' | 'admin';
+  is_superuser?: boolean;
 }
 interface Address {
   address : string
@@ -82,13 +84,17 @@ export async function login(credentials: LoginCredentials): Promise<User> {
 export async function register(userData: RegisterData): Promise<User> {
   try {
     console.error('Attempting registration for:', userData.username);
+    const registrationData = {
+      ...userData,
+      user_type: userData.user_type || 'customer'
+    };
 
     const response = await fetch(`${getBaseUrl()}/api/auth/register/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(userData),
+      body: JSON.stringify(registrationData),
       credentials: 'include',
     });
 

@@ -173,115 +173,7 @@ const getSelectClass = (status: string) => {
   }
 };
 
-// Print order details
-const printOrderDetails = () => {
-  if (!selectedOrder.value) return;
-  
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    alert('Please allow pop-ups to print order details');
-    return;
-  }
-  
-  const order = selectedOrder.value;
-  
-  let printContent = `
-    <html>
-    <head>
-      <title>Order #${order.order_number}</title>
-      <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #333; }
-        .section { margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #f4f4f4; }
-        .header { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: bold; font-size: 24px; color: #f97316; }
-        .order-id { font-size: 18px; }
-        .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #666; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <div class="logo">Resonance</div>
-        <div class="order-id">Order #${order.order_number}</div>
-      </div>
-      
-      <div class="section">
-        <h2>Order Information</h2>
-        <p><strong>Date:</strong> ${formatDate(order.created_at)}</p>
-        <p><strong>Status:</strong> ${capitalize(order.status)}</p>
-        <p><strong>Payment Status:</strong> ${order.payment_status ? 'Paid' : 'Unpaid'}</p>
-      </div>
-      
-      <div class="section">
-        <h2>Customer Information</h2>
-        <p><strong>Customer:</strong> ${order.user || 'Anonymous'}</p>
-        <p><strong>Shipping Address:</strong><br>${order.shipping_address.replace(/\n/g, '<br>')}</p>
-      </div>
-      
-      <div class="section">
-        <h2>Order Items</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th style="text-align: center;">Quantity</th>
-              <th style="text-align: right;">Price</th>
-              <th style="text-align: right;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-  `;
-  
-  if (order.items && order.items.length > 0) {
-    order.items.forEach(item => {
-      const itemTotal = (item.quantity * item.price).toFixed(2);
-      printContent += `
-        <tr>
-          <td>${item.product}</td>
-          <td style="text-align: center;">${item.quantity}</td>
-          <td style="text-align: right;">$${item.price}</td>
-          <td style="text-align: right;">$${itemTotal}</td>
-        </tr>
-      `;
-    });
-  } else {
-    printContent += `
-      <tr>
-        <td colspan="4" style="text-align: center;">No items found in this order</td>
-      </tr>
-    `;
-  }
-  
-  printContent += `
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="3" style="text-align: right; font-weight: bold;">Total:</td>
-              <td style="text-align: right; font-weight: bold;">$${order.total_amount}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      
-      <div class="footer">
-        <p>Thank you for your order! If you have any questions, please contact us at support@resonance.com</p>
-        <p>© ${new Date().getFullYear()} Resonance - All rights reserved</p>
-      </div>
-    </body>
-    </html>
-  `;
-  
-  printWindow.document.open();
-  printWindow.document.write(printContent);
-  printWindow.document.close();
-  
-  setTimeout(() => {
-    printWindow.print();
-  }, 500);
-};
+
 
 onMounted(fetchOrders);
 </script>
@@ -512,12 +404,10 @@ onMounted(fetchOrders);
             <button
               v-else
               class="btn btn-primary"
-              @click="printOrderDetails"
+              @click="selectedOrder = null"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Print Order
+              <Icon name="heroicons:check-circle" class="h-5 w-5 mr-2" />
+              Done
             </button>
           </div>
         </div>

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import uuid
 from decimal import Decimal
-from ..models import Order, OrderItem, Product, Customer
+from ..models import Order, OrderItem, Product, User
 
 
 @api_view(["POST"])
@@ -127,9 +127,9 @@ def create_order(request):
 @api_view(["GET"])
 def get_user_by_id(request, user_id):
     try:
-        user = Customer.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
         return Response({"id": user.id, "username": user.username, "email": user.email})
-    except Customer.DoesNotExist:
+    except User.DoesNotExist:
         return Response({"error": "User not found"}, status=404)
 
 

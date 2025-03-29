@@ -11,9 +11,7 @@ class Order(models.Model):
         ("cancelled", "Cancelled"),
     ]
 
-    user = models.ForeignKey(
-        "Customer", on_delete=models.CASCADE, related_name="orders"
-    )
+    user = models.ForeignKey("User", on_delete=models.CASCADE, related_name="orders")
     order_number = models.CharField(max_length=20, unique=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     total_amount = models.DecimalField(
@@ -40,9 +38,7 @@ class OrderItem(models.Model):
 
 
 class Cart(models.Model):
-    user = models.OneToOneField(
-        "Customer", on_delete=models.CASCADE, related_name="cart"
-    )
+    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name="cart")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -65,7 +61,7 @@ class Review(models.Model):
     product = models.ForeignKey(
         "Product", on_delete=models.CASCADE, related_name="reviews"
     )
-    user = models.ForeignKey("Customer", on_delete=models.CASCADE)
+    user = models.ForeignKey("User", on_delete=models.CASCADE)
     rating = models.PositiveIntegerField(choices=[(i, i) for i in range(1, 6)])
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

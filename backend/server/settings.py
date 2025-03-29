@@ -66,6 +66,16 @@ CORS_ALLOWED_ORIGINS = [
     if x.strip()  # Skip empty entries
 ]
 
+# Send Mail
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv("EMAIL_APP_USER")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_APP_PASSWORD")
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_APP_USER", "noreply.resonancese@gmail.com")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000").rstrip("/")
+
 CORS_ALLOW_METHODS = [
     "DELETE",
     "GET",

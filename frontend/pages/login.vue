@@ -31,7 +31,7 @@ const handleLogin = async () => {
     
     showSuccessModal.value = true;
     const redirectPath = route.query.redirect ? route.query.redirect.toString() : null;
-    if (authStore.user?.is_admin) {
+    if (authStore.user?.user_type === 'admin') {
       setTimeout(() => {
         if (redirectPath && redirectPath.startsWith('/admin')) {
           router.push(redirectPath);
@@ -196,7 +196,7 @@ const togglePasswordVisibility = () => {
                 
                 <!-- Forgot password link -->
                 <div class="flex justify-end -mt-2">
-                  <a href="#" class="text-sm text-orange-500 hover:text-orange-600 hover:underline">Forgot password?</a>
+                  <NuxtLink to="/forgot_password" class="text-sm text-orange-500 hover:text-orange-600 hover:underline">Forgot password?</NuxtLink>
                 </div>
                 
                 <!-- Enhanced login button with loading state -->
@@ -220,13 +220,6 @@ const togglePasswordVisibility = () => {
             
             <!-- Enhanced footer section -->
             <div class="grid gap-4 pt-4">
-              <div class="grid place-items-center">
-                <div class="flex space-x-8 text-sm">
-                  <a href="#" class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Terms of Use</a>
-                  <a href="#" class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Privacy Policy</a>
-                  <a href="#" class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Help Center</a>
-                </div>
-              </div>
               <div class="text-gray-600 mt-2 md:hidden">
                 <div class="flex flex-row gap-2 justify-center">
                   <span class="text-gray-600">New to Resonance?</span>

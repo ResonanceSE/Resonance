@@ -1,5 +1,4 @@
 // /frontend/middleware/auth.ts
-import { defineNuxtRouteMiddleware, navigateTo } from 'nuxt/app'
 import { useAuthStore } from '~/stores/useAuth'
 
 export interface User {
@@ -10,13 +9,14 @@ export interface User {
   last_name?: string;
   token: string;
   is_admin: boolean;
+  user_type: 'admin' | 'customer';
+  is_superuser?: boolean;
 }
 
 export default defineNuxtRouteMiddleware((to) => {
-  // Handle server-side rendering
+  const currentUser = useAuthStore();
   if (import.meta.server) {
-    // For admin routes on server side, redirect to login page to prevent flash
-    if (to.path.startsWith('/admin')) {
+    if (to.path.startsWith('/admin') && !currentUser.user?.is_admin) {
       return navigateTo('/login')
     }
     return
