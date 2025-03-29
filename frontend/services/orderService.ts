@@ -32,7 +32,6 @@ interface CartItem {
 export const orderService = {
   async createOrder(shippingAddress: string, cartItems?: CartItem[]): Promise<Order> {
     try {
-      // Prepare the request body
       const requestBody: {
         shipping_address: string;
         cart_items?: string;
@@ -40,11 +39,9 @@ export const orderService = {
         shipping_address: shippingAddress,
       }
       
-      // If cart items are provided, include them in the request
       if (cartItems && cartItems.length > 0) {
-        // Only send the necessary fields to the backend
         const simplifiedCartItems = cartItems.map(item => ({
-          id: item.id,         // This is the product ID
+          id: item.id,    
           quantity: item.quantity
         }));
         
@@ -114,29 +111,6 @@ export const orderService = {
       throw new Error(result.message || "Failed to get order details")
     } catch (error) {
       console.error('Get order error:', error)
-      throw error instanceof Error ? error : new Error('Unknown error occurred')
-    }
-  },
-
-  async cancelOrder(id: number): Promise<Order> {
-    try {
-      const response = await fetch(
-        `${useRuntimeConfig().public.apiUrl}/api/orders/${id}/cancel/`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Token ${useAuthStore().token}`,
-          },
-        }
-      )
-
-      const result = await response.json()
-      if (result.status === 'success') {
-        return result.data
-      }
-      throw new Error(result.message || "Failed to cancel order")
-    } catch (error) {
-      console.error('Cancel order error:', error)
       throw error instanceof Error ? error : new Error('Unknown error occurred')
     }
   },

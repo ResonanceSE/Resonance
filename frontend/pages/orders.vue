@@ -20,7 +20,6 @@ const showCancelModal = ref(false);
 const orderToCancel = ref(null);
 const isCancelling = ref(false);
 
-// Tracking steps for the order progress visualization
 const trackingSteps = [
     { status: 'pending', label: 'Order Placed' },
     { status: 'processing', label: 'Processing' },
@@ -102,7 +101,6 @@ const formatStatus = (status) => {
     return statusMap[status] || status;
 };
 
-// Get CSS class for status badge
 const getStatusBadgeClass = (status) => {
     const statusClasses = {
         pending: 'bg-yellow-100 text-yellow-800',
@@ -115,18 +113,14 @@ const getStatusBadgeClass = (status) => {
     return statusClasses[status] || 'bg-gray-100 text-gray-800';
 };
 
-// Apply filters to the orders
-const applyFilters = () => {
-    // No additional logic needed as we're using computed properties
-};
 
-// Track order - open tracking modal
+
 const trackOrder = (order) => {
     selectedOrder.value = order;
     showTrackingModal.value = true;
 };
 
-// Get CSS class for tracking step
+
 const getTrackingStepClass = (stepStatus, orderStatus) => {
     const stepIndex = trackingSteps.findIndex(step => step.status === stepStatus);
     const orderIndex = trackingSteps.findIndex(step => step.status === orderStatus);
@@ -142,7 +136,6 @@ const getTrackingStepClass = (stepStatus, orderStatus) => {
     return 'bg-gray-200';
 };
 
-// Check if step is complete based on current order status
 const isStepComplete = (stepStatus, orderStatus) => {
     const statusOrder = ['pending', 'processing', 'shipped', 'delivered'];
     const stepIndex = statusOrder.indexOf(stepStatus);
@@ -180,51 +173,12 @@ const getEstimatedDelivery = (order) => {
     return formatDate(estimatedDate);
 };
 
-// Cancel order flow
-const cancelOrder = (orderId) => {
-    orderToCancel.value = orderId;
-    showCancelModal.value = true;
-};
-
-// Confirm order cancellation 
-const confirmCancelOrder = async () => {
-    if (!orderToCancel.value) return;
-
-    isCancelling.value = true;
-
-    try {
-        await orderService.cancelOrder(orderToCancel.value);
-
-        // Update order status in the local state
-        const index = orders.value.findIndex(o => o.id === orderToCancel.value);
-        if (index !== -1) {
-            orders.value[index].status = 'cancelled';
-        }
-
-        showCancelModal.value = false;
-    } catch (err) {
-        console.error('Error cancelling order:', err);
-        alert('Failed to cancel order. Please try again.');
-    } finally {
-        isCancelling.value = false;
-        orderToCancel.value = null;
-    }
-};
-
-// Handle invoice download
-const downloadInvoice = (order) => {
-    const filename = `invoice-${order.order_number}.pdf`;
-    alert(`In a production environment, this would download an invoice named "${filename}"`);
-};
-
-// Fetch orders on component mount
 onMounted(() => {
     if (authStore.isAuthenticated) {
         fetchOrders();
     }
 });
 
-// Watch for auth state changes
 watch(() => authStore.isAuthenticated, (newValue) => {
     if (newValue) {
         fetchOrders();
@@ -237,8 +191,6 @@ watch(() => authStore.isAuthenticated, (newValue) => {
         <!-- Decorative circles -->
         <div
             class="absolute top-20 left-10 w-64 h-64 bg-orange-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob" />
-        <div
-            class="absolute top-40 right-10 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000" />
         <div
             class="absolute -bottom-8 left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000" />
 
@@ -365,7 +317,7 @@ v-for="order in filteredOrders" :key="order.id"
                                     class="px-3 py-1 rounded-full text-xs font-medium">
                                     {{ formatStatus(order.status) }}
                                 </span>
-                                <button class="btn btn-sm btn-ghost" @click="toggleOrderDetails(order.id)">
+                                <button class="btn btn-sm btn-ghost" @click.stop="toggleOrderDetails(order.id)">
                                     {{ expandedOrderId === order.id ? 'Hide Details' : 'View Details' }}
                                 </button>
                             </div>
@@ -405,25 +357,6 @@ v-for="(item, index) in order.items" :key="index"
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Order Actions -->
-                            <div class="flex justify-between mt-4">
-                                <button
-v-if="order.status === 'pending'" class="btn btn-sm btn-error"
-                                    @click="cancelOrder(order.id)">
-                                    Cancel Order
-                                </button>
-                                <button class="btn btn-sm btn-outline" @click="downloadInvoice(order)">
-                                    <svg
-xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    Download Invoice
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -507,23 +440,6 @@ xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600" fill="none" view
 stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
-                </div>
-
-                <h3 class="text-xl font-medium text-center mb-4">Cancel Order</h3>
-                <p class="text-gray-600 mb-6 text-center">Are you sure you want to cancel this order? This action cannot
-                    be undone.</p>
-
-                <div class="flex justify-center space-x-4">
-                    <button class="btn btn-outline" @click="showCancelModal = false">
-                        Keep Order
-                    </button>
-                    <button class="btn btn-error" :disabled="isCancelling" @click="confirmCancelOrder">
-                        <span v-if="isCancelling">
-                            <span class="loading loading-spinner loading-xs mr-2" />
-                            Cancelling...
-                        </span>
-                        <span v-else>Yes, Cancel Order</span>
-                    </button>
                 </div>
             </div>
         </div>
