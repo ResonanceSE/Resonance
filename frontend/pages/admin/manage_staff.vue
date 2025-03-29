@@ -10,11 +10,11 @@ interface StaffUser {
   last_name?: string;
   password?: string;
   is_admin?: boolean;
+  is_superuser?: boolean; 
   user_type?: string;
   token?: string;
 }
 
-// Define form interface with validation properties
 interface StaffForm extends Partial<StaffUser> {
   is_submitting: boolean;
   error: string;
@@ -54,6 +54,7 @@ const editStaffForm = reactive<StaffForm>({
   email: '',
   first_name: '',
   last_name: '',
+  is_superuser: false,
   is_submitting: false,
   error: ''
 });
@@ -159,8 +160,10 @@ const editStaff = (staff: StaffUser) => {
   editStaffForm.email = staff.email;
   editStaffForm.first_name = staff.first_name || '';
   editStaffForm.last_name = staff.last_name || '';
+  editStaffForm.is_superuser = staff.is_superuser || false;  // <-- Include this
   showEditModal.value = true;
 };
+
 
 // Save edited staff
 const saveStaffChanges = async () => {
@@ -179,7 +182,8 @@ const saveStaffChanges = async () => {
         username: editStaffForm.username,
         email: editStaffForm.email,
         first_name: editStaffForm.first_name,
-        last_name: editStaffForm.last_name
+        last_name: editStaffForm.last_name,
+        is_superuser: editStaffForm.is_superuser 
       })
     });
     
@@ -344,7 +348,13 @@ onMounted(fetchStaff);
             <input v-model="newStaffForm.password" type="password" class="input input-bordered" required >
           </div>
         </div>
-        
+        <div class="form-control mb-4">
+        <label class="label cursor-pointer">
+          <span class="label-text">Superuser</span>
+          <input type="checkbox" v-model="editStaffForm.is_superuser" class="checkbox checkbox-primary">
+        </label>
+      </div>
+
         <div class="card-actions mt-4">
           <button 
             class="btn btn-primary" 

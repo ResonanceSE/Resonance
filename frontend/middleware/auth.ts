@@ -10,6 +10,7 @@ export interface User {
   token: string;
   is_admin: boolean;
   user_type: 'admin' | 'customer';
+  is_superuser?: boolean;
 }
 
 export default defineNuxtRouteMiddleware((to) => {

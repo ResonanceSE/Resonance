@@ -80,7 +80,6 @@ definePageMeta({
   <div class="drawer lg:drawer-open min-h-screen bg-base-100">
     <!-- Mobile drawer toggle -->
     <input id="admin-drawer" type="checkbox" class="drawer-toggle">
-    
     <!-- Page content -->
     <div class="drawer-content flex flex-col">
       <!-- Top header -->
@@ -176,7 +175,7 @@ definePageMeta({
           <div class="divider">Management</div>
           
           <ul class="menu menu-md rounded-box w-full">
-            <li>
+            <li v-if="authStore.user?.is_superuser">
               <NuxtLink to="/admin/manage_staff" :class="getActiveClass('/admin/manage_staff')" class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
                   <Icon name="heroicons:users" class="h-5 w-5" />
