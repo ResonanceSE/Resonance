@@ -1,4 +1,4 @@
-name: Development Checking
+name: Code Quality Checking
 
 on:
   pull_request:
