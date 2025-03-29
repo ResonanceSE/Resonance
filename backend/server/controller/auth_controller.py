@@ -390,21 +390,20 @@ class ForgotPasswordAPI(APIView):
         user.save()
         
         # Build reset URL (frontend will handle this route)
-        reset_url = f"{settings.FRONTEND_URL}/reset-password?token={reset_token}"
+        reset_url = f"{settings.FRONTEND_URL}/reset_password?token={reset_token}"
         
         # Email content
         email_subject = "Resonance Sound Shop - Password Reset"
-        email_body = f"""
-        Hello {user.first_name or user.username},
-        
+        email_body = f"""Hello {user.first_name or user.username},
+
         You recently requested to reset your password for your Resonance Sound Shop account.
-        
+
         Please click the link below to reset your password:
-        
+
         {reset_url}
-        
+
         This link is valid for 24 hours. If you did not request a password reset, please ignore this email.
-        
+
         Thanks,
         The Resonance Sound Shop Team
         """
@@ -473,10 +472,8 @@ class ResetPasswordAPI(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         
-        # Set new password
         user.set_password(new_password)
         
-        # Clear reset token and expiry
         user.reset_token = None
         user.reset_token_expiry = None
         user.save()

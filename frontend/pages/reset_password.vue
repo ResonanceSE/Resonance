@@ -1,58 +1,85 @@
 <script setup>
-import { ref } from 'vue';
-import { useRuntimeConfig } from 'nuxt/app';
 
 definePageMeta({
   layout: 'false'
 });
 
-const email = ref('');
+const route = useRoute();
+const router = useRouter();
+const token = ref('');
+const newPassword = ref('');
+const confirmPassword = ref('');
+const passwordVisible = ref(false);
+const confirmPasswordVisible = ref(false);
 const isSubmitting = ref(false);
-const emailSent = ref(false);
+const passwordResetSuccess = ref(false);
 const errorMessage = ref('');
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl || 'http://localhost:8000';
 
-const validateEmail = (email) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-};
-
-const handleSubmit = async () => {
-  // Reset state
-  errorMessage.value = '';
+onMounted(() => {
+  token.value = route.query.token;
   
-  // Validate email
-  if (!email.value) {
-    errorMessage.value = 'Please enter your email address';
-    return;
+  if (!token.value) {
+    errorMessage.value = 'Invalid password reset link. Please request a new one.';
+  }
+});
+
+const validatePassword = () => {
+  if (!newPassword.value) {
+    errorMessage.value = 'Please enter a new password';
+    return false;
   }
   
-  if (!validateEmail(email.value)) {
-    errorMessage.value = 'Please enter a valid email address';
+  if (newPassword.value !== confirmPassword.value) {
+    errorMessage.value = 'Passwords do not match';
+    return false;
+  }
+  
+  return true;
+};
+
+const togglePasswordVisibility = (field) => {
+  if (field === 'password') {
+    passwordVisible.value = !passwordVisible.value;
+  } else {
+    confirmPasswordVisible.value = !confirmPasswordVisible.value;
+  }
+};
+
+const handleResetPassword = async () => {
+  errorMessage.value = '';
+  
+  if (!validatePassword()) {
     return;
   }
   
   isSubmitting.value = true;
   
   try {
-    const response = await fetch(`${apiUrl}/api/auth/forgot-password/`, {
+    const response = await fetch(`${apiUrl}/api/auth/reset-password/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ email: email.value })
+      body: JSON.stringify({
+        token: token.value,
+        password: newPassword.value
+      })
     });
     
     const data = await response.json();
     
     if (response.ok) {
-      emailSent.value = true;
+      passwordResetSuccess.value = true;
+      // Clear form fields
+      newPassword.value = '';
+      confirmPassword.value = '';
     } else {
-      errorMessage.value = data.message || 'An error occurred. Please try again.';
+      errorMessage.value = data.message || 'Failed to reset password. Please try again.';
     }
   } catch (error) {
-    console.error('Error sending password reset request:', error);
+    console.error('Error resetting password:', error);
     errorMessage.value = 'Failed to connect to the server. Please try again later.';
   } finally {
     isSubmitting.value = false;
@@ -80,38 +107,42 @@ const handleSubmit = async () => {
         </div>
 
         <!-- Success State -->
-        <div v-if="emailSent" class="text-center py-8">
+        <div v-if="passwordResetSuccess" class="text-center py-8">
           <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h2 class="text-2xl font-semibold mb-2">Check Your Email</h2>
+          <h2 class="text-2xl font-semibold mb-2">Password Reset Successful</h2>
           <p class="text-gray-600 mb-6">
-            We've sent password reset instructions to:<br/>
-            <span class="font-medium">{{ email }}</span>
+            Your password has been reset successfully. You can now log in with your new password.
           </p>
-          <p class="text-gray-500 text-sm mb-6">
-            If you don't see the email, check other places it might be, like your junk, spam, social, or other folders.
-          </p>
-          <div class="flex flex-col space-y-3">
-            <NuxtLink to="/login" class="btn btn-outline hover:bg-orange-500 hover:border-orange-500">
-              Back to Login
-            </NuxtLink>
-            <button 
-              class="btn btn-ghost text-orange-500"
-              @click="emailSent = false; email = ''"
-            >
-              Try another email
-            </button>
+          <NuxtLink to="/login" class="btn btn-primary">
+            Go to Login
+          </NuxtLink>
+        </div>
+
+        <!-- Error with no token -->
+        <div v-else-if="!token" class="text-center py-8">
+          <div class="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </div>
+          <h2 class="text-2xl font-semibold mb-2">Invalid Reset Link</h2>
+          <p class="text-gray-600 mb-6">
+            The password reset link is invalid or has expired. Please request a new one.
+          </p>
+          <NuxtLink to="/forgot_password" class="btn btn-primary">
+            Request New Link
+          </NuxtLink>
         </div>
 
         <!-- Form State -->
         <div v-else>
-          <h2 class="text-2xl font-bold mb-2">Forgot Password</h2>
+          <h2 class="text-2xl font-bold mb-2">Reset Password</h2>
           <p class="text-gray-600 mb-6">
-            Enter your email address and we'll send you instructions to reset your password.
+            Please enter your new password below.
           </p>
 
           <!-- Error message -->
@@ -129,23 +160,58 @@ const handleSubmit = async () => {
           </div>
 
           <!-- Form -->
-          <form @submit.prevent="handleSubmit">
+          <form @submit.prevent="handleResetPassword">
             <div class="mb-6">
-              <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
+              <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                New Password
               </label>
               <div class="relative">
                 <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                  ✉
+                  🔒
                 </span>
                 <input
-                  id="email"
-                  v-model="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                  id="password"
+                  v-model="newPassword"
+                  :type="passwordVisible ? 'text' : 'password'"
+                  placeholder="Enter new password"
+                  class="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                   required
                 >
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  @click="togglePasswordVisibility('password')"
+                >
+                  <span v-if="!passwordVisible">👁</span>
+                  <span v-else>👁‍🗨</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="mb-6">
+              <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                  🔒
+                </span>
+                <input
+                  id="confirmPassword"
+                  v-model="confirmPassword"
+                  :type="confirmPasswordVisible ? 'text' : 'password'"
+                  placeholder="Confirm new password"
+                  class="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
+                  required
+                >
+                <button
+                  type="button"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                  @click="togglePasswordVisibility('confirm')"
+                >
+                  <span v-if="!confirmPasswordVisible">👁</span>
+                  <span v-else>👁‍🗨</span>
+                </button>
               </div>
             </div>
 
@@ -157,13 +223,12 @@ const handleSubmit = async () => {
             >
               <div v-if="isSubmitting" class="flex items-center justify-center">
                 <div class="spinner-white mr-2"></div>
-                <span>Sending...</span>
+                <span>Resetting Password...</span>
               </div>
-              <span v-else>Send Reset Instructions</span>
+              <span v-else>Reset Password</span>
             </button>
           </form>
 
-          <!-- Back to login link -->
           <div class="text-center mt-6">
             <NuxtLink to="/login" class="text-orange-500 hover:text-orange-700 font-medium">
               Back to Login
