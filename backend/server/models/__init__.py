@@ -1,5 +1,5 @@
 from .product_model import Product
-from .customer_model import Customer
+from .user_model import User, Customer, AdminStaff
 from .category_model import Category
 from .auth_model import Token
 from .ecommerce_model import (
@@ -11,7 +11,9 @@ from .ecommerce_model import (
 
 __all__ = [
     "Product",
+    "User",
     "Customer",
+    "AdminStaff",
     "Category",
     "Token",
     "Order",
