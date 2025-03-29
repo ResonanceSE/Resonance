@@ -17,7 +17,7 @@
               </div>
               <div>
                 <h4 class="font-semibold">Our Location</h4>
-                <p> 1518 ถนน ​ประชา​ราษฎร์​1 Wong Sawang, Bang Sue, Bangkok 10800</p>
+                <p> 1518 Parcharat Wong Sawang, Bang Sue, Bangkok 10800</p>
               </div>
             </div>
 
