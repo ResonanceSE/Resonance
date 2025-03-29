@@ -6,6 +6,7 @@ from rest_framework import status
 import uuid
 from decimal import Decimal
 from ..models import Order, OrderItem, Product, User
+from django.shortcuts import get_object_or_404
 
 
 @api_view(["POST"])
@@ -121,6 +122,53 @@ def create_order(request):
         return Response(
             {"status": "error", "message": f"Failed to create order: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def process_payment(request, order_id):
+    """Process payment for a specific order"""
+    user = request.user
+    data = request.data
+
+    try:
+        # Get the order and verify it belongs to the authenticated user
+        order = get_object_or_404(Order, id=order_id, user=user)
+
+        # Update order payment details
+        order.payment_status = data.get("payment_status", True)
+
+        # Update payment method
+        order.payment_method = data.get("payment_method", "credit_card")
+
+        # Set payment date to current time
+        from django.utils import timezone
+
+        order.payment_date = timezone.now()
+
+        # Update order status to processing after payment
+        order.status = "processing"
+
+        # Save the order
+        order.save()
+
+        return Response(
+            {
+                "status": "success",
+                "message": "Payment processed successfully",
+                "data": {
+                    "order_id": order.id,
+                    "order_number": order.order_number,
+                    "payment_status": order.payment_status,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+    except Exception as e:
+        return Response(
+            {"status": "error", "message": f"Payment processing failed: {str(e)}"},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
 

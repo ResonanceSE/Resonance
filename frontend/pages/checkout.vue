@@ -106,6 +106,19 @@ const loadCart = () => {
     }
 }
 
+// Define the storeOrderDetailsForPayment function
+const storeOrderDetailsForPayment = (orderData) => {
+    if (import.meta.client) {
+        const paymentDetails = {
+            order_id: orderData.order_id,
+            order_number: orderData.order_number,
+            total_amount: orderData.total_amount
+        }
+        localStorage.setItem('pending_order', JSON.stringify(paymentDetails))
+        setTimeout(() => router.push('/payment'), 1500)
+    }
+}
+
 const verifyStockBeforeCheckout = async () => {
     if (cartItems.value.length === 0) return true;
 
@@ -236,6 +249,7 @@ const placeOrder = async () => {
 
         if (response.ok && result.status === 'success') {
             orderNumber.value = result.data.order_number
+            storeOrderDetailsForPayment(result.data)
             orderPlaced.value = true
 
             if (import.meta.client) {
@@ -280,18 +294,18 @@ const continueShopping = () => {
             <!-- Order Confirmation -->
             <div v-else-if="orderPlaced" class="bg-white rounded-lg shadow-lg p-8 text-center">
                 <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg
-xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                 </div>
 
-                <h2 class="text-2xl font-bold text-gray-800 mb-4">Order Placed Successfully!</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Order Created!</h2>
                 <p class="mb-2">Your order number is: <span class="font-bold">{{ orderNumber }}</span></p>
-                <p class="text-gray-600 mb-6">Thank you for your order. We'll process it as soon as possible.</p>
+                <p class="text-gray-600 mb-3">Thank you for your order.</p>
+                <p class="text-gray-600 mb-6">Redirecting to payment page...</p>
 
-                <button class="btn btn-primary" @click="continueShopping">
+                <button class="btn btn-primary" @click="router.push('/payment')">
                     Continue Shopping
                 </button>
             </div>
@@ -337,14 +351,12 @@ xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
                     <!-- Address selection toggle -->
                     <div v-if="existingAddress" class="mb-6 flex space-x-4">
                         <label class="flex items-center">
-                            <input
-v-model="useExistingAddress" type="radio" :value="true"
+                            <input v-model="useExistingAddress" type="radio" :value="true"
                                 class="radio radio-primary mr-2">
                             <span>Use existing address</span>
                         </label>
                         <label class="flex items-center">
-                            <input
-v-model="useExistingAddress" type="radio" :value="false"
+                            <input v-model="useExistingAddress" type="radio" :value="false"
                                 class="radio radio-primary mr-2">
                             <span>Enter new address</span>
                         </label>
@@ -374,8 +386,7 @@ v-model="useExistingAddress" type="radio" :value="false"
                                 <label class="label">
                                     <span class="label-text">Full Name</span>
                                 </label>
-                                <input
-v-model="addressForm.recipient" type="text" class="input input-bordered"
+                                <input v-model="addressForm.recipient" type="text" class="input input-bordered"
                                     required>
                             </div>
 
@@ -411,8 +422,7 @@ v-model="addressForm.recipient" type="text" class="input input-bordered"
                                 <label class="label">
                                     <span class="label-text">Postal Code</span>
                                 </label>
-                                <input
-v-model="addressForm.postal_code" type="text" class="input input-bordered"
+                                <input v-model="addressForm.postal_code" type="text" class="input input-bordered"
                                     required>
                             </div>
 

@@ -39,6 +39,7 @@ from .controller.customer_order_controller import (
     create_order,
     get_user_orders,
     get_order_details,
+    process_payment,
     get_user_by_id,
 )
 from .controller.product_controller import (
@@ -126,4 +127,5 @@ urlpatterns = [
         "api/auth/update-username/", UpdateUsernameAPI.as_view(), name="update_username"
     ),
     path("api/auth/update-address/", UpdateAddressAPI.as_view(), name="update_address"),
+    path("api/orders/<int:order_id>/payment/",process_payment,name="process-payment"),
 ]
