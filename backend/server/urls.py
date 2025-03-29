@@ -14,9 +14,8 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from .controller.auth_controller import (
-    UpdateUsernameAPI, UpdateAddressAPI
-)
+
+from .controller.auth_controller import UpdateUsernameAPI, UpdateAddressAPI
 from django.urls import path
 from server.controller.product_controller import (
     get_product_detailed_single_route,
@@ -113,6 +112,8 @@ urlpatterns = [
     path("api/orders/create/", create_order, name="create-order"),
     path("api/orders/", get_user_orders, name="user-orders"),
     path("api/orders/<int:order_id>/", get_order_details, name="order-details"),
-    path("api/auth/update-username/", UpdateUsernameAPI.as_view(), name="update_username"),
+    path(
+        "api/auth/update-username/", UpdateUsernameAPI.as_view(), name="update_username"
+    ),
     path("api/auth/update-address/", UpdateAddressAPI.as_view(), name="update_address"),
 ]

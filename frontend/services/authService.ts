@@ -13,6 +13,9 @@ interface RegisterData {
   first_name?: string;
   last_name?: string;
 }
+interface Address {
+  address : string
+}
 
 const CURRENT_USER_KEY = 'currentUsername';
 
@@ -251,7 +254,7 @@ export async function validatePassword(password: string) {
   }
 
 }
-export async function updateUsername(username: string): Promise<any> {
+export async function updateUsername(username: string): Promise<Address> {
   try {
     const response = await fetch(`${getBaseUrl()}/api/auth/update-username/`, {
       method: 'PUT',
@@ -271,7 +274,6 @@ export async function updateUsername(username: string): Promise<any> {
     const data = await response.json();
 
     if (data.status === 'success') {
-      // Update stored user info
       const currentUsername = sessionStorage.getItem(CURRENT_USER_KEY);
       if (currentUsername) {
         const userJson = localStorage.getItem(`user_${currentUsername}`);
@@ -280,7 +282,6 @@ export async function updateUsername(username: string): Promise<any> {
           user.username = username;
           localStorage.setItem(`user_${currentUsername}`, JSON.stringify(user));
 
-          // Update token and user data to the new username
           const token = localStorage.getItem(`auth_token_${currentUsername}`);
           if (token) {
             localStorage.setItem(`auth_token_${username}`, token);
@@ -307,7 +308,7 @@ export async function updateUsername(username: string): Promise<any> {
   }
 }
 
-export async function updateAddress(address: string, isDefault: boolean = true): Promise<any> {
+export async function updateAddress(address: string, isDefault: boolean = true): Promise<Address> {
   try {
     const response = await fetch(`${getBaseUrl()}/api/auth/update-address/`, {
       method: 'PUT',
@@ -330,7 +331,6 @@ export async function updateAddress(address: string, isDefault: boolean = true):
     const data = await response.json();
 
     if (data.status === 'success') {
-      // Update stored user info
       const currentUsername = sessionStorage.getItem(CURRENT_USER_KEY);
       if (currentUsername) {
         const userJson = localStorage.getItem(`user_${currentUsername}`);
