@@ -21,7 +21,7 @@ definePageMeta({
   layout: 'product-layout'
 });
 
-const router = useRouter();
+const route = useRoute();
 
 const pageTitle = ref('All Products');
 provide('pageTitle', pageTitle);
@@ -46,20 +46,24 @@ const categoryMapping: Record<string | number, string> = {
   '3': 'earphones',
 };
 
+
 const viewProductDetails = (productId: number, category: string | number): void => {
-  const route = useRoute();
-  
-  if (category && categoryMapping[category]) {
-    window.location.href = (`/products/${categoryMapping[category]}/${productId}`);
-    return;
+  const router = useRouter();
+  let categorySlug = category;
+  if (categoryMapping[category]) {
+    categorySlug = categoryMapping[category];
   }
   
-  const currentCategory = route.params.category;
-  if (currentCategory) {
-    window.location.href = (`/products/${currentCategory}/${productId}`);
-    return;
+  router.push({
+    path: `/products/${categorySlug}/${productId}`
+  });
+  
+  if (import.meta.client) {
+    localStorage.setItem('lastProductCategory', String(categorySlug));
+    localStorage.setItem('lastProductId', String(productId));
   }
 };
+
 </script>
 
 <template>

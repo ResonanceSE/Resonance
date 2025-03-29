@@ -59,6 +59,7 @@ const formatPrice = (price: number | string): string => {
 const viewProductDetails = (productId: number): void => {
   window.location.href = (`/products/${categorySlug.value}/${productId}`);
 };
+
 </script>
 
 <template>
