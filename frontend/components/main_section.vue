@@ -4,7 +4,7 @@ interface Product {
   name: string;
   description?: string;
   slug?: string;
-  category?: string;
+  category?: string | number;
   brand?: string;
   connections?: string;
   price: number | string;
@@ -30,34 +30,34 @@ const categoryMapping: Record<string | number, string> = {
   '3': 'earphones',
 };
 
-const router = useRouter();
-const route = useRoute();
-
 const viewProductDetails = (productId: number, category: string | number): void => {
+  console.log("View product details:", { productId, category });
+  
+  let categorySlug = '';
+  
+  // First check if we have a mapping for this category
   if (category && categoryMapping[category]) {
-    router.push(`/products/${categoryMapping[category]}/${productId}`);
-    return;
+    categorySlug = categoryMapping[category];
+  } else if (category) {
+    // Convert to slug and use directly
+    categorySlug = String(category).toLowerCase();
+  } else {
+    // Default fallback
+    categorySlug = 'item';
   }
   
-  const currentCategory = route.params.category;
-  if (currentCategory) {
-    router.push(`/products/${currentCategory}/${productId}`);
-    return;
-  }
-  
-  if (category) {
-    const categorySlug = String(category).toLowerCase();
-    router.push(`/products/${categorySlug}/${productId}`);
-    return;
-  }
-  
-  // Fallback
-  router.push(`/products/${productId}`);
+  // Use direct window location change instead of router.push
+  const url = `/products/${categorySlug}/${productId}`;
+  console.log("Navigating to:", url);
+  window.location.href = url;
 };
+
+// Force re-render on each component mount
+const componentKey = Date.now();
 </script>
 
 <template>
-  <section class="container mx-auto py-10 px-4">
+  <section :key="componentKey" class="container mx-auto py-10 px-4">
     <div class="text-center mb-8">
       <h2 class="text-2xl font-bold mb-2">Recommended For You</h2>
       <div class="w-16 h-1 bg-primary mx-auto"/>
