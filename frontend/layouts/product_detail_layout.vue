@@ -4,20 +4,16 @@ const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
 
-// Category mapping for handling numeric IDs
 const categoryMapping = {
   '1': 'headphones',
   '2': 'speakers',
   '3': 'earphones',
-  // Add more mappings as needed
 };
 
-// Display names for categories
 const categoryDisplayNames = {
   'headphones': 'Headphones',
   'speakers': 'Speakers',
   'earphones': 'Earphones',
-  // Add more display names as needed
 };
 
 const storeProductParams = (category, id) => {
@@ -89,7 +85,7 @@ const layoutProps = computed(() => {
     images.push(`https://via.placeholder.com/500x500?text=Product+Image`);
   }
 
-  // Generate features from description if none are provided
+
   const features = product.value.features || [];
   if (features.length === 0 && product.value.description) {
     const sentences = product.value.description.split(/[.!?]+/).filter(s => s.trim().length > 10);
