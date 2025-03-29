@@ -283,9 +283,11 @@ onMounted(fetchStaff);
 <template>
   <div>
     <h1 class="text-2xl font-bold mb-6 flex items-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-primary" fill="none" viewBox="0 0 24 24"
+      <svg
+xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 mr-3 text-primary" fill="none" viewBox="0 0 24 24"
         stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
       </svg>
       Manage Staff
@@ -293,9 +295,11 @@ onMounted(fetchStaff);
 
     <!-- Success Message -->
     <div v-if="successMessage" class="alert alert-success mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+      <svg
+xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
         stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>{{ successMessage }}</span>
@@ -303,9 +307,11 @@ onMounted(fetchStaff);
 
     <!-- Error Message -->
     <div v-if="error" class="alert alert-error mb-6">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+      <svg
+xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
         stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
           d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>{{ error }}</span>
@@ -318,9 +324,11 @@ onMounted(fetchStaff);
         <h2 class="card-title text-lg mb-4">Add New Staff Member</h2>
 
         <div v-if="newStaffForm.error" class="alert alert-error mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+          <svg
+xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>{{ newStaffForm.error }}</span>
@@ -364,7 +372,8 @@ onMounted(fetchStaff);
           <div class="form-control mb-4">
             <div class="flex gap-4 cursor-pointer">
               <span class="bold-text">Superuser?</span>
-              <input type="checkbox" v-model="newStaffForm.is_superuser"
+              <input
+v-model="newStaffForm.is_superuser" type="checkbox"
                 class="checkbox checkbox-primary small-checkbox">
             </div>
           </div>
@@ -394,9 +403,11 @@ onMounted(fetchStaff);
 
         <!-- Empty state -->
         <div v-else-if="staffList.length === 0" class="text-center py-8 text-gray-500">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none"
+          <svg
+xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
           </svg>
           <p>No staff members found</p>
@@ -423,7 +434,8 @@ onMounted(fetchStaff);
                     <button class="btn btn-sm btn-info" @click="editStaff(staff)">
                       Edit
                     </button>
-                    <button class="btn btn-sm btn-error" :disabled="staff.id === authStore.user?.id || staff.is_superuser"
+                    <button
+class="btn btn-sm btn-error" :disabled="staff.id === authStore.user?.id || staff.is_superuser"
                       @click="confirmDeleteStaff(staff)">
                       Remove
                     </button>
@@ -442,9 +454,11 @@ onMounted(fetchStaff);
         <h3 class="font-bold text-lg mb-4">Edit Staff Member</h3>
 
         <div v-if="editStaffForm.error" class="alert alert-error mb-4">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
+          <svg
+xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24"
             stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span>{{ editStaffForm.error }}</span>

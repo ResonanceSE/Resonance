@@ -220,13 +220,6 @@ const togglePasswordVisibility = () => {
             
             <!-- Enhanced footer section -->
             <div class="grid gap-4 pt-4">
-              <div class="grid place-items-center">
-                <div class="flex space-x-8 text-sm">
-                  <a href="#" class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Terms of Use</a>
-                  <a href="#" class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Privacy Policy</a>
-                  <a href="#" class="text-gray-600 hover:text-gray-800 hover:underline transition-colors">Help Center</a>
-                </div>
-              </div>
               <div class="text-gray-600 mt-2 md:hidden">
                 <div class="flex flex-row gap-2 justify-center">
                   <span class="text-gray-600">New to Resonance?</span>

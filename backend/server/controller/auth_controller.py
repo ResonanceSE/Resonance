@@ -90,7 +90,7 @@ class RegisterAPI(APIView):
             if user_type == "admin":
                 user = User.objects.create_user(**user_data)
                 user.is_staff = True
-                if (user_is_superuser):
+                if user_is_superuser:
                     user.is_superuser = True
                 user.save()
             else:
