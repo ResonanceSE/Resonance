@@ -86,6 +86,7 @@ urlpatterns = [
         name="validate_reset_token",
     ),
     # Staff api endpoints
+    
     path("api/admin/staff/", get_staff_list, name="staff-list"),
     path(
         "api/admin/staff/<int:staff_id>/",
