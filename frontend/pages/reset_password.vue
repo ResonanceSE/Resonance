@@ -1,12 +1,15 @@
 <script setup>
+import { useAuthStore } from '~/stores/useAuth';
 
 definePageMeta({
-  layout: 'false'
+  layout: 'false',
+  middleware: ['auth']
 });
 
-const route = useRoute();
-const router = useRouter();
-const token = ref('');
+
+const requestUser = useAuthStore();
+const token = ref(requestUser.resetToken);
+
 const newPassword = ref('');
 const confirmPassword = ref('');
 const passwordVisible = ref(false);
@@ -15,15 +18,8 @@ const isSubmitting = ref(false);
 const passwordResetSuccess = ref(false);
 const errorMessage = ref('');
 const config = useRuntimeConfig();
-const apiUrl = config.public.apiUrl || 'http://localhost:8000';
+const apiUrl = config.public.apiUrl;
 
-onMounted(() => {
-  token.value = route.query.token;
-  
-  if (!token.value) {
-    errorMessage.value = 'Invalid password reset link. Please request a new one.';
-  }
-});
 
 const validatePassword = () => {
   if (!newPassword.value) {
@@ -37,14 +33,6 @@ const validatePassword = () => {
   }
   
   return true;
-};
-
-const togglePasswordVisibility = (field) => {
-  if (field === 'password') {
-    passwordVisible.value = !passwordVisible.value;
-  } else {
-    confirmPasswordVisible.value = !confirmPasswordVisible.value;
-  }
 };
 
 const handleResetPassword = async () => {
@@ -72,9 +60,9 @@ const handleResetPassword = async () => {
     
     if (response.ok) {
       passwordResetSuccess.value = true;
-      // Clear form fields
       newPassword.value = '';
       confirmPassword.value = '';
+      requestUser.clearResetToken();
     } else {
       errorMessage.value = data.message || 'Failed to reset password. Please try again.';
     }
@@ -105,7 +93,9 @@ const handleResetPassword = async () => {
           </div>
           <h3 class="text-xl font-bold">Resonance Sound Shop</h3>
         </div>
-
+        <div v-if="requestUser.userName" class="mb-6">
+          <h2 class="text-2xl font-semibold mb-2">Hi , <span class="font-bold text-orange-500">{{ requestUser.userName }}</span><br>Seem like you forgot your password!</h2>
+        </div>
         <!-- Success State -->
         <div v-if="passwordResetSuccess" class="text-center py-8">
           <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
