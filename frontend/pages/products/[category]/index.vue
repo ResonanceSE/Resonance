@@ -64,8 +64,11 @@ const viewProductDetails = (productId: number): void => {
 
 <template>
   <!-- Loading State -->
-  <div v-if="isLoadingProducts" class="flex items-center justify-center h-48">
-    <span class="loading loading-spinner loading-lg" />
+  <div v-if="isLoadingProducts" class="flex justify-center items-center min-h-[50vh]">
+    <div class="text-center">
+      <span class="loading loading-spinner loading-lg text-primary"/>
+      <p class="mt-4 text-gray-600">Loading products...</p>
+    </div>
   </div>
 
   <!-- Error State -->
@@ -107,7 +110,7 @@ v-for="product in filteredProducts" :key="product.id"
         <div class="flex justify-between items-start">
           <div class="flex flex-col">
             <h2 class="card-title text-lg">{{ product.name }}</h2>
-            <h2 class="card-title text-sm text-primary">{{ product.brand}}</h2>
+            <h2 class="card-title text-sm text-primary">{{ product.brand }}</h2>
           </div>
           <!-- Stock badge -->
           <div
