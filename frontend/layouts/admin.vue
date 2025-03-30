@@ -178,13 +178,15 @@ definePageMeta({
           <div class="divider">Management</div>
 
           <ul class="menu menu-md rounded-box w-full">
-            <NuxtLink to="/admin" :class="getActiveClass('/admin')"
-              class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
-              <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
-                <Icon name="material-symbols:capture-outline" class="w-6 h-6 text-black" />
-              </div>
-              <span>Dashboard</span>
-            </NuxtLink>
+            <li>
+              <NuxtLink to="/admin" :class="getActiveClass('/admin')"
+                class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
+                  <Icon name="material-symbols:capture-outline" class="w-6 h-6 text-black" />
+                </div>
+                <span>Dashboard</span>
+              </NuxtLink>
+            </li>
             <li v-if="authStore.isSuperuser">
               <NuxtLink to="/admin/manage_staff" :class="getActiveClass('/admin/manage_staff')"
                 class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
