@@ -273,11 +273,13 @@ const fetchProduct = async () => {
 
 const fetchRelatedProducts = async () => {
   try {
+    if (!product.value || !product.value.id) return;
+    const currentProductId = Number(product.value.id);
     const response = await fetch(`${apiUrl}/api/products/${category.value}/`);
     if (response.ok) {
       const data = await response.json();
       relatedProducts.value = data
-        .filter(p => p.id !== product.value.id)
+        .filter(p => Number(p.id) !== currentProductId)
         .slice(0, 4);
     }
   } catch (error) {
