@@ -4,7 +4,7 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
-
+from django.utils.html import format_html
 import uuid
 import re
 
@@ -398,38 +398,76 @@ def forgot_password(request):
     user.reset_token = reset_token
     user.reset_token_expiry = timezone.now() + timedelta(hours=24)
     user.save()
-
     reset_url = f"{settings.FRONTEND_URL}/reset_password?token={reset_token}"
-    email_subject = "Resonance Password Reset Request"
+    email_body_html = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Password Reset</title>
+        </head>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #4a6ee0;">Resonance Sound Shop</h2>
+                <div style="height: 3px; background-color: #f97316; width: 100px; margin: 0 auto;"></div>
+            </div>
+            
+            <p>Hello {user.first_name or user.username},</p>
+            
+            <p>We received a request to reset the password for your Resonance Sound Shop account.</p>
+            
+            <div style="margin: 30px 0; text-align: center;">
+                <a href="{reset_url}" style="background-color: #f97316; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; display: inline-block;">Reset Your Password</a>
+            </div>
+            
+            <p>If you didn't request this password reset, you can safely ignore this email - your account is secure.</p>
+            
+            <p>This link will expire in 24 hours.</p>
+            
+            <p>Best regards,<br>
+            The Resonance Sound Shop Team</p>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #777;">
+                <p>This is an automated message, please do not reply to this email.</p>
+                <p>&copy; 2025 Resonance Sound Shop. All rights reserved.</p>
+            </div>
+        </body>
+        </html>
+    """
     email_body = f"""
-    Hello {user.first_name or user.username},
+        Hello {user.first_name or user.username},
 
-    You recently requested to reset your password for your Resonance Sound Shop account.
+        You recently requested to reset your password for your Resonance Sound Shop account.
 
-    Please click the link below to reset your password:
+        Your password reset link is below:
+        {reset_url}
 
-    {reset_url}
+        This link will expire in 24 hours.
 
-    This link is valid for 24 hours. If you did not request a password reset, please ignore this email.
+        If you did not request this password reset, no action is needed.
 
-    Thanks,
-    The Resonance Sound Shop Team
+        Regards,
+        Resonance Sound Shop
     """
 
     # Send email
     try:
         email_message = EmailMessage(
-            subject=email_subject,
-            body=email_body,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[email],
-        )
+        subject="Reset Your Resonance Sound Shop Password",
+        body=email_body, 
+        from_email=f"Resonance Sound Shop <{settings.DEFAULT_FROM_EMAIL}>",
+        to=[email],
+    )
+        email_message.content_subtype = "html"
+        email_message.body = email_body_html 
         email_message.extra_headers = {
             "X-Priority": "1",
             "X-MSMail-Priority": "High",
             "Importance": "High",
+            "X-Auto-Response-Suppress": "OOF, DR, AutoReply"
         }
         email_message.send(fail_silently=False)
+
     except Exception as e:
         return Response(
             {"status": "error", "message": f"Failed to send email: {str(e)}"},
