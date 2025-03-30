@@ -1,10 +1,10 @@
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
+from django.core.validators import validate_email
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
-from django.utils.html import format_html
 import uuid
 import re
 
@@ -21,27 +21,33 @@ from ..models.user_model import User
 def register(request):
     data = request.data
 
-    # Check required fields
-    if not all(k in data for k in ["username", "password", "email"]):
+    # Required fields validation
+    required_fields = ["username", "password", "email"]
+    if not all(k in data for k in required_fields):
         return Response(
-            {
-                "status": "error",
-                "message": "Username, password and email are required",
-            },
+            {"status": "error", "message": "Username, password, and email are required"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     user_type = data.get("user_type", "customer").lower()
     user_is_superuser = data.get("is_superuser", False)
 
-    if user_type == "admin" and not (
-        request.user and request.user.is_authenticated and request.user.is_superuser
-    ):
+    # Restricting admin user creation to superusers only
+    if user_type == "admin" and not (request.user and request.user.is_authenticated and request.user.is_superuser):
         return Response(
             {"status": "error", "message": "Unauthorized to create admin users"},
             status=status.HTTP_403_FORBIDDEN,
         )
 
+    try:
+        validate_email(data["email"])
+    except ValidationError:
+        return Response(
+            {"status": "error", "message": "Invalid email format"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Username and Email uniqueness check
     if User.objects.filter(username=data["username"]).exists():
         return Response(
             {"status": "error", "message": "Username already exists"},
@@ -60,7 +66,6 @@ def register(request):
 
     if not any(char.isupper() for char in password):
         password_errors.append("Password must contain at least one uppercase letter.")
-
     if not any(char.isdigit() for char in password):
         password_errors.append("Password must contain at least one number.")
 
@@ -71,32 +76,31 @@ def register(request):
         )
 
     try:
-        password_validation.validate_password(data["password"])
+        password_validation.validate_password(password)
     except ValidationError as e:
         return Response(
             {"status": "error", "message": e.messages},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    # User creation
     try:
-        user_data = {
-            "username": data["username"],
-            "email": data["email"],
-            "password": data["password"],
-            "first_name": data.get("first_name", ""),
-            "last_name": data.get("last_name", ""),
-        }
+        user = User.objects.create(
+            username=data["username"],
+            email=data["email"],
+            first_name=data.get("first_name", ""),
+            last_name=data.get("last_name", ""),
+        )
+        user.set_password(password)
 
         if user_type == "admin":
-            user = User.objects.create_user(**user_data)
             user.is_staff = True
             if user_is_superuser:
                 user.is_superuser = True
-            user.save()
-        else:
-            user = User.objects.create_user(**user_data)
 
-        token = Token.objects.create(user=user)
+        user.save()
+
+        token, _ = Token.objects.get_or_create(user=user)
 
         return Response(
             {
@@ -106,17 +110,18 @@ def register(request):
                     "username": user.username,
                     "email": user.email,
                     "token": token.key,
-                    "address": user.get_full_address(),
                     "user_type": user_type,
-                    "is_admin": user_type == "admin",
+                    "is_admin": user.is_staff,
                     "is_superuser": user.is_superuser,
                 },
             },
             status=status.HTTP_201_CREATED,
         )
+
     except Exception as e:
+        print(f"Error creating user: {e}") 
         return Response(
-            {"status": "error", "message": str(e)},
+            {"status": "error", "message": "An unexpected error occurred"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
