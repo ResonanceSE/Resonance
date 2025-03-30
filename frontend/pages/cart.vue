@@ -1,14 +1,5 @@
 <script setup lang="ts">
-import { cartService } from '~/services/cartService'
-
-interface CartItem {
-  id: number
-  name: string
-  category: string
-  price: number
-  quantity: number
-  image?: string
-}
+import { cartService, type CartItem } from '~/services/cartService'
 
 definePageMeta({
   layout: 'default'
@@ -19,15 +10,17 @@ const router = useRouter()
 const cartItems = ref<CartItem[]>([])
 const selectedItemIds = ref<number[]>([])
 const isLoading = ref(true)
+const loadingAction = ref(false)
 
-onMounted(() => {
-  loadCart()
+onMounted(async () => {
+  await loadCart()
 })
 
-const loadCart = () => {
+const loadCart = async () => {
   isLoading.value = true
   try {
-    cartItems.value = cartService.getCart()
+    // Use the updated cartService that syncs with the server
+    cartItems.value = await cartService.getCart()
     selectedItemIds.value = cartItems.value.map(item => item.id)
   } catch (error) {
     console.error('Error loading cart:', error)
@@ -67,25 +60,33 @@ const isAllItemsSelected = computed(() => {
          cartItems.value.every(item => isItemSelected(item.id))
 })
 
-const decreaseQuantity = (item: CartItem, event: Event): void => {
+const decreaseQuantity = async (item: CartItem, event: Event): Promise<void> => {
   event.stopPropagation()
   if (item.quantity > 1) {
+    loadingAction.value = true
     item.quantity--
-    cartService.updateQuantity(item.id, item.quantity)
+    const updatedCart = await cartService.updateQuantity(item.id, item.quantity)
+    cartItems.value = updatedCart
+    loadingAction.value = false
   }
 }
 
-const increaseQuantity = (item: CartItem, event: Event): void => {
+const increaseQuantity = async (item: CartItem, event: Event): Promise<void> => {
   event.stopPropagation()
+  loadingAction.value = true
   item.quantity++
-  cartService.updateQuantity(item.id, item.quantity)
+  const updatedCart = await cartService.updateQuantity(item.id, item.quantity)
+  cartItems.value = updatedCart
+  loadingAction.value = false
 }
 
-const removeItem = (itemId: number, event: Event): void => {
+const removeItem = async (itemId: number, event: Event): Promise<void> => {
   event.stopPropagation()
-  cartItems.value = cartItems.value.filter(item => item.id !== itemId)
+  loadingAction.value = true
+  const updatedCart = await cartService.removeItem(itemId)
+  cartItems.value = updatedCart
   selectedItemIds.value = selectedItemIds.value.filter(id => id !== itemId)
-  cartService.removeItem(itemId)
+  loadingAction.value = false
 }
 
 const totalPrice = computed(() => {
@@ -236,12 +237,18 @@ const continueShopping = (): void => {
                   <h3 class="font-medium text-gray-800">{{ item.name }}</h3>
                   <p class="text-sm text-gray-500">{{ item.category }}</p>
                   <p class="font-semibold text-gray-900 mt-1">{{ formatPrice(item.price) }}</p>
+                  
+                  <!-- Show available stock info -->
+                  <p v-if="item.stock !== undefined" class="text-xs text-gray-500 mt-1">
+                    In stock: {{ item.stock }}
+                  </p>
                 </div>
                 
                 <!-- Quantity controls with explicit stop propagation -->
                 <div class="join border border-gray-300 mr-6" @click.stop>
                   <button 
                     class="join-item btn btn-sm btn-ghost"
+                    :disabled="loadingAction || item.quantity <= 1"
                     @click.stop="(event) => decreaseQuantity(item, event)"
                   >
                     -
@@ -251,6 +258,7 @@ const continueShopping = (): void => {
                   </div>
                   <button 
                     class="join-item btn btn-sm btn-ghost"
+                    :disabled="loadingAction || (item.stock !== undefined && item.quantity >= item.stock)"
                     @click.stop="(event) => increaseQuantity(item, event)"
                   >
                     +
@@ -262,6 +270,7 @@ const continueShopping = (): void => {
                   <p class="font-semibold text-orange-500">{{ formatPrice(item.price * item.quantity) }}</p>
                   <button 
                     class="text-sm text-red-500 hover:text-red-700"
+                    :disabled="loadingAction"
                     @click.stop="(event) => removeItem(item.id, event)"
                   >
                     Remove
@@ -299,7 +308,7 @@ const continueShopping = (): void => {
               <!-- Checkout Button -->
               <button 
                 class="btn btn-primary btn-block hover:bg-orange-500 transition ease-out duration-200"
-                :disabled="selectedItemsCount === 0"
+                :disabled="selectedItemsCount === 0 || loadingAction || isLoading"
                 @click="processCheckout"
               >
                 Proceed to Checkout

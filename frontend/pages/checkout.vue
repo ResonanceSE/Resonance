@@ -1,5 +1,6 @@
 <script setup>
 import { useAuthStore } from '~/stores/useAuth'
+import { cartService } from '~/services/cartService'
 
 definePageMeta({
     layout: 'default'
@@ -33,9 +34,9 @@ const addressForm = reactive({
     country: ''
 })
 
-onMounted(() => {
-    loadCart()
-    loadSavedAddress()
+onMounted(async () => {
+    await loadCart()
+    await loadSavedAddress()
 })
 
 const loadSavedAddress = async () => {
@@ -83,18 +84,12 @@ const loadSavedAddress = async () => {
     }
 }
 
-const loadCart = () => {
+const loadCart = async () => {
     isLoading.value = true
     try {
-        const cartString = localStorage.getItem(`cart_${authStore.user?.username || 'guest'}`)
-
-        if (cartString) {
-            const parsedCart = JSON.parse(cartString)
-            cartItems.value = parsedCart
-        } else {
-            cartItems.value = []
-        }
-
+        // Use the updated cartService that syncs with the server
+        cartItems.value = await cartService.getCart()
+        
         if (cartItems.value.length === 0 && !orderPlaced.value) {
             router.push('/cart')
         }
@@ -252,9 +247,8 @@ const placeOrder = async () => {
             storeOrderDetailsForPayment(result.data)
             orderPlaced.value = true
 
-            if (import.meta.client) {
-                localStorage.removeItem(`cart_${authStore.user?.username || 'guest'}`)
-            }
+            // Clear the cart after successful order
+            await cartService.clearCart()
             cartItems.value = []
         } else {
             throw new Error(result.message || 'Failed to create order')
@@ -307,7 +301,7 @@ xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
                 <p class="text-gray-600 mb-6">Redirecting to payment page...</p>
 
                 <button class="btn btn-primary" @click="router.push('/payment')">
-                    Continue Shopping
+                    Continue to Payment
                 </button>
             </div>
 

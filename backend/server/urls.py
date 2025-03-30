@@ -23,6 +23,14 @@ from .controller.auth_controller import (
     reset_password,
 )
 from .views import home_view, keep_alive
+from .controller.cart_controller import (
+    get_cart,
+    add_to_cart,
+    update_cart_item,
+    remove_from_cart,
+    clear_cart,
+    sync_cart,
+)
 from .controller.admin_controller import (
     manage_staff,
     get_staff_list,
@@ -126,4 +134,11 @@ urlpatterns = [
     path("api/auth/update-profile/", update_profile, name="update_profile"),
     path("api/auth/update-address/", update_address, name="update_address"),
     path("api/orders/<int:order_id>/payment/", process_payment, name="process-payment"),
+    #cart api
+    path("api/cart/", get_cart, name="get-cart"),
+    path("api/cart/add/", add_to_cart, name="add-to-cart"),
+    path("api/cart/update/<int:item_id>/", update_cart_item, name="update-cart-item"),
+    path("api/cart/remove/<int:item_id>/", remove_from_cart, name="remove-from-cart"),
+    path("api/cart/clear/", clear_cart, name="clear-cart"),
+    path("api/cart/sync/", sync_cart, name="sync-cart"),
 ]
