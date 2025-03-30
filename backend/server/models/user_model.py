@@ -9,16 +9,6 @@ class CustomerManager(UserManager):
     def get_active_customers(self):
         return self.get_queryset().filter(is_active=True)
 
-    def with_recent_orders(self, days=30):
-        from django.utils import timezone
-        from datetime import timedelta
-
-        recent_date = timezone.now() - timedelta(days=days)
-        return (
-            self.get_queryset().filter(orders__created_at__gte=recent_date).distinct()
-        )
-
-
 class AdminManager(UserManager):
     def get_queryset(self):
         return super().get_queryset().filter(is_staff=True)
@@ -45,21 +35,6 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-
-    def get_full_address(self):
-        parts = [self.address, self.city, self.state, self.postal_code, self.country]
-        return ", ".join(filter(None, parts))
-
-    def has_active_orders(self):
-        return self.orders.filter(status__in=["pending", "processing"]).exists()
-
-    def get_cart_total(self):
-        if hasattr(self, "cart"):
-            return sum(
-                item.product.current_price * item.quantity
-                for item in self.cart.items.all()
-            )
-        return 0
 
 
 class Customer(User):

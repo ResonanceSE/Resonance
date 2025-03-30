@@ -1,11 +1,9 @@
 <script setup>
 import { useAuthStore } from '~/stores/useAuth';
-
 definePageMeta({
   layout: 'false',
   middleware: ['auth']
 });
-
 
 const requestUser = useAuthStore();
 const token = ref(requestUser.resetToken);
@@ -20,30 +18,45 @@ const errorMessage = ref('');
 const config = useRuntimeConfig();
 const apiUrl = config.public.apiUrl;
 
-
 const validatePassword = () => {
-  if (!newPassword.value) {
-    errorMessage.value = 'Please enter a new password';
+  const password = newPassword.value;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+  if (!password) {
+    errorMessage.value = 'Please enter a new password.';
     return false;
   }
-  
-  if (newPassword.value !== confirmPassword.value) {
-    errorMessage.value = 'Passwords do not match';
+
+  if (!passwordRegex.test(password)) {
+    errorMessage.value = 'Password must be at least 8 characters, include an uppercase letter, lowercase letter, number, and special character.';
     return false;
   }
-  
+
+  if (password !== confirmPassword.value) {
+    errorMessage.value = 'Passwords do not match.';
+    return false;
+  }
+
   return true;
+};
+
+const togglePasswordVisibility = (field) => {
+  if (field === 'password') {
+    passwordVisible.value = !passwordVisible.value;
+  } else if (field === 'confirm') {
+    confirmPasswordVisible.value = !confirmPasswordVisible.value;
+  }
 };
 
 const handleResetPassword = async () => {
   errorMessage.value = '';
-  
+
   if (!validatePassword()) {
     return;
   }
-  
+
   isSubmitting.value = true;
-  
+
   try {
     const response = await fetch(`${apiUrl}/api/auth/reset-password/`, {
       method: 'POST',
@@ -55,9 +68,9 @@ const handleResetPassword = async () => {
         password: newPassword.value
       })
     });
-    
+
     const data = await response.json();
-    
+
     if (response.ok) {
       passwordResetSuccess.value = true;
       newPassword.value = '';
@@ -74,6 +87,7 @@ const handleResetPassword = async () => {
   }
 };
 </script>
+
 
 <template>
   <!-- Decorative background -->
