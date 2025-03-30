@@ -9,13 +9,13 @@ const authStore = useAuthStore();
 const categoryMapping = {
   '1': 'headphones',
   '2': 'speakers',
-  '3': 'earphones',
+  '3': 'earbuds',
 };
 
 const categoryDisplayNames = {
   'headphones': 'Headphones',
   'speakers': 'Speakers',
-  'earphones': 'Earphones / IEMs',
+  'earbuds': 'Earbuds / IEMs',
 };
 
 const storeProductParams = (category, id) => {

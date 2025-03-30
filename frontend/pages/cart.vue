@@ -19,7 +19,6 @@ onMounted(async () => {
 const loadCart = async () => {
   isLoading.value = true
   try {
-    // Use the updated cartService that syncs with the server
     cartItems.value = await cartService.getCart()
     selectedItemIds.value = cartItems.value.map(item => item.id)
   } catch (error) {
@@ -34,10 +33,7 @@ const isItemSelected = (id: number): boolean => {
 }
 
 const toggleItem = (id: number, event?: Event): void => {
-  if (event) {
-    event.stopPropagation()
-  }
-  
+  if (event) event.stopPropagation()
   console.log("Toggle item:", id)
   if (isItemSelected(id)) {
     selectedItemIds.value = selectedItemIds.value.filter(itemId => itemId !== id)
@@ -63,30 +59,63 @@ const isAllItemsSelected = computed(() => {
 const decreaseQuantity = async (item: CartItem, event: Event): Promise<void> => {
   event.stopPropagation()
   if (item.quantity > 1) {
-    loadingAction.value = true
+    // Update local state immediately
     item.quantity--
-    const updatedCart = await cartService.updateQuantity(item.id, item.quantity)
-    cartItems.value = updatedCart
-    loadingAction.value = false
+    cartItems.value = [...cartItems.value] // Trigger reactivity
+
+    // Sync with server in the background
+    loadingAction.value = true
+    try {
+      const updatedCart = await cartService.updateQuantity(item.id, item.quantity)
+      cartItems.value = updatedCart // Update with server response
+    } catch (error) {
+      console.error('Failed to sync quantity decrease:', error)
+      // Optionally revert or notify user
+      loadCart() // Re-sync with server state
+    } finally {
+      loadingAction.value = false
+    }
   }
 }
 
 const increaseQuantity = async (item: CartItem, event: Event): Promise<void> => {
   event.stopPropagation()
-  loadingAction.value = true
+  // Update local state immediately
   item.quantity++
-  const updatedCart = await cartService.updateQuantity(item.id, item.quantity)
-  cartItems.value = updatedCart
-  loadingAction.value = false
+  cartItems.value = [...cartItems.value] // Trigger reactivity
+
+  // Sync with server in the background
+  loadingAction.value = true
+  try {
+    const updatedCart = await cartService.updateQuantity(item.id, item.quantity)
+    cartItems.value = updatedCart
+  } catch (error) {
+    console.error('Failed to sync quantity increase:', error)
+    loadCart() // Re-sync with server state
+  } finally {
+    loadingAction.value = false
+  }
 }
 
 const removeItem = async (itemId: number, event: Event): Promise<void> => {
   event.stopPropagation()
-  loadingAction.value = true
-  const updatedCart = await cartService.removeItem(itemId)
-  cartItems.value = updatedCart
+  // Update local state immediately
+  const originalCart = [...cartItems.value]
+  cartItems.value = cartItems.value.filter(item => item.id !== itemId)
   selectedItemIds.value = selectedItemIds.value.filter(id => id !== itemId)
-  loadingAction.value = false
+
+  // Sync with server in the background
+  loadingAction.value = true
+  try {
+    const updatedCart = await cartService.removeItem(itemId)
+    cartItems.value = updatedCart
+  } catch (error) {
+    console.error('Failed to sync remove item:', error)
+    cartItems.value = originalCart // Revert on failure
+    loadCart() // Re-sync with server state
+  } finally {
+    loadingAction.value = false
+  }
 }
 
 const totalPrice = computed(() => {
@@ -125,7 +154,6 @@ const processCheckout = (): void => {
 const continueShopping = (): void => {
   router.push('/products')
 }
-
 </script>
 
 <template>
