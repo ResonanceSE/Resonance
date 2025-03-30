@@ -105,7 +105,10 @@ v-for="product in filteredProducts" :key="product.id"
       </figure>
       <div class="card-body p-4">
         <div class="flex justify-between items-start">
-          <h2 class="card-title text-lg">{{ product.name }}</h2>
+          <div class="flex flex-col">
+            <h2 class="card-title text-lg">{{ product.name }}</h2>
+            <h2 class="card-title text-sm text-primary">{{ product.brand}}</h2>
+          </div>
           <!-- Stock badge -->
           <div
 v-if="product.stock !== undefined" class="badge text-white"

@@ -560,21 +560,31 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         <h2 class="text-2xl font-bold mb-4">You Might Also Like</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div
-v-for="relatedProduct in relatedProducts" :key="relatedProduct.id"
-            class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow">
+            v-for="relatedProduct in relatedProducts.filter(p => p.id !== product?.id)" 
+            :key="relatedProduct.id"
+            class="card bg-base-100 shadow-sm hover:shadow-md transition-shadow"
+          >
             <figure class="px-4 pt-4">
               <img
-:src="relatedProduct.image_url || 'https://via.placeholder.com/150'" :alt="relatedProduct.name"
-                class="rounded-xl h-32 object-contain">
+                :src="relatedProduct.image_url || 'https://via.placeholder.com/150'" 
+                :alt="relatedProduct.name"
+                class="rounded-xl h-32 object-contain"
+              >
             </figure>
             <div class="card-body p-4">
               <h3 class="card-title text-sm">{{ relatedProduct.name }}</h3>
-              <p class="text-primary font-semibold">{{ formatCurrency(relatedProduct.price) }}</p>
+              <div class="flex items-baseline gap-2">
+                <p v-if="relatedProduct.sale_price" class="text-primary font-semibold">
+                  {{ formatCurrency(relatedProduct.sale_price) }}
+                  <span class="text-xs text-gray-400 line-through ml-1">{{ formatCurrency(relatedProduct.price) }}</span>
+                </p>
+                <p v-else class="text-primary font-semibold">{{ formatCurrency(relatedProduct.price) }}</p>
+              </div>
               <div class="card-actions justify-end">
-                <!-- Use helper function to get proper category slug -->
                 <NuxtLink
-:to="`/products/${getCategorySlug(relatedProduct.category)}/${relatedProduct.id}`"
-                  class="btn btn-xs btn-outline btn-primary">
+                  :to="`/products/${getCategorySlug(relatedProduct.category)}/${relatedProduct.id}`"
+                  class="btn btn-xs btn-outline btn-primary"
+                >
                   View
                 </NuxtLink>
               </div>
