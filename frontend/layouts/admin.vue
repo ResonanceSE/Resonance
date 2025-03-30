@@ -88,7 +88,8 @@ definePageMeta({
           <!-- Mobile menu button -->
           <div class="flex-none lg:hidden">
             <label for="admin-drawer" class="btn btn-square btn-ghost">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              <svg
+xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                 class="inline-block w-6 h-6 stroke-current">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -165,7 +166,8 @@ definePageMeta({
           <div class="mb-2 px-4 text-xs font-semibold uppercase text-base-content/50">Navigation</div>
           <ul class="menu menu-md rounded-box w-full">
             <li>
-              <NuxtLink to="/"
+              <NuxtLink
+to="/"
                 class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
                   <Icon name="heroicons:home" class="h-5 w-5" />
@@ -179,7 +181,8 @@ definePageMeta({
 
           <ul class="menu menu-md rounded-box w-full">
             <li>
-              <NuxtLink to="/admin" :class="getActiveClass('/admin')"
+              <NuxtLink
+to="/admin" :class="getActiveClass('/admin')"
                 class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
                   <Icon name="material-symbols:capture-outline" class="w-6 h-6 text-black" />
@@ -188,7 +191,8 @@ definePageMeta({
               </NuxtLink>
             </li>
             <li v-if="authStore.isSuperuser">
-              <NuxtLink to="/admin/manage_staff" :class="getActiveClass('/admin/manage_staff')"
+              <NuxtLink
+to="/admin/manage_staff" :class="getActiveClass('/admin/manage_staff')"
                 class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
                   <Icon name="heroicons:users" class="h-5 w-5" />
@@ -197,12 +201,15 @@ definePageMeta({
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/admin/products" :class="getActiveClass('/admin/products')"
+              <NuxtLink
+to="/admin/products" :class="getActiveClass('/admin/products')"
                 class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  <svg
+xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
                 </div>
@@ -210,12 +217,15 @@ definePageMeta({
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink to="/admin/orders" :class="getActiveClass('/admin/orders')"
+              <NuxtLink
+to="/admin/orders" :class="getActiveClass('/admin/orders')"
                 class="flex items-center gap-3 font-medium hover:bg-base-300 transition-all duration-200">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-base-300/50">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  <svg
+xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
                 </div>
@@ -232,9 +242,11 @@ definePageMeta({
                 class="flex items-center gap-3 font-medium hover:bg-error/10 text-error hover:text-error transition-all duration-200"
                 @click="logout">
                 <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-error/10">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                  <svg
+xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                 </div>

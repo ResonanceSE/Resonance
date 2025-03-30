@@ -54,6 +54,12 @@ const viewProductDetails = (productId: number, category: string | number): void 
   window.location.href = url;
 };
 
+// Format price properly
+const formatPrice = (price: number | string): string => {
+  const numPrice = typeof price === 'string' ? parseFloat(price) : price;
+  return '$' + numPrice.toFixed(2);
+};
+
 // Force re-render on each component mount
 const componentKey = Date.now();
 </script>
@@ -77,14 +83,32 @@ const componentKey = Date.now();
             :alt="product.name" 
             class="w-full h-48 object-cover transition-transform duration-500 hover:scale-105" 
           >
-          <div class="absolute top-2 right-2 badge badge-primary">
-            {{ typeof product.price === 'number' ? '$' + product.price.toFixed(2) : '$' + product.price }}
+          <div class="absolute top-2 right-2">
+            <!-- Show SALE badge if product has a sale_price -->
+            <div v-if="product.sale_price" class="badge badge-accent">SALE</div>
           </div>
         </figure>
 
         <div class="card-body">
-          <h3 class="card-title text-lg font-semibold">{{ product.name }}</h3>
+          <div class="flex flex-col">
+            <h2 class="card-title text-lg">{{ product.name }}</h2>
+            <h2 class="card-title text-sm text-primary">{{ product.brand}}</h2>
+          </div>
           <p class="text-sm text-gray-600 line-clamp-2">{{ product.description || 'No description available' }}</p>
+          
+          <!-- Price display with sale price -->
+          <div class="flex items-baseline gap-2 mt-2">
+            <span v-if="product.sale_price" class="text-lg font-bold text-primary">
+              {{ formatPrice(product.sale_price) }}
+            </span>
+            <span v-if="product.sale_price" class="text-sm text-base-content/60 line-through">
+              {{ formatPrice(product.price) }}
+            </span>
+            <span v-else class="text-lg font-bold text-primary">
+              {{ formatPrice(product.price) }}
+            </span>
+          </div>
+          
           <div class="card-actions justify-end mt-4">
             <button 
               class="btn btn-primary btn-sm"

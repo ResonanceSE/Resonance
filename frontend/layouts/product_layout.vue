@@ -234,7 +234,7 @@ provide('productsError', error);
 <template>
   <div class="w-full bg-base-100">
     <NavbarHeader />
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-8 flex-grow">
       <!-- Category header -->
       <div class="mb-6">
         <h1 class="text-3xl font-bold">{{ pageTitle }}</h1>

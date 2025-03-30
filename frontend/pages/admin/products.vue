@@ -20,7 +20,6 @@ interface Product {
   price: number;
   sale_price?: number;
   stock: number;
-  sku: string;
   description: string;
   image_url?: string;
   connections: string;
@@ -310,7 +309,6 @@ const closeModal = () => {
     price: 0,
     sale_price: undefined,
     stock: 0,
-    sku: '',
     description: '',
     image_url: '',
     connections: '',
@@ -379,7 +377,7 @@ onMounted(() => {
               <div class="ml-4">
                 <h3 class="text-lg font-medium text-gray-900">{{ product.name }}</h3>
                 <div class="mt-1 text-sm text-gray-500 grid grid-cols-2 gap-x-4 gap-y-1">
-                  <p>Category: <span class="font-medium">{{ getCategoryName(product.category) }}</span></p>
+                  <p>Category: <span class="font-medium">{{ getCategoryName(product.category).toLowerCase() === 'earbuds' ? 'Earbuds / IEMS' : getCategoryName(product.category) }}</span></p>
                   <p>Brand: <span class="font-medium">{{ product.brand }}</span></p>
                   <p>Price: <span class="font-medium">${{ product.price }}</span></p>
                   <p>
