@@ -20,7 +20,6 @@ interface Product {
   price: number;
   sale_price?: number;
   stock: number;
-  sku: string;
   description: string;
   image_url?: string;
   connections: string;
@@ -310,7 +309,6 @@ const closeModal = () => {
     price: 0,
     sale_price: undefined,
     stock: 0,
-    sku: '',
     description: '',
     image_url: '',
     connections: '',
