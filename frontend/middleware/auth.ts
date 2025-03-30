@@ -1,4 +1,3 @@
-// /frontend/middleware/auth.ts
 import { useAuthStore } from '~/stores/useAuth'
 
 export interface User {
@@ -13,40 +12,56 @@ export interface User {
   is_superuser?: boolean;
 }
 
-export default defineNuxtRouteMiddleware((to) => {
-  const currentUser = useAuthStore();
+export default defineNuxtRouteMiddleware(async (to) => {
+  const authStore = useAuthStore();
+  
+  if (to.path === '/reset_password') {
+    const token = to.query.token as string;
+    
+    if (!token) {
+      return navigateTo('/forgot_password');
+    }
+    
+    if (authStore.resetToken !== token) {
+      try {
+
+        const isValid = await authStore.setResetToken(token);
+        if (!isValid) {
+          console.log("Invalid reset token, redirecting to forgot_password");
+          return navigateTo('/forgot_password?error=invalid_token');
+        }
+      } catch (error) {
+        return navigateTo('/forgot_password?error=validation_error');
+      }
+    }
+    
+    return;
+  }
+  
   if (import.meta.server) {
-    if (to.path.startsWith('/admin') && !currentUser.user?.is_admin) {
+    if (to.path.startsWith('/admin') && !authStore.user?.is_admin) {
       return navigateTo('/login')
     }
     return
   }
   
-  const authStore = useAuthStore()
-  const protectedRoutes = ['/admin']
+  const protectedRoutes = ['/admin', '/setting', '/orders', '/checkout']
   const isProtected = protectedRoutes.some(route => to.path.startsWith(route))
   
   if (isProtected) {
     try {
-      // Check if auth store is initialized
       if (!authStore || typeof authStore.isAuthenticated === 'undefined') {
-        console.log("Auth store not initialized, redirecting to login")
         return navigateTo(`/login?redirect=${to.fullPath}`)
       }
       
-      // Check if user is authenticated
       if (!authStore.isAuthenticated) {
-        console.log("User not authenticated, redirecting to login")
         return navigateTo(`/login?redirect=${to.fullPath}`)
       }
       
-      // For admin routes, check if user is admin
       if (to.path.startsWith('/admin') && !authStore.isAdmin) {
-        console.log("User is not admin, redirecting to home")
         return navigateTo('/')
       }
     } catch (error) {
-      console.error('Error in auth middleware:', error)
       return navigateTo('/login')
     }
   }

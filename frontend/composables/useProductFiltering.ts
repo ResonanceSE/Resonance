@@ -11,7 +11,7 @@ interface Product {
   stock?: number;
   is_active?: boolean;
   is_new?: boolean;
-  is_featured?: boolean;
+  is_featured?: boolean;  
   image_url?: string;
   tags?: string[];
 }
@@ -30,7 +30,7 @@ interface FilterState {
   priceRanges: string[];
   connections: string[];
   sortBy: string;
-  showOnlyActive: boolean; // Added this to track active filter state
+  showOnlyActive: boolean;
 }
 
 export function useProductFiltering() {
@@ -48,8 +48,15 @@ export function useProductFiltering() {
     priceRanges: [],
     connections: [],
     sortBy: 'default',
-    showOnlyActive: true // Default to showing only active products
+    showOnlyActive: true 
   });
+  
+  const getEffectivePrice = (product: Product): number => {
+    if (product.sale_price !== undefined && product.sale_price !== null) {
+      return parseFloat(typeof product.sale_price === 'string' ? product.sale_price : product.sale_price.toString());
+    }
+    return parseFloat(typeof product.price === 'string' ? product.price : product.price.toString());
+  };
   
   const fetchFilters = async (): Promise<ApiFilterResponse> => {
     try {
@@ -133,7 +140,7 @@ export function useProductFiltering() {
     
     if (filters.priceRanges.length > 0) {
       result = result.filter(product => {
-        const price = parseFloat(typeof product.price === 'string' ? product.price : product.price.toString());
+        const price = getEffectivePrice(product);
         
         return filters.priceRanges.some(range => {
           if (range === 'Under $100' && price < 100) return true;
@@ -151,15 +158,15 @@ export function useProductFiltering() {
       switch (filters.sortBy) {
         case 'price-low':
           result.sort((a, b) => {
-            const aPrice = parseFloat(typeof a.price === 'string' ? a.price : a.price.toString());
-            const bPrice = parseFloat(typeof b.price === 'string' ? b.price : b.price.toString());
+            const aPrice = getEffectivePrice(a);
+            const bPrice = getEffectivePrice(b);
             return aPrice - bPrice;
           });
           break;
         case 'price-high':
           result.sort((a, b) => {
-            const aPrice = parseFloat(typeof a.price === 'string' ? a.price : a.price.toString());
-            const bPrice = parseFloat(typeof b.price === 'string' ? b.price : b.price.toString());
+            const aPrice = getEffectivePrice(a);
+            const bPrice = getEffectivePrice(b);
             return bPrice - aPrice;
           });
           break;

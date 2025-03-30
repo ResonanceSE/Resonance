@@ -44,7 +44,7 @@ const category = computed(() => getCategory());
 
 
 const categorySlug = computed(() => {
-    return route.params.category;
+  return route.params.category;
 });
 
 // Get display name for category
@@ -153,18 +153,18 @@ const handleAddToCart = async () => {
   try {
     const stockCheckUrl = `${apiUrl}/api/products/check-stock/${product.value.id}/`;
     const stockResponse = await fetch(stockCheckUrl);
-    
+
     if (!stockResponse.ok) {
       throw new Error('Failed to check product stock');
     }
-    
+
     const stockData = await stockResponse.json();
     const availableStock = stockData.data.stock || 0;
     if (availableStock <= 0) {
       alert('Sorry, this item is out of stock.');
       return;
     }
-    
+
     const cart = JSON.parse(localStorage.getItem(`cart_${authStore.user?.username || 'guest'}`) || '[]');
     const existingProductIndex = cart.findIndex(item => item.id === product.value.id);
 
@@ -194,7 +194,7 @@ const handleAddToCart = async () => {
           quantity.value = additionalPossible;
         }
       }
-      
+
       cart[existingProductIndex].quantity += quantity.value;
     } else {
       cart.push({
@@ -273,11 +273,13 @@ const fetchProduct = async () => {
 
 const fetchRelatedProducts = async () => {
   try {
+    if (!product.value || !product.value.id) return;
+    const currentProductId = Number(product.value.id);
     const response = await fetch(`${apiUrl}/api/products/${category.value}/`);
     if (response.ok) {
       const data = await response.json();
       relatedProducts.value = data
-        .filter(p => p.id !== product.value.id)
+        .filter(p => Number(p.id) !== currentProductId)
         .slice(0, 4);
     }
   } catch (error) {
@@ -317,22 +319,62 @@ watch([productId, category], ([newId, newCategory]) => {
   }
 }, { immediate: true });
 
+const handlePopState = () => {
+  const currentCategory = getCategory();
+  const currentProductId = getProductId();
+  
+  console.log('After popstate:', { currentCategory, currentProductId });
+  
+  if (currentCategory && currentProductId) {
+    fetchProduct();
+  } else {
+    // Handle case when back navigation doesn't have proper params
+    if (route.path.includes('/products/')) {
+      error.value = 'Product information not found. Redirecting to products page...';
+      setTimeout(() => {
+        router.push('/products');
+      }, 1500);
+    }
+  }
+};
+
 onMounted(() => {
   if (import.meta.client) {
-    window.addEventListener('popstate', () => {
-      setTimeout(() => {
-        const currentCategory = getCategory();
-        const currentProductId = getProductId();
-
-        console.log('After popstate:', { currentCategory, currentProductId });
-
-        if (currentCategory && currentProductId) {
-          fetchProduct();
-        }
-      }, 50);
-    });
+    const currentCategory = getCategory();
+    const currentProductId = getProductId();
+    if (currentCategory && currentProductId && !product.value) {
+      fetchProduct();
+    }
+    
+    window.addEventListener('popstate', handlePopState);
   }
 });
+
+onUnmounted(() => {
+  if (import.meta.client) {
+    window.removeEventListener('popstate', handlePopState);
+  }
+});
+
+watch(
+  () => route.fullPath,
+  (newPath) => {
+    console.log('Route changed:', newPath);
+    const newCategory = route.params.category;
+    const newProductId = route.params.id;
+    
+    if (newCategory && newProductId) {
+      if (
+        !product.value || 
+        String(product.value.id) !== String(newProductId) || 
+        getCategorySlug(product.value.category) !== newCategory
+      ) {
+        fetchProduct();
+      }
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
   if (import.meta.client) {
@@ -362,8 +404,8 @@ provide('tryAgain', tryAgain);
           <li>
             <NuxtLink to="/products">Products</NuxtLink>
           </li>
-          <li>
-            <NuxtLink :to="`/products/${categorySlug}`">{{ categoryDisplayName }}</NuxtLink>
+          <li v-if="categorySlug && categoryDisplayName && categoryDisplayName !== 'undefined'">
+            <NuxtLink :to="`/products/${categorySlug}`">{{ categoryDisplayName.toLowerCase() === 'earbuds' ? 'Earbuds / IEMs' : categoryDisplayName }}</NuxtLink>
           </li>
           <li class="text-primary">{{ product?.name || 'Product' }}</li>
         </ul>
@@ -530,10 +572,9 @@ v-for="relatedProduct in relatedProducts" :key="relatedProduct.id"
               <p class="text-primary font-semibold">{{ formatCurrency(relatedProduct.price) }}</p>
               <div class="card-actions justify-end">
                 <!-- Use helper function to get proper category slug -->
-                <NuxtLink 
-                  :to="`/products/${getCategorySlug(relatedProduct.category)}/${relatedProduct.id}`" 
-                  class="btn btn-xs btn-outline btn-primary"
-                >
+                <NuxtLink
+:to="`/products/${getCategorySlug(relatedProduct.category)}/${relatedProduct.id}`"
+                  class="btn btn-xs btn-outline btn-primary">
                   View
                 </NuxtLink>
               </div>
@@ -593,6 +634,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
     flex-direction: row;
   }
 }
+
 .btn,
 img {
   transition: all 0.3s ease;

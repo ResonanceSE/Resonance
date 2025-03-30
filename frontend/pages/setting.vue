@@ -1,6 +1,5 @@
 <script setup>
 import { useAuthStore } from '~/stores/useAuth';
-import { ref, reactive, onMounted } from 'vue';
 
 definePageMeta({
     layout: 'default',
@@ -17,6 +16,8 @@ const currentTab = ref('profile');
 
 // Form validation state
 const usernameChanged = ref(false);
+const firstNameChanged = ref(false);
+const lastNameChanged = ref(false);
 const addressChanged = ref(false);
 const isEditingAddress = ref(false);
 const hasAddress = ref(false);
@@ -28,6 +29,8 @@ const profileForm = reactive({
     first_name: '',
     last_name: '',
     originalUsername: '',
+    originalFirstName: '',
+    originalLastName: '',
     usernameError: ''
 });
 
@@ -56,7 +59,9 @@ const loadUserData = async () => {
             profileForm.originalUsername = authStore.user.username || '';
             profileForm.email = authStore.user.email || '';
             profileForm.first_name = authStore.user.first_name || '';
+            profileForm.originalFirstName = authStore.user.first_name || '';
             profileForm.last_name = authStore.user.last_name || '';
+            profileForm.originalLastName = authStore.user.last_name || '';
 
             // Load shipping address if available in user data
             if (authStore.user.address) {
@@ -108,7 +113,9 @@ const loadUserData = async () => {
                 profileForm.originalUsername = userData.data.username || '';
                 profileForm.email = userData.data.email || '';
                 profileForm.first_name = userData.data.first_name || '';
+                profileForm.originalFirstName = userData.data.first_name || '';
                 profileForm.last_name = userData.data.last_name || '';
+                profileForm.originalLastName = userData.data.last_name || '';
 
                 // Parse address if available
                 if (userData.data.address) {
@@ -145,9 +152,10 @@ const loadUserData = async () => {
     }
 };
 
-// Update username
-const updateUsername = async () => {
-    if (!usernameChanged.value) return true;
+// Update profile (username, first_name, last_name)
+const updateProfile = async () => {
+    // Skip if no changes
+    if (!usernameChanged.value && !firstNameChanged.value && !lastNameChanged.value) return true;
 
     profileForm.usernameError = '';
 
@@ -157,31 +165,28 @@ const updateUsername = async () => {
         return false;
     }
 
-    if (profileForm.username === profileForm.originalUsername) {
-        // No changes, skip update
-        return true;
-    }
-
     isSaving.value = true;
 
     try {
         const config = useRuntimeConfig();
         const apiUrl = config.public.apiUrl || 'http://127.0.0.1:8000';
 
-        const response = await fetch(`${apiUrl}/api/auth/update-username/`, {
+        const response = await fetch(`${apiUrl}/api/auth/update-profile/`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Token ${authStore.token}`
             },
             body: JSON.stringify({
-                username: profileForm.username
+                username: profileForm.username,
+                first_name: profileForm.first_name,
+                last_name: profileForm.last_name
             })
         });
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || `Failed to update username: ${response.statusText}`);
+            throw new Error(errorData.message || `Failed to update profile: ${response.statusText}`);
         }
 
         const result = await response.json();
@@ -190,17 +195,23 @@ const updateUsername = async () => {
             // Update local user data
             if (authStore.user) {
                 authStore.user.username = profileForm.username;
+                authStore.user.first_name = profileForm.first_name;
+                authStore.user.last_name = profileForm.last_name;
             }
 
             profileForm.originalUsername = profileForm.username;
+            profileForm.originalFirstName = profileForm.first_name;
+            profileForm.originalLastName = profileForm.last_name;
             usernameChanged.value = false;
+            firstNameChanged.value = false;
+            lastNameChanged.value = false;
             return true;
         } else {
-            throw new Error(result.message || 'Failed to update username');
+            throw new Error(result.message || 'Failed to update profile');
         }
     } catch (error) {
-        console.error('Error updating username:', error);
-        profileForm.usernameError = error.message || 'Failed to update username';
+        console.error('Error updating profile:', error);
+        profileForm.usernameError = error.message || 'Failed to update profile';
         return false;
     } finally {
         isSaving.value = false;
@@ -282,7 +293,7 @@ const saveSettings = async () => {
         let success = true;
 
         if (currentTab.value === 'profile') {
-            success = await updateUsername();
+            success = await updateProfile();
         } else if (currentTab.value === 'address') {
             success = await updateAddress();
         }
@@ -307,6 +318,24 @@ watch(() => profileForm.username, (newValue) => {
         usernameChanged.value = true;
     } else {
         usernameChanged.value = false;
+    }
+});
+
+// Watch for first name changes
+watch(() => profileForm.first_name, (newValue) => {
+    if (newValue !== profileForm.originalFirstName) {
+        firstNameChanged.value = true;
+    } else {
+        firstNameChanged.value = false;
+    }
+});
+
+// Watch for last name changes
+watch(() => profileForm.last_name, (newValue) => {
+    if (newValue !== profileForm.originalLastName) {
+        lastNameChanged.value = true;
+    } else {
+        lastNameChanged.value = false;
     }
 });
 
@@ -427,6 +456,20 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         Shipping Address
                                     </a>
                                 </li>
+                                <li>
+                                    <a
+:class="{ 'active bg-primary/10 text-primary': currentTab === 'password' }"
+                                        @click="currentTab = 'password'">
+                                        <svg
+xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                        Reset Password
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -504,31 +547,31 @@ v-model="profileForm.email" type="email" readonly disabled
                                     </label>
                                 </div>
 
-                                <!-- First Name field (optional, disabled for simplicity) -->
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-medium">First Name</span>
                                     </label>
                                     <input
-v-model="profileForm.first_name" type="text" disabled readonly
-                                        class="input input-bordered w-full bg-gray-50 opacity-70">
+v-model="profileForm.first_name" type="text" placeholder="Enter first name"
+                                        class="input input-bordered w-full">
                                 </div>
 
-                                <!-- Last Name field (optional, disabled for simplicity) -->
+                                <!-- Last Name field -->
                                 <div class="form-control">
                                     <label class="label">
                                         <span class="label-text font-medium">Last Name</span>
                                     </label>
                                     <input
-v-model="profileForm.last_name" type="text" disabled readonly
-                                        class="input input-bordered w-full bg-gray-50 opacity-70">
+v-model="profileForm.last_name" type="text" placeholder="Enter last name"
+                                        class="input input-bordered w-full">
                                 </div>
 
                                 <!-- Save Button -->
                                 <div class="mt-8">
                                     <button
 class="btn btn-primary w-full sm:w-auto"
-                                        :disabled="isSaving || !usernameChanged" @click="saveSettings">
+                                        :disabled="isSaving || (!usernameChanged && !firstNameChanged && !lastNameChanged)"
+                                        @click="saveSettings">
                                         <span v-if="isSaving">
                                             <span class="loading loading-spinner loading-xs mr-2" />
                                             Saving...
@@ -647,6 +690,38 @@ class="btn btn-primary w-full sm:w-auto"
                                         <span v-else>Save Address</span>
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Password Reset Tab -->
+                    <div v-if="currentTab === 'password'" class="p-6">
+                        <h2 class="text-xl font-semibold mb-6">Reset Password</h2>
+
+                        <div class="space-y-6">
+                            <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg
+class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path
+fill-rule="evenodd"
+                                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="text-sm text-blue-700">
+                                            Need to change your password? We'll need to verify your identity first.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-6">
+                                <NuxtLink to="/forgot_password" class="btn btn-primary">
+                                    Reset My Password
+                                </NuxtLink>
                             </div>
                         </div>
                     </div>

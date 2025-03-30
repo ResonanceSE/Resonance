@@ -1,21 +1,7 @@
 """
 URL configuration for server project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/5.1/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from .controller.auth_controller import UpdateUsernameAPI, UpdateAddressAPI
 from django.urls import path
 from server.controller.product_controller import (
     get_product_detailed_single_route,
@@ -25,16 +11,26 @@ from server.controller.product_controller import (
     get_product_detailed,
 )
 from .controller.auth_controller import (
-    RegisterAPI,
-    LoginAPI,
-    LogoutAPI,
-    UserAPI,
-    ValidatePasswordAPI,
-    ForgotPasswordAPI,
-    ResetPasswordAPI,
+    register,
+    login,
+    logout,
+    get_user,
+    validate_password,
+    validate_reset_token,
+    update_profile,
+    update_address,
+    forgot_password,
+    reset_password,
 )
 from .views import home_view, keep_alive
-from .controller import admin_controller
+from .controller.admin_controller import (
+    manage_staff,
+    get_staff_list,
+    get_admin_stats,
+    manage_products,
+    manage_orders,
+    get_categories,
+)
 from .controller.customer_order_controller import (
     create_order,
     get_user_orders,
@@ -73,37 +69,40 @@ urlpatterns = [
         name="product-detail",
     ),
     # Auth api urls
-    path("api/auth/register/", RegisterAPI.as_view()),
-    path("api/auth/login/", LoginAPI.as_view()),
-    path("api/auth/logout/", LogoutAPI.as_view()),
-    path("api/auth/user/", UserAPI.as_view()),
-    path("api/auth/forgot-password/", ForgotPasswordAPI.as_view()),
-    path("api/auth/reset-password/", ResetPasswordAPI.as_view()),
+    path("api/auth/register/", register, name="register"),
+    path("api/auth/login/", login, name="login"),
+    path("api/auth/logout/", logout, name="logout"),
+    path("api/auth/user/", get_user, name="user"),
+    path("api/auth/forgot-password/", forgot_password, name="forgot_password"),
+    path("api/auth/reset-password/", reset_password, name="reset_password"),
     path(
         "api/auth/validate-password/",
-        ValidatePasswordAPI.as_view(),
+        validate_password,
         name="validate_password",
     ),
+    path(
+        "api/auth/validate-reset-token/",
+        validate_reset_token,
+        name="validate_reset_token",
+    ),
     # Staff api endpoints
-    path("api/admin/staff/", admin_controller.get_staff_list, name="staff-list"),
+    path("api/admin/staff/", get_staff_list, name="staff-list"),
     path(
         "api/admin/staff/<int:staff_id>/",
-        admin_controller.manage_staff,
+        manage_staff,
         name="staff-detail",
     ),
-    path("api/staff/stats/", admin_controller.get_admin_stats, name="staff-stats"),
-    path(
-        "api/staff/products/", admin_controller.manage_products, name="staff-products"
-    ),
+    path("api/staff/stats/", get_admin_stats, name="staff-stats"),
+    path("api/staff/products/", manage_products, name="staff-products"),
     path(
         "api/staff/products/<int:product_id>/",
-        admin_controller.manage_products,
+        manage_products,
         name="staff-product-detail",
     ),
-    path("api/staff/orders/", admin_controller.manage_orders, name="staff-orders"),
+    path("api/staff/orders/", manage_orders, name="staff-orders"),
     path(
         "api/staff/orders/<int:order_id>/",
-        admin_controller.manage_orders,
+        manage_orders,
         name="staff-order-detail",
     ),
     path(
@@ -119,13 +118,11 @@ urlpatterns = [
     path(
         "api/user/get_user_by_id/<int:user_id>/", get_user_by_id, name="get-user-by-id"
     ),
-    path("api/categories/", admin_controller.get_categories, name="categories"),
+    path("api/categories/", get_categories, name="categories"),
     path("api/orders/create/", create_order, name="create-order"),
     path("api/orders/", get_user_orders, name="user-orders"),
     path("api/orders/<int:order_id>/", get_order_details, name="order-details"),
-    path(
-        "api/auth/update-username/", UpdateUsernameAPI.as_view(), name="update_username"
-    ),
-    path("api/auth/update-address/", UpdateAddressAPI.as_view(), name="update_address"),
+    path("api/auth/update-profile/", update_profile, name="update_profile"),
+    path("api/auth/update-address/", update_address, name="update_address"),
     path("api/orders/<int:order_id>/payment/", process_payment, name="process-payment"),
 ]

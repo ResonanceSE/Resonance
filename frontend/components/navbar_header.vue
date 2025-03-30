@@ -21,7 +21,7 @@ const catalog_placeholder = reactive<{ slug: string; name: string; icon: string 
   },
   {
     slug: "earbuds",
-    name: "Earbuds",
+    name: "Earbuds / IEMS",
     icon: "heroicons:musical-note"
   }
 ]);
@@ -144,9 +144,10 @@ const handleLogout = async () => {
             <li v-for="item in navbar_left_placeholder" :key="item">
               <!-- Products Dropdown -->
               <details v-if="shouldShowDropdown(item)" class="dropdown dropdown-bottom desktop-dropdown">
-                <summary
-class="m-1 btn btn-ghost items-center"
-                  :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''">
+                <summary 
+                  class="m-1 btn btn-ghost items-center"
+                  :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''"
+                >
                   <div class="my-auto py-2">{{ item }}</div>
                 </summary>
                 <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
@@ -167,10 +168,12 @@ class="m-1 btn btn-ghost items-center"
               </details>
 
               <!-- Other Menu Items -->
-              <NuxtLink
-v-else class="m-1 btn btn-ghost"
+              <NuxtLink 
+                v-else 
+                class="m-1 btn btn-ghost"
                 :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''"
-                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`">
+                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
+              >
                 {{ item }}
               </NuxtLink>
             </li>
@@ -180,8 +183,10 @@ v-else class="m-1 btn btn-ghost"
 
       <!-- Desktop Right Menu -->
       <div class="hidden lg:flex gap-2 ml-2">
-        <!-- User Menu -->
+        <!-- Username display -->
         <div v-if="isLogin" class="text-neutral">{{ username }}</div>
+        
+        <!-- User Menu dropdown -->
         <div class="dropdown dropdown-end">
           <label tabindex="0" class="btn btn-ghost btn-circle avatar">
             <div class="w-10 rounded-full bg-neutral-content flex items-center justify-center">
@@ -192,48 +197,35 @@ v-else class="m-1 btn btn-ghost"
             <li v-if="!isLogin">
               <NuxtLink to="/login">Log In</NuxtLink>
             </li>
+            <li v-if="authStore.isAdmin">
+              <NuxtLink to="/admin">
+                <Icon name="heroicons:lock-closed" class="h-5 w-5" />
+                Admin
+              </NuxtLink>
+            </li>
             <li v-if="isLogin">
               <NuxtLink to="/setting">
-                <svg
-xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+                <Icon name="heroicons:cog-6-tooth" class="h-5 w-5" />
                 Settings
               </NuxtLink>
             </li>
-            <li v-if="authStore.isAdmin">
-              <NuxtLink to="/admin">Admin</NuxtLink>
+            <li v-if="isLogin">
+              <a class="text-red-700" @click="openLogoutModal">
+                <Icon name="heroicons:arrow-right-on-rectangle" class="h-5 w-5" />
+                Logout
+              </a>
             </li>
-            <li v-if="isLogin"><a class="text-red-700" @click="openLogoutModal">Logout</a></li>
           </ul>
         </div>
-
-        <!-- Cart -->
-        <div class="dropdown dropdown-end">
-          <label tabindex="0" class="btn btn-ghost btn-circle">
-            <NuxtLink :to="`/cart`">
-              <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
-            </NuxtLink>
-          </label>
-        </div>
+        
+        <!-- Desktop Cart Link -->
+        <NuxtLink to="/cart" class="btn btn-ghost btn-circle">
+          <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
+        </NuxtLink>
       </div>
 
-      <!-- Mobile Controls -->
+      <!-- Mobile Menu Button Only (No Cart) -->
       <div class="flex lg:hidden gap-2">
-        <!-- Mobile Cart Button -->
-        <NuxtLink to="/cart" class="btn btn-ghost btn-circle">
-          <div class="indicator">
-            <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
-          </div>
-        </NuxtLink>
-
-        <!-- Mobile Menu Toggle -->
         <button class="btn btn-ghost btn-circle" @click="toggleMenu">
           <Icon name="heroicons:bars-3" class="h-5 w-5" />
         </button>
@@ -243,7 +235,8 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
     <!-- Mobile Sidebar Menu -->
     <div
       class="fixed top-0 right-0 h-full w-80 bg-base-100 z-50 lg:hidden transform transition-transform duration-300 ease-in-out shadow-xl"
-      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'">
+      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'"
+    >
       <!-- Sidebar Header -->
       <div class="flex justify-between items-center p-4 border-b">
         <h2 class="text-xl font-semibold">Resonance</h2>
@@ -255,16 +248,17 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
       <!-- Sidebar Content -->
       <div class="overflow-y-auto h-[calc(100%-4rem)]">
         <ul class="menu p-4 text-base-content">
-          <!-- Mobile Menu Items -->
+          <!-- Main Navigation Items -->
           <li v-for="item in navbar_left_placeholder" :key="item">
-            <!-- Products in Mobile -->
+            <!-- Products Dropdown -->
             <details
-v-if="shouldShowDropdown(item)"
-              class="collapse collapse-arrow bg-base-200 rounded-box mobile-dropdown">
+              v-if="shouldShowDropdown(item)"
+              class="collapse collapse-arrow bg-base-200 rounded-box mobile-dropdown"
+            >
               <summary class="collapse-title flex flex-row items-center gap-2">
                 <div class="flex items-center space-x-2">
                   <Icon name="heroicons:shopping-bag" class="h-5 w-5" />
-                  <span class="text-center items-center">{{ item }} </span>
+                  <span class="text-center items-center">{{ item }}</span>
                 </div>
               </summary>
               <div class="collapse-content">
@@ -287,14 +281,26 @@ v-if="shouldShowDropdown(item)"
 
             <!-- Other Menu Items -->
             <NuxtLink
-v-else :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
-              class="flex items-center gap-2 my-2 py-2" @click="closeMenu">
+              v-else
+              :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
+              class="flex items-center gap-2 my-2 py-2"
+              @click="closeMenu"
+            >
               <Icon
-:name="item === 'Home' ? 'heroicons:home' :
-                item === 'Contact' ? 'heroicons:envelope' :
-                  item === 'Orders' ? 'heroicons:clipboard-document-list' : 'heroicons:document-text'
-                " class="h-5 w-5" />
+                :name="item === 'Home' ? 'heroicons:home' :
+                  item === 'Contact' ? 'heroicons:envelope' :
+                  item === 'Orders' ? 'heroicons:clipboard-document-list' : 'heroicons:document-text'"
+                class="h-5 w-5"
+              />
               {{ item }}
+            </NuxtLink>
+          </li>
+          
+          <!-- Cart Link (below Contact) -->
+          <li>
+            <NuxtLink to="/cart" class="flex items-center gap-2 my-2 py-2" @click="closeMenu">
+              <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
+              Cart
             </NuxtLink>
           </li>
 
@@ -307,21 +313,27 @@ v-else :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
               Log In
             </NuxtLink>
           </li>
+          
+          <!-- Admin BEFORE Settings -->
           <li v-if="authStore.isAdmin">
-            <NuxtLink to="/admin">
-              Admin</NuxtLink>
+            <NuxtLink to="/admin" class="flex items-center gap-2 py-2" @click="closeMenu">
+              <Icon name="heroicons:lock-closed" class="h-5 w-5" />
+              Admin
+            </NuxtLink>
           </li>
+          
+          <li v-if="isLogin">
+            <NuxtLink to="/setting" class="flex items-center gap-2 py-2" @click="closeMenu">
+              <Icon name="heroicons:cog-6-tooth" class="h-5 w-5" />
+              Settings
+            </NuxtLink>
+          </li>
+          
           <li v-if="isLogin">
             <a class="flex items-center text-warning gap-2 py-2" @click="openLogoutModal">
               <Icon name="heroicons:arrow-right-on-rectangle" class="h-5 w-5" />
               Logout
             </a>
-          </li>
-          <li>
-            <NuxtLink to="/cart" class="flex items-center gap-2 py-2" @click="closeMenu">
-              <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
-              Cart
-            </NuxtLink>
           </li>
         </ul>
       </div>
@@ -346,12 +358,15 @@ v-else :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
           <div class="flex justify-between gap-4">
             <button
               class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              @click="closeLogoutModal">
+              @click="closeLogoutModal"
+            >
               Cancel
             </button>
             <button
               class="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-              :disabled="isLoggingOut" @click="handleLogout">
+              :disabled="isLoggingOut"
+              @click="handleLogout"
+            >
               <span v-if="isLoggingOut" class="flex items-center justify-center">
                 <span class="spinner-white mr-2" />
                 <span>Logging Out...</span>

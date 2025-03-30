@@ -15,15 +15,12 @@ interface Product {
   is_new?: boolean;
   is_featured?: boolean;
   image_url?: string;
-  tags?: string[];
 }
 
-// Define the layout metadata
 definePageMeta({
   layout: 'product-layout'
 })
 
-// Get the category from the route
 const route = useRoute();
 const categorySlug = ref(route.params.category as string);
 
@@ -62,24 +59,33 @@ const formatPrice = (price: number | string): string => {
 const viewProductDetails = (productId: number): void => {
   window.location.href = (`/products/${categorySlug.value}/${productId}`);
 };
+
 </script>
 
 <template>
   <!-- Loading State -->
   <div v-if="isLoadingProducts" class="flex items-center justify-center h-48">
-    <span class="loading loading-spinner loading-lg"/>
+    <span class="loading loading-spinner loading-lg" />
   </div>
 
   <!-- Error State -->
   <div v-else-if="productsError" class="alert alert-error">
-    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+      <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
     <span>Error: {{ productsError }}</span>
   </div>
 
   <!-- No results state -->
   <div v-else-if="filteredProducts.length === 0" class="flex flex-col items-center justify-center h-48 text-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    <svg
+xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24"
+      stroke="currentColor">
+      <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <h3 class="text-lg font-medium text-gray-500">No products found</h3>
     <p class="text-gray-500 mt-1">Try changing your search or filter criteria</p>
@@ -87,27 +93,38 @@ const viewProductDetails = (productId: number): void => {
 
   <!-- Product grid -->
   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div 
-      v-for="product in filteredProducts" 
-      :key="product.id" 
-      class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300"
-    >
+    <div
+v-for="product in filteredProducts" :key="product.id"
+      class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300" :class="[
+        product.stock !== undefined ? (
+          product.stock > 0 ? 'bg-green-50' : 'bg-red-50'
+        ) : ''
+      ]">
       <figure class="p-4 bg-base-200 h-48 flex items-center justify-center">
-        <img 
-          :src="product.image_url || '/placeholder.png'" 
-          :alt="product.name" 
-          class="max-h-full"
-        >
+        <img :src="product.image_url || '/placeholder.png'" :alt="product.name" class="max-h-full">
       </figure>
       <div class="card-body p-4">
-        <h2 class="card-title text-lg">{{ product.name }}</h2>
-        <p class="text-sm text-gray-600">{{ product.description }}</p>
+        <div class="flex justify-between items-start">
+          <h2 class="card-title text-lg">{{ product.name }}</h2>
+          <!-- Stock badge -->
+          <div
+v-if="product.stock !== undefined" class="badge text-white"
+            :class="product.stock > 0 ? 'bg-green-500' : 'bg-red-500'">
+            {{ product.stock > 0 ? product.stock : 'Out of stock' }}
+          </div>
+        </div>
+        <p class="text-sm text-gray-600 mt-2 line-clamp-2">{{ product.description || 'No description available' }}</p>
         <div class="flex justify-between items-center mt-2">
-          <div class="text-lg font-bold">{{ formatPrice(product.price) }}</div>
-          <button 
-            class="btn btn-primary btn-sm" 
-            @click="viewProductDetails(product.id)"
-          >
+          <div>
+            <span v-if="product.sale_price" class="text-lg font-bold text-primary">
+              {{ formatPrice(product.sale_price) }}
+              <span class="text-sm line-through text-gray-400 ml-1">{{ formatPrice(product.price) }}</span>
+            </span>
+            <span v-else class="text-lg font-bold">{{ formatPrice(product.price) }}</span>
+          </div>
+          <button
+class="btn btn-primary btn-sm" :disabled="product.stock !== undefined && product.stock <= 0"
+            @click="viewProductDetails(product.id)">
             View Details
           </button>
         </div>
