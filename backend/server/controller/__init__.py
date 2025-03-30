@@ -8,12 +8,12 @@ from .auth_controller import (
     update_profile,
     update_address,
     forgot_password,
-    reset_password
+    reset_password,
 )
 from .admin_controller import (
     get_admin_stats,
     manage_products,
-    manage_orders, 
+    manage_orders,
 )
 from .customer_order_controller import (
     get_user_by_id,

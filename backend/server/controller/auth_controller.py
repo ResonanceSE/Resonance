@@ -17,7 +17,7 @@ from ..models.auth_model import Token
 from ..models.user_model import User
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def register(request):
     data = request.data
 
@@ -59,9 +59,7 @@ def register(request):
     password_errors = []
 
     if not any(char.isupper() for char in password):
-        password_errors.append(
-            "Password must contain at least one uppercase letter."
-        )
+        password_errors.append("Password must contain at least one uppercase letter.")
 
     if not any(char.isdigit() for char in password):
         password_errors.append("Password must contain at least one number.")
@@ -123,7 +121,7 @@ def register(request):
         )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def login(request):
     data = request.data
     print("LOGIN REQUEST DATA:", data)
@@ -190,14 +188,14 @@ def login(request):
         )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def logout(request):
     Token.objects.filter(user=request.user).delete()
     return Response({"status": "success"})
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user(request):
     user = request.user
@@ -211,14 +209,14 @@ def get_user(request):
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "address": user.get_full_address(),
-                "is_admin": user.is_staff, 
+                "is_admin": user.is_staff,
                 "user_type": "admin" if user.is_staff else "customer",
             },
         }
     )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def validate_password(request):
     data = request.data
 
@@ -232,9 +230,7 @@ def validate_password(request):
     password_errors = []
 
     if not any(char.isupper() for char in password):
-        password_errors.append(
-            "Password must contain at least one uppercase letter."
-        )
+        password_errors.append("Password must contain at least one uppercase letter.")
 
     if not any(char.isdigit() for char in password):
         password_errors.append("Password must contain at least one number.")
@@ -256,7 +252,7 @@ def validate_password(request):
     )
 
 
-@api_view(['PUT'])
+@api_view(["PUT"])
 @permission_classes([IsAuthenticated])
 def update_address(request):
     user = request.user
@@ -315,39 +311,39 @@ def update_address(request):
         )
 
 
-@api_view(['PUT'])
+@api_view(["PUT"])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
     user = request.user
     data = request.data
-    
+
     # Validate input
     if "username" not in data:
         return Response(
             {"status": "error", "message": "Username is required"},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     new_username = data["username"]
-    
+
     if User.objects.filter(username=new_username).exclude(id=user.id).exists():
         return Response(
             {"status": "error", "message": "Username already exists"},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    
+
     try:
         # Update user profile data
         user.username = new_username
-        
+
         if "first_name" in data:
             user.first_name = data["first_name"]
-            
+
         if "last_name" in data:
             user.last_name = data["last_name"]
-            
+
         user.save()
-        
+
         return Response(
             {
                 "status": "success",
@@ -366,13 +362,13 @@ def update_profile(request):
         )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def forgot_password(request):
     """
     Process forgot password request and send reset email
     """
     data = request.data
-    
+
     if "email" not in data:
         return Response(
             {"status": "error", "message": "Email address is required"},
@@ -383,7 +379,7 @@ def forgot_password(request):
         return Response(
             {"status": "error", "message": "Invalid email format"},
             status=status.HTTP_400_BAD_REQUEST,
-    )
+        )
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
@@ -426,12 +422,12 @@ def forgot_password(request):
             subject=email_subject,
             body=email_body,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[email]
+            to=[email],
         )
         email_message.extra_headers = {
-            'X-Priority': '1',
-            'X-MSMail-Priority': 'High',
-            'Importance': 'High'
+            "X-Priority": "1",
+            "X-MSMail-Priority": "High",
+            "Importance": "High",
         }
         email_message.send(fail_silently=False)
     except Exception as e:
@@ -449,7 +445,7 @@ def forgot_password(request):
     )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 def reset_password(request):
     """
     Process password reset using token
@@ -502,6 +498,8 @@ def reset_password(request):
         },
         status=status.HTTP_200_OK,
     )
+
+
 @api_view(["POST"])
 def validate_reset_token(request):
     """
@@ -517,15 +515,18 @@ def validate_reset_token(request):
     token = data["token"]
     try:
         user = User.objects.get(reset_token=token)
-        
+
         if not user.reset_token_expiry or user.reset_token_expiry < timezone.now():
             return Response(
                 {"status": "error", "message": "Reset token has expired"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         return Response(
-            {"status": "success", "message": "Token is valid",
-             "username": user.username},
+            {
+                "status": "success",
+                "message": "Token is valid",
+                "username": user.username,
+            },
             status=status.HTTP_200_OK,
         )
     except User.DoesNotExist:

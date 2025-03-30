@@ -1,7 +1,5 @@
-# Rename file from server/models/customer_model.py to server/models/user_model.py
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
-from django.core.validators import RegexValidator
 
 
 class CustomerManager(UserManager):

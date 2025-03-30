@@ -71,7 +71,8 @@ const viewProductDetails = (productId: number): void => {
   <!-- Error State -->
   <div v-else-if="productsError" class="alert alert-error">
     <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <span>Error: {{ productsError }}</span>
@@ -79,9 +80,11 @@ const viewProductDetails = (productId: number): void => {
 
   <!-- No results state -->
   <div v-else-if="filteredProducts.length === 0" class="flex flex-col items-center justify-center h-48 text-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24"
+    <svg
+xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24"
       stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
     <h3 class="text-lg font-medium text-gray-500">No products found</h3>
@@ -90,7 +93,8 @@ const viewProductDetails = (productId: number): void => {
 
   <!-- Product grid -->
   <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <div v-for="product in filteredProducts" :key="product.id"
+    <div
+v-for="product in filteredProducts" :key="product.id"
       class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300" :class="[
         product.stock !== undefined ? (
           product.stock > 0 ? 'bg-green-50' : 'bg-red-50'
@@ -103,7 +107,8 @@ const viewProductDetails = (productId: number): void => {
         <div class="flex justify-between items-start">
           <h2 class="card-title text-lg">{{ product.name }}</h2>
           <!-- Stock badge -->
-          <div v-if="product.stock !== undefined" class="badge text-white"
+          <div
+v-if="product.stock !== undefined" class="badge text-white"
             :class="product.stock > 0 ? 'bg-green-500' : 'bg-red-500'">
             {{ product.stock > 0 ? product.stock : 'Out of stock' }}
           </div>
@@ -117,7 +122,8 @@ const viewProductDetails = (productId: number): void => {
             </span>
             <span v-else class="text-lg font-bold">{{ formatPrice(product.price) }}</span>
           </div>
-          <button class="btn btn-primary btn-sm" :disabled="product.stock !== undefined && product.stock <= 0"
+          <button
+class="btn btn-primary btn-sm" :disabled="product.stock !== undefined && product.stock <= 0"
             @click="viewProductDetails(product.id)">
             View Details
           </button>

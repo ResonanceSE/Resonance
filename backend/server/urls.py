@@ -20,7 +20,7 @@ from .controller.auth_controller import (
     update_profile,
     update_address,
     forgot_password,
-    reset_password
+    reset_password,
 )
 from .views import home_view, keep_alive
 from .controller.admin_controller import (
@@ -29,7 +29,7 @@ from .controller.admin_controller import (
     get_admin_stats,
     manage_products,
     manage_orders,
-    get_categories
+    get_categories,
 )
 from .controller.customer_order_controller import (
     create_order,
@@ -83,8 +83,8 @@ urlpatterns = [
     path(
         "api/auth/validate-reset-token/",
         validate_reset_token,
-        name="validate_reset_token")
-    ,
+        name="validate_reset_token",
+    ),
     # Staff api endpoints
     path("api/admin/staff/", get_staff_list, name="staff-list"),
     path(
@@ -93,9 +93,7 @@ urlpatterns = [
         name="staff-detail",
     ),
     path("api/staff/stats/", get_admin_stats, name="staff-stats"),
-    path(
-        "api/staff/products/", manage_products, name="staff-products"
-    ),
+    path("api/staff/products/", manage_products, name="staff-products"),
     path(
         "api/staff/products/<int:product_id>/",
         manage_products,
@@ -124,9 +122,7 @@ urlpatterns = [
     path("api/orders/create/", create_order, name="create-order"),
     path("api/orders/", get_user_orders, name="user-orders"),
     path("api/orders/<int:order_id>/", get_order_details, name="order-details"),
-    path(
-        "api/auth/update-profile/", update_profile, name="update_profile"
-    ),
+    path("api/auth/update-profile/", update_profile, name="update_profile"),
     path("api/auth/update-address/", update_address, name="update_address"),
     path("api/orders/<int:order_id>/payment/", process_payment, name="process-payment"),
 ]
