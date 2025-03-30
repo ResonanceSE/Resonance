@@ -4,7 +4,6 @@ from django.core.mail import EmailMessage
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
-from django.utils.html import format_html
 import uuid
 import re
 
@@ -453,18 +452,18 @@ def forgot_password(request):
     # Send email
     try:
         email_message = EmailMessage(
-        subject="Reset Your Resonance Sound Shop Password",
-        body=email_body, 
-        from_email=f"Resonance Sound Shop <{settings.DEFAULT_FROM_EMAIL}>",
-        to=[email],
-    )
+            subject="Reset Your Resonance Sound Shop Password",
+            body=email_body,
+            from_email=f"Resonance Sound Shop <{settings.DEFAULT_FROM_EMAIL}>",
+            to=[email],
+        )
         email_message.content_subtype = "html"
-        email_message.body = email_body_html 
+        email_message.body = email_body_html
         email_message.extra_headers = {
             "X-Priority": "1",
             "X-MSMail-Priority": "High",
             "Importance": "High",
-            "X-Auto-Response-Suppress": "OOF, DR, AutoReply"
+            "X-Auto-Response-Suppress": "OOF, DR, AutoReply",
         }
         email_message.send(fail_silently=False)
 

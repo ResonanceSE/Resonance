@@ -260,9 +260,8 @@ const placeOrder = async () => {
         } else {
             throw new Error(result.message || 'Failed to create order')
         }
-    } catch (error: any) {
+    } catch (error) {
         console.error('Error placing order:', error)
-        errorMessage.value = error.message || 'An error occurred while placing your order. Please try again.'
     } finally {
         isSubmitting.value = false
     }

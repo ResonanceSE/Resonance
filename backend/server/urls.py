@@ -94,7 +94,6 @@ urlpatterns = [
         name="validate_reset_token",
     ),
     # Staff api endpoints
-    
     path("api/admin/staff/", get_staff_list, name="staff-list"),
     path(
         "api/admin/staff/<int:staff_id>/",
@@ -134,7 +133,7 @@ urlpatterns = [
     path("api/auth/update-profile/", update_profile, name="update_profile"),
     path("api/auth/update-address/", update_address, name="update_address"),
     path("api/orders/<int:order_id>/payment/", process_payment, name="process-payment"),
-    #cart api
+    # cart api
     path("api/cart/", get_cart, name="get-cart"),
     path("api/cart/add/", add_to_cart, name="add-to-cart"),
     path("api/cart/update/<int:item_id>/", update_cart_item, name="update-cart-item"),
