@@ -44,7 +44,14 @@ from .controller.product_controller import (
     check_product_stock,
     get_recommended_products,
 )
-
+from .controller.cart_controller import (
+    get_cart,
+    add_to_cart,
+    update_cart_item,
+    remove_from_cart,
+    clear_cart,
+    sync_cart,
+)
 urlpatterns = [
     path("", home_view),
     path("keepalive/", keep_alive),

@@ -1,36 +1,41 @@
 <script setup lang="ts">
-import { cartService } from '~/services/cartService'
-
-interface CartItem {
-  id: number
-  name: string
-  category: string
-  price: number
-  quantity: number
-  image?: string
-}
+import { cartService, type CartItem } from '~/services/cartService'
+import { useAuthStore } from '~/stores/useAuth'
 
 definePageMeta({
   layout: 'default'
 })
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const cartItems = ref<CartItem[]>([])
 const selectedItemIds = ref<number[]>([])
 const isLoading = ref(true)
+const isUpdating = ref(false)
+const errorMessage = ref('')
 
-onMounted(() => {
-  loadCart()
+onMounted(async () => {
+  await loadCart()
 })
 
-const loadCart = () => {
+const loadCart = async () => {
   isLoading.value = true
+  errorMessage.value = ''
+  
   try {
-    cartItems.value = cartService.getCart()
+    // Sync cart if user is authenticated
+    if (authStore.isAuthenticated) {
+      cartItems.value = await cartService.syncCart()
+    } else {
+      cartItems.value = await cartService.getCart()
+    }
+    
+    // Select all items by default
     selectedItemIds.value = cartItems.value.map(item => item.id)
   } catch (error) {
     console.error('Error loading cart:', error)
+    errorMessage.value = 'Failed to load your cart. Please try again.'
   } finally {
     isLoading.value = false
   }
@@ -45,7 +50,6 @@ const toggleItem = (id: number, event?: Event): void => {
     event.stopPropagation()
   }
   
-  console.log("Toggle item:", id)
   if (isItemSelected(id)) {
     selectedItemIds.value = selectedItemIds.value.filter(itemId => itemId !== id)
   } else {
@@ -54,7 +58,6 @@ const toggleItem = (id: number, event?: Event): void => {
 }
 
 const toggleSelectAll = (): void => {
-  console.log("Toggle select all")
   if (isAllItemsSelected.value) {
     selectedItemIds.value = []
   } else {
@@ -67,25 +70,45 @@ const isAllItemsSelected = computed(() => {
          cartItems.value.every(item => isItemSelected(item.id))
 })
 
-const decreaseQuantity = (item: CartItem, event: Event): void => {
+const decreaseQuantity = async (item: CartItem, event: Event): Promise<void> => {
   event.stopPropagation()
-  if (item.quantity > 1) {
-    item.quantity--
-    cartService.updateQuantity(item.id, item.quantity)
+  if (item.quantity <= 1) return
+  
+  await updateItemQuantity(item.id, item.quantity - 1)
+}
+
+const increaseQuantity = async (item: CartItem, event: Event): Promise<void> => {
+  event.stopPropagation()
+  if (item.stock && item.quantity >= item.stock) return
+  
+  await updateItemQuantity(item.id, item.quantity + 1)
+}
+
+const updateItemQuantity = async (itemId: number, quantity: number): Promise<void> => {
+  try {
+    isUpdating.value = true
+    cartItems.value = await cartService.updateQuantity(itemId, quantity)
+  } catch (error) {
+    console.error('Error updating quantity:', error)
+    errorMessage.value = 'Failed to update quantity. Please try again.'
+  } finally {
+    isUpdating.value = false
   }
 }
 
-const increaseQuantity = (item: CartItem, event: Event): void => {
+const removeItem = async (itemId: number, event: Event): Promise<void> => {
   event.stopPropagation()
-  item.quantity++
-  cartService.updateQuantity(item.id, item.quantity)
-}
-
-const removeItem = (itemId: number, event: Event): void => {
-  event.stopPropagation()
-  cartItems.value = cartItems.value.filter(item => item.id !== itemId)
-  selectedItemIds.value = selectedItemIds.value.filter(id => id !== itemId)
-  cartService.removeItem(itemId)
+  
+  try {
+    isUpdating.value = true
+    cartItems.value = await cartService.removeItem(itemId)
+    selectedItemIds.value = selectedItemIds.value.filter(id => id !== itemId)
+  } catch (error) {
+    console.error('Error removing item:', error)
+    errorMessage.value = 'Failed to remove item. Please try again.'
+  } finally {
+    isUpdating.value = false
+  }
 }
 
 const totalPrice = computed(() => {
@@ -114,10 +137,12 @@ const processCheckout = (): void => {
     alert('Please select at least one item to checkout')
     return
   }
-  const checkoutCart = JSON.stringify(itemsForCheckout)
+  
+  // Save selected items for checkout
   if (import.meta.client) {
-    localStorage.setItem('checkout_cart', checkoutCart)
+    localStorage.setItem('checkout_cart', JSON.stringify(itemsForCheckout))
   }
+  
   router.push('/checkout')
 }
 
@@ -145,6 +170,15 @@ const continueShopping = (): void => {
           </span>
         </h1>
         <p class="mt-2 text-gray-600">Review your items before checkout</p>
+      </div>
+      
+      <!-- Error Message -->
+      <div v-if="errorMessage" class="alert alert-error mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>{{ errorMessage }}</span>
+        <button class="btn btn-ghost btn-sm" @click="loadCart">Retry</button>
       </div>
       
       <!-- Loading State -->
@@ -194,78 +228,88 @@ const continueShopping = (): void => {
               </button>
             </div>
             
-            <!-- Cart Items List -->
-            <div v-else class="divide-y divide-gray-100">
-              <div 
-                v-for="item in cartItems" 
-                :key="item.id" 
-                class="p-4 flex items-center cursor-pointer"
-                :class="{'bg-blue-50 rounded-lg': isItemSelected(item.id)}"
-                @click="(event) => toggleItem(item.id, event)"
-              >
-                <!-- Selection indicator with explicit z-index -->
-                <div class="mr-4 z-10" @click.stop="(event) => toggleItem(item.id, event)">
-                  <div 
-                    class="w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200"
-                    :class="isItemSelected(item.id) ? 'bg-primary text-white' : 'bg-gray-200'"
-                  >
-                    <svg 
-                      v-if="isItemSelected(item.id)"
-                      xmlns="http://www.w3.org/2000/svg" 
-                      class="h-4 w-4" 
-                      viewBox="0 0 20 20" 
-                      fill="currentColor"
+            <!-- Cart Items List with loading overlay when updating -->
+            <div v-else class="relative">
+              <!-- Loading overlay when updating cart -->
+              <div v-if="isUpdating" class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-20">
+                <div class="loading loading-spinner loading-lg text-orange-500"/>
+              </div>
+              
+              <div class="divide-y divide-gray-100">
+                <div 
+                  v-for="item in cartItems" 
+                  :key="item.id" 
+                  class="p-4 flex items-center cursor-pointer"
+                  :class="{'bg-blue-50 rounded-lg': isItemSelected(item.id)}"
+                  @click="(event) => toggleItem(item.id, event)"
+                >
+                  <!-- Selection indicator with explicit z-index -->
+                  <div class="mr-4 z-10" @click.stop="(event) => toggleItem(item.id, event)">
+                    <div 
+                      class="w-6 h-6 rounded-full flex items-center justify-center transition-colors duration-200"
+                      :class="isItemSelected(item.id) ? 'bg-primary text-white' : 'bg-gray-200'"
                     >
-                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    </svg>
+                      <svg 
+                        v-if="isItemSelected(item.id)"
+                        xmlns="http://www.w3.org/2000/svg" 
+                        class="h-4 w-4" 
+                        viewBox="0 0 20 20" 
+                        fill="currentColor"
+                      >
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    </div>
                   </div>
-                </div>
-                
-                <!-- Item image -->
-                <div class="w-16 h-16 bg-gray-100 rounded-md mr-4">
-                  <img 
-                    v-if="item.image" 
-                    :src="item.image" 
-                    :alt="item.name"
-                    class="w-full h-full object-cover rounded-md"
-                  >
-                </div>
-                
-                <!-- Item details - no click handler to avoid conflicts -->
-                <div class="flex-grow">
-                  <h3 class="font-medium text-gray-800">{{ item.name }}</h3>
-                  <p class="text-sm text-gray-500">{{ item.category }}</p>
-                  <p class="font-semibold text-gray-900 mt-1">{{ formatPrice(item.price) }}</p>
-                </div>
-                
-                <!-- Quantity controls with explicit stop propagation -->
-                <div class="join border border-gray-300 mr-6" @click.stop>
-                  <button 
-                    class="join-item btn btn-sm btn-ghost"
-                    @click.stop="(event) => decreaseQuantity(item, event)"
-                  >
-                    -
-                  </button>
-                  <div class="join-item px-3 flex items-center justify-center">
-                    {{ item.quantity }}
+                  
+                  <!-- Item image -->
+                  <div class="w-16 h-16 bg-gray-100 rounded-md mr-4">
+                    <img 
+                      v-if="item.image" 
+                      :src="item.image" 
+                      :alt="item.name"
+                      class="w-full h-full object-cover rounded-md"
+                    >
                   </div>
-                  <button 
-                    class="join-item btn btn-sm btn-ghost"
-                    @click.stop="(event) => increaseQuantity(item, event)"
-                  >
-                    +
-                  </button>
-                </div>
-                
-                <!-- Total price -->
-                <div class="text-right" @click.stop>
-                  <p class="font-semibold text-orange-500">{{ formatPrice(item.price * item.quantity) }}</p>
-                  <button 
-                    class="text-sm text-red-500 hover:text-red-700"
-                    @click.stop="(event) => removeItem(item.id, event)"
-                  >
-                    Remove
-                  </button>
+                  
+                  <!-- Item details - no click handler to avoid conflicts -->
+                  <div class="flex-grow">
+                    <h3 class="font-medium text-gray-800">{{ item.name }}</h3>
+                    <p class="text-sm text-gray-500">{{ item.category }}</p>
+                    <p class="font-semibold text-gray-900 mt-1">{{ formatPrice(item.price) }}</p>
+                  </div>
+                  
+                  <!-- Quantity controls with explicit stop propagation -->
+                  <div class="join border border-gray-300 mr-6" @click.stop>
+                    <button 
+                      class="join-item btn btn-sm btn-ghost"
+                      :disabled="item.quantity <= 1 || isUpdating"
+                      @click.stop="(event) => decreaseQuantity(item, event)"
+                    >
+                      -
+                    </button>
+                    <div class="join-item px-3 flex items-center justify-center">
+                      {{ item.quantity }}
+                    </div>
+                    <button 
+                      class="join-item btn btn-sm btn-ghost"
+                      :disabled="item.stock !== undefined && item.quantity >= item.stock || isUpdating"
+                      @click.stop="(event) => increaseQuantity(item, event)"
+                    >
+                      +
+                    </button>
+                  </div>
+                  
+                  <!-- Total price -->
+                  <div class="text-right" @click.stop>
+                    <p class="font-semibold text-orange-500">{{ formatPrice(item.price * item.quantity) }}</p>
+                    <button 
+                      class="text-sm text-red-500 hover:text-red-700"
+                      :disabled="isUpdating"
+                      @click.stop="(event) => removeItem(item.id, event)"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -299,7 +343,7 @@ const continueShopping = (): void => {
               <!-- Checkout Button -->
               <button 
                 class="btn btn-primary btn-block hover:bg-orange-500 transition ease-out duration-200"
-                :disabled="selectedItemsCount === 0"
+                :disabled="selectedItemsCount === 0 || isUpdating"
                 @click="processCheckout"
               >
                 Proceed to Checkout
@@ -308,6 +352,7 @@ const continueShopping = (): void => {
               <!-- Continue Shopping -->
               <button 
                 class="btn btn-outline btn-block"
+                :disabled="isUpdating"
                 @click="continueShopping"
               >
                 Continue Shopping

@@ -12,6 +12,7 @@ export interface User {
   is_superuser?: boolean;
 }
 
+
 export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore();
   

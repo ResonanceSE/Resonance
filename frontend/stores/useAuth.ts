@@ -66,14 +66,18 @@ export const useAuthStore = defineStore('auth', {
         this.username = user.username
         this.isLoggedIn = true;
 
-        if (import.meta.client && user.username) {
-          const savedCart = localStorage.getItem(`savedCart_${user.username}`);
-          if (savedCart) {
-            localStorage.setItem('cart', savedCart);
-            localStorage.removeItem(`savedCart_${user.username}`);
+        // After successful login, sync cart with server
+        if (import.meta.client) {
+          try {
+            // Import dynamically to avoid circular dependencies
+            const { cartService } = await import('~/services/cartService');
+            await cartService.syncCart();
             window.dispatchEvent(new Event('cart-updated'));
+          } catch (cartError) {
+            console.error('Error syncing cart after login:', cartError);
           }
         }
+        
         if (this.resetToken){
           this.clearResetToken();
         }

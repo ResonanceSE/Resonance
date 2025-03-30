@@ -145,12 +145,10 @@ watch(product, (newProduct) => {
 }, { immediate: true });
 
 const handleAddToCart = async () => {
-  if (!authStore.user) {
-    router.push('/login');
-  }
   if (!product.value || !import.meta.client) return;
 
   try {
+    // First check product stock
     const stockCheckUrl = `${apiUrl}/api/products/check-stock/${product.value.id}/`;
     const stockResponse = await fetch(stockCheckUrl);
 
@@ -160,60 +158,46 @@ const handleAddToCart = async () => {
 
     const stockData = await stockResponse.json();
     const availableStock = stockData.data.stock || 0;
+    
     if (availableStock <= 0) {
       alert('Sorry, this item is out of stock.');
       return;
-    }
-
-    const cart = JSON.parse(localStorage.getItem(`cart_${authStore.user?.username || 'guest'}`) || '[]');
-    const existingProductIndex = cart.findIndex(item => item.id === product.value.id);
-
-    let currentCartQuantity = 0;
-    if (existingProductIndex >= 0) {
-      currentCartQuantity = cart[existingProductIndex].quantity;
     }
 
     if (quantity.value > availableStock) {
       alert(`Sorry, you can only add up to ${availableStock} items.`);
       return;
     }
+    
+    // Update product stock for UI display
     product.value.stock = availableStock;
 
+    // Calculate the price to use (sale price or regular price)
     const priceToUse = product.value.sale_price && parseFloat(product.value.sale_price) > 0
       ? parseFloat(product.value.sale_price)
       : parseFloat(product.value.price);
 
-    if (existingProductIndex >= 0) {
-      if (currentCartQuantity + quantity.value > availableStock) {
-        const additionalPossible = availableStock - currentCartQuantity;
-        if (additionalPossible <= 0) {
-          alert(`You already have ${currentCartQuantity} items in your cart, which is the maximum available.`);
-          return;
-        } else {
-          alert(`You already have ${currentCartQuantity} items in your cart. You can add ${additionalPossible} more.`);
-          quantity.value = additionalPossible;
-        }
-      }
+    // Import cart service dynamically to avoid circular dependencies
+    const { cartService } = await import('~/services/cartService');
+    
+    // Create cart item
+    const cartItem = {
+      id: product.value.id,
+      name: product.value.name,
+      price: priceToUse,
+      image: product.value.image_url || '',
+      category: product.value.category,
+      quantity: quantity.value,
+      stock: availableStock
+    };
+    
+    // Add to cart using our service
+    await cartService.addToCart(cartItem);
+    
+    // Trigger cart update event
+    window.dispatchEvent(new CustomEvent('cart-updated'));
 
-      cart[existingProductIndex].quantity += quantity.value;
-    } else {
-      cart.push({
-        id: product.value.id,
-        name: product.value.name,
-        price: priceToUse,
-        image: product.value.image_url || '',
-        category: product.value.category,
-        quantity: quantity.value,
-        stock: availableStock
-      });
-    }
-
-    localStorage.setItem(`cart_${authStore.user?.username || 'guest'}`, JSON.stringify(cart));
-
-    if (import.meta.client) {
-      window.dispatchEvent(new CustomEvent('cart-updated'));
-    }
-
+    // Show success message
     addToCartSuccess.value = true;
     setTimeout(() => {
       addToCartSuccess.value = false;

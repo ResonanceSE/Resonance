@@ -144,10 +144,8 @@ const handleLogout = async () => {
             <li v-for="item in navbar_left_placeholder" :key="item">
               <!-- Products Dropdown -->
               <details v-if="shouldShowDropdown(item)" class="dropdown dropdown-bottom desktop-dropdown">
-                <summary 
-                  class="m-1 btn btn-ghost items-center"
-                  :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''"
-                >
+                <summary class="m-1 btn btn-ghost items-center"
+                  :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''">
                   <div class="my-auto py-2">{{ item }}</div>
                 </summary>
                 <ul class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52 mt-4">
@@ -168,12 +166,9 @@ const handleLogout = async () => {
               </details>
 
               <!-- Other Menu Items -->
-              <NuxtLink 
-                v-else 
-                class="m-1 btn btn-ghost"
+              <NuxtLink v-else class="m-1 btn btn-ghost"
                 :class="isActive(item === 'Home' ? '' : item.toLowerCase()) ? 'bg-orange-400 text-white border-orange-500' : ''"
-                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
-              >
+                :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`">
                 {{ item }}
               </NuxtLink>
             </li>
@@ -185,7 +180,7 @@ const handleLogout = async () => {
       <div class="hidden lg:flex gap-2 ml-2">
         <!-- Username display -->
         <div v-if="isLogin" class="text-neutral">{{ username }}</div>
-        
+
         <!-- User Menu dropdown -->
         <div class="dropdown dropdown-end">
           <label tabindex="0" class="btn btn-ghost btn-circle avatar">
@@ -217,10 +212,10 @@ const handleLogout = async () => {
             </li>
           </ul>
         </div>
-        
+
         <!-- Desktop Cart Link -->
         <NuxtLink to="/cart" class="btn btn-ghost btn-circle">
-          <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
+          <CartCount />
         </NuxtLink>
       </div>
 
@@ -235,8 +230,7 @@ const handleLogout = async () => {
     <!-- Mobile Sidebar Menu -->
     <div
       class="fixed top-0 right-0 h-full w-80 bg-base-100 z-50 lg:hidden transform transition-transform duration-300 ease-in-out shadow-xl"
-      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'"
-    >
+      :class="isMenuOpen ? 'translate-x-0' : 'translate-x-full'">
       <!-- Sidebar Header -->
       <div class="flex justify-between items-center p-4 border-b">
         <h2 class="text-xl font-semibold">Resonance</h2>
@@ -251,10 +245,8 @@ const handleLogout = async () => {
           <!-- Main Navigation Items -->
           <li v-for="item in navbar_left_placeholder" :key="item">
             <!-- Products Dropdown -->
-            <details
-              v-if="shouldShowDropdown(item)"
-              class="collapse collapse-arrow bg-base-200 rounded-box mobile-dropdown"
-            >
+            <details v-if="shouldShowDropdown(item)"
+              class="collapse collapse-arrow bg-base-200 rounded-box mobile-dropdown">
               <summary class="collapse-title flex flex-row items-center gap-2">
                 <div class="flex items-center space-x-2">
                   <Icon name="heroicons:shopping-bag" class="h-5 w-5" />
@@ -280,27 +272,20 @@ const handleLogout = async () => {
             </details>
 
             <!-- Other Menu Items -->
-            <NuxtLink
-              v-else
-              :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
-              class="flex items-center gap-2 my-2 py-2"
-              @click="closeMenu"
-            >
-              <Icon
-                :name="item === 'Home' ? 'heroicons:home' :
-                  item === 'Contact' ? 'heroicons:envelope' :
+            <NuxtLink v-else :to="`/${item !== 'Home' ? item.toLowerCase() : ''}`"
+              class="flex items-center gap-2 my-2 py-2" @click="closeMenu">
+              <Icon :name="item === 'Home' ? 'heroicons:home' :
+                item === 'Contact' ? 'heroicons:envelope' :
                   item === 'Orders' ? 'heroicons:clipboard-document-list' : 'heroicons:document-text'"
-                class="h-5 w-5"
-              />
+                class="h-5 w-5" />
               {{ item }}
             </NuxtLink>
           </li>
-          
+
           <!-- Cart Link (below Contact) -->
           <li>
-            <NuxtLink to="/cart" class="flex items-center gap-2 my-2 py-2" @click="closeMenu">
-              <Icon name="heroicons:shopping-cart" class="h-5 w-5" />
-              Cart
+            <NuxtLink to="/cart" class="btn btn-ghost btn-circle">
+              <CartCount />
             </NuxtLink>
           </li>
 
@@ -313,7 +298,7 @@ const handleLogout = async () => {
               Log In
             </NuxtLink>
           </li>
-          
+
           <!-- Admin BEFORE Settings -->
           <li v-if="authStore.isAdmin">
             <NuxtLink to="/admin" class="flex items-center gap-2 py-2" @click="closeMenu">
@@ -321,14 +306,14 @@ const handleLogout = async () => {
               Admin
             </NuxtLink>
           </li>
-          
+
           <li v-if="isLogin">
             <NuxtLink to="/setting" class="flex items-center gap-2 py-2" @click="closeMenu">
               <Icon name="heroicons:cog-6-tooth" class="h-5 w-5" />
               Settings
             </NuxtLink>
           </li>
-          
+
           <li v-if="isLogin">
             <a class="flex items-center text-warning gap-2 py-2" @click="openLogoutModal">
               <Icon name="heroicons:arrow-right-on-rectangle" class="h-5 w-5" />
@@ -358,15 +343,12 @@ const handleLogout = async () => {
           <div class="flex justify-between gap-4">
             <button
               class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-              @click="closeLogoutModal"
-            >
+              @click="closeLogoutModal">
               Cancel
             </button>
             <button
               class="flex-1 px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500"
-              :disabled="isLoggingOut"
-              @click="handleLogout"
-            >
+              :disabled="isLoggingOut" @click="handleLogout">
               <span v-if="isLoggingOut" class="flex items-center justify-center">
                 <span class="spinner-white mr-2" />
                 <span>Logging Out...</span>
