@@ -49,28 +49,6 @@ class Customer(User):
         verbose_name = "Customer"
         verbose_name_plural = "Customers"
 
-    def get_order_count(self):
-        return self.orders.count()
-
-    def get_total_spent(self):
-        from django.db.models import Sum
-
-        return (
-            self.orders.filter(status="delivered").aggregate(total=Sum("total_amount"))[
-                "total"
-            ]
-            or 0
-        )
-
-    def get_wishlist(self):
-        # Example method - would need a wishlist model
-        if hasattr(self, "wishlist"):
-            return self.wishlist.products.all()
-        return []
-
-    def get_recent_orders(self, limit=5):
-        return self.orders.all().order_by("-created_at")[:limit]
-
 
 class AdminStaff(User):
     """
@@ -84,24 +62,5 @@ class AdminStaff(User):
         verbose_name = "Admin User"
         verbose_name_plural = "Admin Users"
 
-    def get_managed_orders(self):
-        from ..models import Order
 
-        return Order.objects.all()
 
-    def get_admin_stats(self):
-        from ..models import Order, Product
-
-        stats = {
-            "total_customers": Customer.objects.count(),
-            "total_products": Product.objects.count(),
-            "low_stock_products": Product.objects.filter(stock__lt=10).count(),
-            "pending_orders": Order.objects.filter(status="pending").count(),
-        }
-        return stats
-
-    def can_manage_products(self):
-        return self.is_superuser or self.groups.filter(name="Product Managers").exists()
-
-    def can_manage_orders(self):
-        return self.is_superuser or self.groups.filter(name="Order Managers").exists()

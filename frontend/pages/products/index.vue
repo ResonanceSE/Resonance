@@ -36,14 +36,14 @@ const formatPrice = (price: number | string): string => {
   const numPrice = typeof price === 'string' ? parseFloat(price) : price;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'THB'
+    currency: 'USD'
   }).format(numPrice);
 };
 
 const categoryMapping: Record<string | number, string> = {
   '1': 'headphones',
   '2': 'speakers',
-  '3': 'earphones',
+  '3': 'earbuds',
 };
 
 
