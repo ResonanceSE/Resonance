@@ -18,5 +18,4 @@ ENV PORT=3000
 # Expose port
 EXPOSE 3000
 
-# Start the development server (more reliable than trying to build for production)
 CMD ["npm", "run", "dev"]
