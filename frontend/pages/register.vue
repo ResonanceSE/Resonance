@@ -1,8 +1,5 @@
 <script setup>
 import { register, validatePassword } from '~/services/authService';
-import TermsOfService from '~/components/TermsOfService.vue';
-import PrivacyPolicy from '~/components/PrivacyPolicy.vue';
-
 definePageMeta({
     layout: 'false'
 })
@@ -224,7 +221,8 @@ const toggleConfirmPasswordVisibility = () => {
                                         <span class="font-semibold text-gray-800 text-lg tracking-wide">Resonance</span>
                                     </div>
                                     <!-- Back to Homepage Link in Header -->
-                                    <NuxtLink to="/"
+                                    <NuxtLink
+to="/"
                                         class="text-sm text-orange-500 hover:text-orange-600 hover:underline">
                                         Back to Homepage
                                     </NuxtLink>
@@ -249,19 +247,22 @@ const toggleConfirmPasswordVisibility = () => {
                         <!-- Main form section -->
                         <div class="grid gap-6">
                             <!-- Error/Success Messages -->
-                            <div v-if="errorMessage"
+                            <div
+v-if="errorMessage"
                                 class="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 rounded-r-md flex items-start">
                                 <span class="text-xl mr-2">ⓘ</span>
                                 {{ errorMessage }}
                             </div>
-                            <div v-if="successMessage"
+                            <div
+v-if="successMessage"
                                 class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 rounded-r-md flex items-start">
                                 <span class="text-xl mr-2">✓</span>
                                 {{ successMessage }}
                             </div>
 
                             <!-- Missing requirements indicator -->
-                            <div v-if="!isFormValid && formSubmitted"
+                            <div
+v-if="!isFormValid && formSubmitted"
                                 class="bg-amber-50 border-l-4 border-amber-400 text-amber-700 p-4 rounded-r-md">
                                 <div class="font-medium mb-1">Please complete the following:</div>
                                 <ul class="list-disc pl-5 space-y-1">
@@ -281,16 +282,19 @@ const toggleConfirmPasswordVisibility = () => {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input id="firstName" v-model="firstName" type="text"
+                                            <input
+id="firstName" v-model="firstName" type="text"
                                                 placeholder="First Name"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(firstNameStatus)">
                                             <!-- Status indicator icon -->
-                                            <span v-if="firstNameStatus === 'valid'"
+                                            <span
+v-if="firstNameStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
-                                            <span v-else-if="firstNameStatus === 'error'"
+                                            <span
+v-else-if="firstNameStatus === 'error'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
@@ -305,34 +309,40 @@ const toggleConfirmPasswordVisibility = () => {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input id="lastName" v-model="lastName" type="text" placeholder="Last Name"
+                                            <input
+id="lastName" v-model="lastName" type="text" placeholder="Last Name"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(lastNameStatus)">
                                             <!-- Status indicator icon -->
-                                            <span v-if="lastNameStatus === 'valid'"
+                                            <span
+v-if="lastNameStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
-                                            <span v-else-if="lastNameStatus === 'error'"
+                                            <span
+v-else-if="lastNameStatus === 'error'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
                                         </div>
                                     </div>
                                     <div class="lg:col-span-2">
-                                        <label for="username"
+                                        <label
+for="username"
                                             class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                                         <div class="relative">
                                             <span
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 👤
                                             </span>
-                                            <input id="username" v-model="username" type="text"
+                                            <input
+id="username" v-model="username" type="text"
                                                 placeholder="Username (optional)"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(usernameStatus)">
                                             <!-- Status indicator icon -->
-                                            <span v-if="usernameStatus === 'valid'"
+                                            <span
+v-if="usernameStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
@@ -347,15 +357,18 @@ const toggleConfirmPasswordVisibility = () => {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 ✉
                                             </span>
-                                            <input id="email" v-model="email" type="email" placeholder="Email address"
+                                            <input
+id="email" v-model="email" type="email" placeholder="Email address"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(emailStatus)">
                                             <!-- Status indicator icon -->
-                                            <span v-if="emailStatus === 'valid'"
+                                            <span
+v-if="emailStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
-                                            <span v-else-if="emailStatus === 'error'"
+                                            <span
+v-else-if="emailStatus === 'error'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
@@ -371,7 +384,8 @@ const toggleConfirmPasswordVisibility = () => {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 🔒
                                             </span>
-                                            <input id="password" v-model="password"
+                                            <input
+id="password" v-model="password"
                                                 :type="passwordVisible ? 'text' : 'password'"
                                                 placeholder="Create password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
@@ -379,28 +393,33 @@ const toggleConfirmPasswordVisibility = () => {
                                                     'border-red-300 focus:ring-red-400': (formSubmitted && !password) || passwordErrors.length > 0,
                                                     'border-green-300 focus:ring-green-400': passwordValidated && passwordErrors.length === 0 && password
                                                 }" @focus="focusPassword" @blur="blurPassword">
-                                            <button type="button"
+                                            <button
+type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                                                 @click="togglePasswordVisibility">
                                                 <span v-if="!passwordVisible">👁</span>
                                                 <span v-else>👁‍🗨</span>
                                             </button>
                                             <!-- Loading indicator while validating -->
-                                            <div v-if="isValidatingPassword"
+                                            <div
+v-if="isValidatingPassword"
                                                 class="absolute right-10 top-1/2 transform -translate-y-1/2">
                                                 <div
                                                     class="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
                                             </div>
                                         </div>
                                         <!-- Password errors from Django -->
-                                        <div v-if="passwordFocused || passwordErrors.length > 0"
+                                        <div
+v-if="passwordFocused || passwordErrors.length > 0"
                                             class="text-xs mt-1 bg-gray-50 p-3 rounded border border-gray-100 space-y-1.5 transition-all duration-200">
-                                            <div v-if="passwordErrors.length === 0 && password && passwordValidated"
+                                            <div
+v-if="passwordErrors.length === 0 && password && passwordValidated"
                                                 class="flex items-center text-green-600">
                                                 <span class="mr-1">✓</span>
                                                 <span>Password meets requirements</span>
                                             </div>
-                                            <div v-for="(error, index) in passwordErrors" :key="index"
+                                            <div
+v-for="(error, index) in passwordErrors" :key="index"
                                                 class="flex items-start text-red-500">
                                                 <span class="mr-1 mt-0.5">•</span>
                                                 <span>{{ error }}</span>
@@ -413,7 +432,8 @@ const toggleConfirmPasswordVisibility = () => {
                                     </div>
                                     <!-- Updated confirm password input -->
                                     <div>
-                                        <label for="confirmPassword"
+                                        <label
+for="confirmPassword"
                                             class="block text-sm font-medium text-gray-700 mb-1">
                                             Confirm Password <span class="text-red-500">*</span>
                                         </label>
@@ -422,7 +442,8 @@ const toggleConfirmPasswordVisibility = () => {
                                                 class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                                 🔒
                                             </span>
-                                            <input id="confirmPassword" v-model="confirmPassword"
+                                            <input
+id="confirmPassword" v-model="confirmPassword"
                                                 :type="confirmPasswordVisible ? 'text' : 'password'"
                                                 placeholder="Confirm password"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
@@ -430,7 +451,8 @@ const toggleConfirmPasswordVisibility = () => {
                                                     'border-red-300 focus:ring-red-400': (formSubmitted && !confirmPassword) || (!passwordsMatch && confirmPassword),
                                                     'border-green-300 focus:ring-green-400': confirmPassword && passwordsMatch && password
                                                 }">
-                                            <button type="button"
+                                            <button
+type="button"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                                                 @click="toggleConfirmPasswordVisibility">
                                                 <span v-if="!confirmPasswordVisible">👁</span>
@@ -438,11 +460,13 @@ const toggleConfirmPasswordVisibility = () => {
                                             </button>
                                         </div>
                                         <!-- Password match indicator -->
-                                        <div v-if="confirmPassword && !passwordsMatch"
+                                        <div
+v-if="confirmPassword && !passwordsMatch"
                                             class="mt-1 text-xs text-red-500">
                                             Passwords do not match
                                         </div>
-                                        <div v-else-if="confirmPassword && passwordsMatch && password"
+                                        <div
+v-else-if="confirmPassword && passwordsMatch && password"
                                             class="mt-1 text-xs text-green-500">
                                             Passwords match
                                         </div>
@@ -452,19 +476,22 @@ const toggleConfirmPasswordVisibility = () => {
                                         <div class="flex items-center">
                                             <div class="relative flex items-start">
                                                 <div class="flex items-center h-5">
-                                                    <input id="agreeTerms" v-model="agreeTerms" type="checkbox"
+                                                    <input
+id="agreeTerms" v-model="agreeTerms" type="checkbox"
                                                         class="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 transition-colors"
                                                         :class="{ 'border-red-300': formSubmitted && !agreeTerms }">
                                                 </div>
                                                 <label for="agreeTerms" class="ml-3 text-sm">
                                                     <span class="text-gray-700">I agree to the </span>
-                                                    <a @click="showTermsModal = true"
-                                                        class="text-orange-500 hover:text-orange-600 font-medium hover:underline">
+                                                    <a
+class="text-orange-500 hover:text-orange-600 font-medium hover:underline"
+                                                        @click="showTermsModal = true">
                                                         Terms of Service
                                                     </a>
                                                     <span class="text-gray-700"> and </span>
-                                                    <a @click="showPrivacyModal = true"
-                                                        class="text-orange-500 hover:text-orange-600 font-medium hover:underline">
+                                                    <a
+class="text-orange-500 hover:text-orange-600 font-medium hover:underline"
+                                                        @click="showPrivacyModal = true">
                                                         Privacy Policy
                                                     </a>
                                                     <span class="text-red-500">*</span>
@@ -508,8 +535,6 @@ const toggleConfirmPasswordVisibility = () => {
             </div>
         </div>
     </div>
-    <TermsOfService :show="showTermsModal" @close="showTermsModal = false" />
-    <PrivacyPolicy :show="showPrivacyModal" @close="showPrivacyModal = false" />
 </template>
 
 <style scoped>

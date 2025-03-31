@@ -9,6 +9,7 @@ class CustomerManager(UserManager):
     def get_active_customers(self):
         return self.get_queryset().filter(is_active=True)
 
+
 class AdminManager(UserManager):
     def get_queryset(self):
         return super().get_queryset().filter(is_staff=True)
@@ -61,6 +62,3 @@ class AdminStaff(User):
         proxy = True
         verbose_name = "Admin User"
         verbose_name_plural = "Admin Users"
-
-
-

@@ -167,7 +167,8 @@ const cancelPayment = () => {
             <!-- Payment Success -->
             <div v-else-if="paymentSuccess" class="bg-white rounded-lg shadow-lg p-8 text-center">
                 <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
+                    <svg
+xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-500" fill="none"
                         viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
@@ -207,11 +208,13 @@ const cancelPayment = () => {
 
                     <div class="space-y-4">
                         <!-- QR Payment Option -->
-                        <div class="border rounded-lg p-4 hover:border-orange-500 cursor-pointer transition-all hover:bg-orange-50"
+                        <div
+class="border rounded-lg p-4 hover:border-orange-500 cursor-pointer transition-all hover:bg-orange-50"
                             @click="selectPaymentMethod('qr')">
                             <div class="flex items-center space-x-4">
                                 <div class="bg-blue-50 rounded-full p-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600"
+                                    <svg
+xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600"
                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                         stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
@@ -226,9 +229,11 @@ const cancelPayment = () => {
                                     <p class="text-gray-600">Pay via QR Code scan</p>
                                 </div>
                                 <div class="flex-shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none"
+                                    <svg
+xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 5l7 7-7 7" />
                                     </svg>
                                 </div>
@@ -236,13 +241,16 @@ const cancelPayment = () => {
                         </div>
 
                         <!-- Cash on Delivery Option -->
-                        <div class="border rounded-lg p-4 hover:border-orange-500 cursor-pointer transition-all hover:bg-orange-50"
+                        <div
+class="border rounded-lg p-4 hover:border-orange-500 cursor-pointer transition-all hover:bg-orange-50"
                             @click="selectPaymentMethod('cod')">
                             <div class="flex items-center space-x-4">
                                 <div class="bg-orange-50 rounded-full p-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-orange-500"
+                                    <svg
+xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-orange-500"
                                         fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
                                     </svg>
                                 </div>
@@ -251,9 +259,11 @@ const cancelPayment = () => {
                                     <p class="text-gray-600">Pay when you receive the products</p>
                                 </div>
                                 <div class="flex-shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none"
+                                    <svg
+xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 5l7 7-7 7" />
                                     </svg>
                                 </div>
@@ -295,7 +305,8 @@ const cancelPayment = () => {
 
                         <!-- QR Code -->
                         <div class="bg-white p-4 flex justify-center rounded-b-lg">
-                            <img src="https://i.ibb.co/Vc240585/image-2025-03-29-203931507.png" alt="Payment QR Code"
+                            <img
+src="https://i.ibb.co/Vc240585/image-2025-03-29-203931507.png" alt="Payment QR Code"
                                 class="w-64 h-64">
                         </div>
 
@@ -311,7 +322,8 @@ const cancelPayment = () => {
                     </p>
 
                     <div class="flex space-x-4">
-                        <button class="btn btn-outline" :disabled="processingPayment"
+                        <button
+class="btn btn-outline" :disabled="processingPayment"
                             @click="selectPaymentMethod(null)">
                             Change Payment Method
                         </button>
@@ -346,10 +358,12 @@ const cancelPayment = () => {
                 <div class="p-6">
                     <div class="bg-orange-50 p-4 rounded-lg mb-6">
                         <div class="flex items-start">
-                            <svg xmlns="http://www.w3.org/2000/svg"
+                            <svg
+xmlns="http://www.w3.org/2000/svg"
                                 class="h-6 w-6 text-orange-500 mt-0.5 mr-3 flex-shrink-0" fill="none"
                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                <path
+stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div>
@@ -366,7 +380,8 @@ const cancelPayment = () => {
                     </p>
 
                     <div class="flex space-x-4 justify-center">
-                        <button class="btn btn-outline" :disabled="processingPayment"
+                        <button
+class="btn btn-outline" :disabled="processingPayment"
                             @click="selectPaymentMethod(null)">
                             Change Payment Method
                         </button>
