@@ -27,11 +27,10 @@ if (error.value) {
 const categoryMapping: Record<string | number, string> = {
   '1': 'headphones',
   '2': 'speakers',
-  '3': 'earphones',
+  '3': 'earbuds',
 };
 
-// Manually navigate with window.location instead of Vue Router
-// This is a more direct approach that bypasses potential router issues
+
 const viewProductDetails = (productId: number, category: string | number): void => {
   console.log("View product details:", { productId, category });
   
@@ -47,7 +46,6 @@ const viewProductDetails = (productId: number, category: string | number): void 
     // Default fallback
     categorySlug = 'item';
   }
-  
   // Use direct window location change instead of router.push
   const url = `/products/${categorySlug}/${productId}`;
   console.log("Navigating to:", url);

@@ -5,6 +5,8 @@ definePageMeta({
   layout: 'false'
 })
 
+
+
 const username_or_email = ref('')
 const password = ref('');
 const route = useRoute();
@@ -13,7 +15,6 @@ const passwordVisible = ref(false);
 const errorMessage = ref('');
 const formSubmitted = ref(false);
 const authStore = useAuthStore();
-
 
 const showSuccessModal = ref(false);
 const isLoggingIn = ref(false);
@@ -91,7 +92,7 @@ const togglePasswordVisibility = () => {
             </h2>
           </div>
           
-          <!-- Registration CTA  -->
+          <!-- Registration CTA -->
           <div class="absolute inset-0 flex flex-col items-center justify-center">
             <p class="text-white text-2xl mb-6 font-semibold drop-shadow-md">New to Resonance?</p>
             <NuxtLink 
@@ -121,9 +122,15 @@ const togglePasswordVisibility = () => {
             <!-- Enhanced header section -->
             <div>
               <div class="mb-8">
-                <div class="flex items-center">
-                  <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2"/>
-                  <span class="font-semibold text-gray-800 text-lg tracking-wide">Resonance</span>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2"/>
+                    <span class="font-semibold text-gray-800 text-lg tracking-wide">Resonance</span>
+                  </div>
+                  <!-- Back to Homepage Link in Header -->
+                  <NuxtLink to="/" class="text-sm text-orange-500 hover:text-orange-600 hover:underline">
+                    Back to Homepage
+                  </NuxtLink>
                 </div>
               </div>
               
@@ -161,7 +168,7 @@ const togglePasswordVisibility = () => {
                     <input 
                       id="user_email" 
                       v-model="username_or_email"
-                      type="user_email" 
+                      type="text" 
                       placeholder="Email or Username" 
                       class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent transition-all"
                       :class="{'border-red-300 focus:ring-red-400': formSubmitted && !username_or_email}"
@@ -214,16 +221,21 @@ const togglePasswordVisibility = () => {
                   </button>
                 </div>
               </div>
-              
-              <!-- Enhanced social login section -->
             </div>
             
             <!-- Enhanced footer section -->
             <div class="grid gap-4 pt-4">
+              
               <div class="text-gray-600 mt-2 md:hidden">
-                <div class="flex flex-row gap-2 justify-center">
-                  <span class="text-gray-600">New to Resonance?</span>
-                  <NuxtLink class="text-orange-500 hover:text-orange-600 font-medium hover:underline" to="/register">Sign up here</NuxtLink>
+                <div class="flex flex-col gap-2 items-center">
+                  <div class="flex flex-row gap-2 justify-center">
+                    <span class="text-gray-600">New to Resonance?</span>
+                    <NuxtLink class="text-orange-500 hover:text-orange-600 font-medium hover:underline" to="/register">Sign up here</NuxtLink>
+                  </div>
+                  <!-- Back to Homepage Link in Footer (Mobile) -->
+                  <NuxtLink to="/" class="text-sm text-orange-500 hover:text-orange-600 hover:underline">
+                    Back to Homepage
+                  </NuxtLink>
                 </div>
               </div>
             </div>
@@ -232,7 +244,6 @@ const togglePasswordVisibility = () => {
       </div>
     </div>
     
-    <!--LoginSuccessModal -->
     <LoginModal 
       :show="showSuccessModal" 
       :username="authStore.user?.username || username_or_email" 

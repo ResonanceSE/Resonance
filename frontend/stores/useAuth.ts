@@ -66,17 +66,17 @@ export const useAuthStore = defineStore('auth', {
         this.username = user.username
         this.isLoggedIn = true;
 
-        if (import.meta.client && user.username) {
-          const savedCart = localStorage.getItem(`savedCart_${user.username}`);
-          if (savedCart) {
-            localStorage.setItem('cart', savedCart);
-            localStorage.removeItem(`savedCart_${user.username}`);
-            window.dispatchEvent(new Event('cart-updated'));
-          }
-        }
+        // We don't need this cart merging logic anymore since we'll handle it 
+        // in cartService.syncCart()
+        
         if (this.resetToken){
           this.clearResetToken();
         }
+        
+        if (import.meta.client) {
+          window.dispatchEvent(new Event('user-logged-in'));
+        }
+        
         return user;
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Login failed';

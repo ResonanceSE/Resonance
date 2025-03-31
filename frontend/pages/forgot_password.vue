@@ -74,9 +74,12 @@ const handleSubmit = async () => {
           <div class="w-8 h-8 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full flex items-center justify-center">
             <div class="w-4 h-4 bg-white rounded-sm transform rotate-45"/>
           </div>
-          <h3 class="text-xl font-bold">Resonance Sound Shop</h3>
-        </div>
+          <div class="flex flex-col">
+            <h3 class="text-xl font-bold flex-1">Resonance Sound Shop</h3>
+            <NuxtLink to="/" class="text-sm text-orange-500 hover:text-orange-600 hover:underline"> Back to Homepage</NuxtLink>
+          </div>
 
+        </div>
         <!-- Success State -->
         <div v-if="emailSent" class="text-center py-8">
           <div class="w-16 h-16 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4">

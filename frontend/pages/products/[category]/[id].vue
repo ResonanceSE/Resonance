@@ -1,5 +1,7 @@
 <script setup>
 import { useAuthStore } from '~/stores/useAuth';
+import { cartService } from '~/services/cartService';
+
 const route = useRoute();
 const router = useRouter();
 const authStore = useAuthStore();
@@ -7,13 +9,13 @@ const authStore = useAuthStore();
 const categoryMapping = {
   '1': 'headphones',
   '2': 'speakers',
-  '3': 'earphones',
+  '3': 'earbuds',
 };
 
 const categoryDisplayNames = {
   'headphones': 'Headphones',
   'speakers': 'Speakers',
-  'earphones': 'Earphones / IEMs',
+  'earbuds': 'Earbuds / IEMs',
 };
 
 const storeProductParams = (category, id) => {
@@ -145,12 +147,16 @@ watch(product, (newProduct) => {
 }, { immediate: true });
 
 const handleAddToCart = async () => {
-  if (!authStore.user) {
+  // Check if user is logged in
+  if (!authStore.isAuthenticated) {
     router.push('/login');
+    return;
   }
+  
   if (!product.value || !import.meta.client) return;
 
   try {
+    // First check stock availability
     const stockCheckUrl = `${apiUrl}/api/products/check-stock/${product.value.id}/`;
     const stockResponse = await fetch(stockCheckUrl);
 
@@ -160,56 +166,38 @@ const handleAddToCart = async () => {
 
     const stockData = await stockResponse.json();
     const availableStock = stockData.data.stock || 0;
+    
     if (availableStock <= 0) {
       alert('Sorry, this item is out of stock.');
       return;
     }
 
-    const cart = JSON.parse(localStorage.getItem(`cart_${authStore.user?.username || 'guest'}`) || '[]');
-    const existingProductIndex = cart.findIndex(item => item.id === product.value.id);
-
-    let currentCartQuantity = 0;
-    if (existingProductIndex >= 0) {
-      currentCartQuantity = cart[existingProductIndex].quantity;
-    }
-
+    // Check if we'll exceed available stock
     if (quantity.value > availableStock) {
       alert(`Sorry, you can only add up to ${availableStock} items.`);
+      quantity.value = availableStock;
       return;
     }
-    product.value.stock = availableStock;
 
     const priceToUse = product.value.sale_price && parseFloat(product.value.sale_price) > 0
       ? parseFloat(product.value.sale_price)
       : parseFloat(product.value.price);
 
-    if (existingProductIndex >= 0) {
-      if (currentCartQuantity + quantity.value > availableStock) {
-        const additionalPossible = availableStock - currentCartQuantity;
-        if (additionalPossible <= 0) {
-          alert(`You already have ${currentCartQuantity} items in your cart, which is the maximum available.`);
-          return;
-        } else {
-          alert(`You already have ${currentCartQuantity} items in your cart. You can add ${additionalPossible} more.`);
-          quantity.value = additionalPossible;
-        }
-      }
+    // Prepare item for cart
+    const cartItem = {
+      id: product.value.id,
+      name: product.value.name,
+      price: priceToUse,
+      image: product.value.image_url || '',
+      category: product.value.category,
+      quantity: quantity.value,
+      stock: availableStock
+    };
+    
+    // Add to cart using the service
+    await cartService.addToCart(cartItem);
 
-      cart[existingProductIndex].quantity += quantity.value;
-    } else {
-      cart.push({
-        id: product.value.id,
-        name: product.value.name,
-        price: priceToUse,
-        image: product.value.image_url || '',
-        category: product.value.category,
-        quantity: quantity.value,
-        stock: availableStock
-      });
-    }
-
-    localStorage.setItem(`cart_${authStore.user?.username || 'guest'}`, JSON.stringify(cart));
-
+    // Trigger cart updated event
     if (import.meta.client) {
       window.dispatchEvent(new CustomEvent('cart-updated'));
     }

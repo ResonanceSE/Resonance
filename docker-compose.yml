@@ -1,0 +1,95 @@
+services:
+  # Database
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=resonance
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Ruflesis2210
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+    restart: always
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.preview
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py create_superuser &&
+             python manage.py create_categories &&
+             python manage.py create_products &&
+             gunicorn server.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - static_volume:/app/static
+    expose:
+      - "8000"
+    environment:
+      - DB_NAME=resonance
+      - DB_USER=postgres
+      - DB_PASSWORD=Ruflesis2210
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DJANGO_KEY=django-insecure-development-key-change-in-production
+      - ENVIRONMENT=production
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - CORS_ALLOWED_ORIGINS=localhost:3000,frontend:3000
+      - API_IMG_KEY=0d2e95de28296b4533042c656e1d8e2b
+      - EMAIL_APP_USER="noreply.resonancese@gmail.com"
+      - EMAIL_APP_PASSWORD="jhkl zuve tylk nnhi"
+      - FRONTEND_URL="http://localhost:3000/"
+      - ENVIRONMENT=production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: always
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.preview
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=http://backend:8000
+      - NUXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - app_network
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - static_volume:/static
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - app_network
+    restart: always
+
+volumes:
+  postgres_data:
+  static_volume:
+
+networks:
+  app_network:
+    driver: bridge

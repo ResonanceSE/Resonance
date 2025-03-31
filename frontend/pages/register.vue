@@ -1,195 +1,183 @@
-<script>
+<script setup>
 import { register, validatePassword } from '~/services/authService';
-
-export default {
-    data() {
-        return {
-            firstName: '',
-            lastName: '',
-            username: '',
-            email: '',
-            password: '',
-            confirmPassword: '',
-            agreeTerms: false,
-            newsletterOpt: false,
-            errorMessage: '',
-            successMessage: '',
-            passwordVisible: false,
-            confirmPasswordVisible: false,
-            formSubmitted: false,
-            passwordErrors: [],
-            isValidatingPassword: false,
-            passwordDebounceTimer: null,
-            passwordValidated: false,
-            passwordFocused: false
-        }
-    },
-    computed: {
-        passwordsMatch() {
-            return this.password === this.confirmPassword;
-        },
-
-        isPasswordValid() {
-            return this.passwordValidated && this.passwordErrors.length === 0;
-        },
-        isFormValid() {
-            return (
-                this.firstName && 
-                this.lastName && 
-                this.email && 
-                this.password && 
-                this.confirmPassword && 
-                this.passwordsMatch && 
-                this.isPasswordValid && 
-                this.agreeTerms
-            );
-        },
-
-        missingFields() {
-            const missing = [];
-            if (!this.firstName) missing.push('First Name');
-            if (!this.lastName) missing.push('Last Name');
-            if (!this.email) missing.push('Email');
-            if (!this.password) missing.push('Password');
-            if (!this.confirmPassword) missing.push('Confirm Password');
-            if (this.password && this.confirmPassword && !this.passwordsMatch) missing.push('Matching Passwords');
-            if (this.password && !this.isPasswordValid) missing.push('Valid Password');
-            if (!this.agreeTerms) missing.push('Terms Agreement');
-            return missing;
-        },
-
-        firstNameStatus() {
-            if (!this.firstName && this.formSubmitted) return 'error';
-            if (this.firstName) return 'valid';
-            return null;
-        },
-        
-        lastNameStatus() {
-            if (!this.lastName && this.formSubmitted) return 'error';
-            if (this.lastName) return 'valid';
-            return null;
-        },
-        
-        emailStatus() {
-            if (!this.email && this.formSubmitted) return 'error';
-            if (this.email) {
-                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return emailPattern.test(this.email) ? 'valid' : 'error';
-            }
-            return null;
-        },
-        
-        usernameStatus() {
-            if (this.username) return 'valid';
-            return null; 
-        }
-    },
-    watch: {
-        password(newValue) {
-            this.passwordValidated = false;
-            if (this.passwordDebounceTimer) {
-                clearTimeout(this.passwordDebounceTimer);
-            }
-            if (newValue && newValue.length >= 3) {
-                this.passwordDebounceTimer = setTimeout(() => {
-                    this.validatePasswordWithBackend();
-                }, 500);
-            } else {
-                this.passwordErrors = [];
-            }
-        }
-    },
-    methods: {
-        getFieldClasses(status) {
-            return {
-                'border-gray-200 focus:ring-orange-400': status === null,
-                'border-green-300 focus:ring-green-400': status === 'valid',
-                'border-red-300 focus:ring-red-400': status === 'error'
-            };
-        },
-
-        focusPassword() {
-            this.passwordFocused = true;
-        },
-
-        blurPassword() {
-
-            this.passwordFocused = this.passwordErrors.length > 0;
+definePageMeta({
+    layout: 'false'
+})
 
 
-            if (this.password && !this.passwordValidated) {
-                this.validatePasswordWithBackend();
-            }
-        },
+const showTermsModal = ref(false);
+const showPrivacyModal = ref(false);
+const router = useRouter();
 
-        async validatePasswordWithBackend() {
-            if (!this.password || this.isValidatingPassword) return;
+const firstName = ref('');
+const lastName = ref('');
+const username = ref('');
+const email = ref('');
+const password = ref('');
+const confirmPassword = ref('');
+const agreeTerms = ref(false);
+const newsletterOpt = ref(false);
+const errorMessage = ref('');
+const successMessage = ref('');
+const passwordVisible = ref(false);
+const confirmPasswordVisible = ref(false);
+const formSubmitted = ref(false);
+const passwordErrors = ref([]);
+const isValidatingPassword = ref(false);
+const passwordValidated = ref(false);
+const passwordFocused = ref(false);
 
-            this.isValidatingPassword = true;
+let passwordDebounceTimer = null;
 
-            try {
-                const result = await validatePassword(this.password);
+const passwordsMatch = computed(() => password.value === confirmPassword.value);
 
-                if (result.status === 'error') {
-                    if (Array.isArray(result.message)) {
-                        this.passwordErrors = result.message;
-                    } else if (typeof result.message === 'string') {
-                        this.passwordErrors = [result.message];
-                    } else {
-                        this.passwordErrors = ['Invalid password'];
-                    }
-                } else {
-                    this.passwordErrors = [];
-                    this.passwordValidated = true;
-                }
-            } catch (error) {
-                this.passwordErrors = ['Failed to validate password'];
-            } finally {
-                this.isValidatingPassword = false;
-            }
-        },
+const isPasswordValid = computed(() => passwordValidated.value && passwordErrors.value.length === 0);
 
-        async handleRegister() {
-            this.errorMessage = '';
-            this.successMessage = '';
-            this.formSubmitted = true;
+const isFormValid = computed(() => (
+    firstName.value &&
+    lastName.value &&
+    email.value &&
+    password.value &&
+    confirmPassword.value &&
+    passwordsMatch.value &&
+    isPasswordValid.value &&
+    agreeTerms.value
+));
 
-            if (!this.isFormValid) {
-                this.errorMessage = 'Please fill in all required fields correctly';
-                return;
-            }
+const missingFields = computed(() => {
+    const missing = [];
+    if (!firstName.value) missing.push('First Name');
+    if (!lastName.value) missing.push('Last Name');
+    if (!email.value) missing.push('Email');
+    if (!password.value) missing.push('Password');
+    if (!confirmPassword.value) missing.push('Confirm Password');
+    if (password.value && confirmPassword.value && !passwordsMatch.value) missing.push('Matching Passwords');
+    if (password.value && !isPasswordValid.value) missing.push('Valid Password');
+    if (!agreeTerms.value) missing.push('Terms Agreement');
+    return missing;
+});
 
-            const userData = {
-                username: this.username || this.email,
-                email: this.email,
-                password: this.password,
-                first_name: this.firstName,
-                last_name: this.lastName
-            };
+const firstNameStatus = computed(() => {
+    if (!firstName.value && formSubmitted.value) return 'error';
+    if (firstName.value) return 'valid';
+    return null;
+});
 
-            try {
-                const user = await register(userData);
-                console.log('Registered user:', user);
-                this.successMessage = 'Registration successful! Redirecting to login...';
+const lastNameStatus = computed(() => {
+    if (!lastName.value && formSubmitted.value) return 'error';
+    if (lastName.value) return 'valid';
+    return null;
+});
 
-                setTimeout(() => {
-                    this.$router.push('/login');
-                }, 2000);
-
-            } catch (error) {
-                this.errorMessage = error.message || 'Registration failed. Please try again.';
-            }
-        },
-
-        togglePasswordVisibility() {
-            this.passwordVisible = !this.passwordVisible;
-        },
-
-        toggleConfirmPasswordVisibility() {
-            this.confirmPasswordVisible = !this.confirmPasswordVisible;
-        }
+const emailStatus = computed(() => {
+    if (!email.value && formSubmitted.value) return 'error';
+    if (email.value) {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailPattern.test(email.value) ? 'valid' : 'error';
     }
-}
+    return null;
+});
+
+const usernameStatus = computed(() => {
+    if (username.value) return 'valid';
+    return null;
+});
+
+watch(password, (newValue) => {
+    passwordValidated.value = false;
+    if (passwordDebounceTimer) {
+        clearTimeout(passwordDebounceTimer);
+    }
+    if (newValue && newValue.length >= 3) {
+        passwordDebounceTimer = setTimeout(() => {
+            validatePasswordWithBackend();
+        }, 500);
+    } else {
+        passwordErrors.value = [];
+    }
+});
+
+const getFieldClasses = (status) => ({
+    'border-gray-200 focus:ring-orange-400': status === null,
+    'border-green-300 focus:ring-green-400': status === 'valid',
+    'border-red-300 focus:ring-red-400': status === 'error'
+});
+
+const focusPassword = () => {
+    passwordFocused.value = true;
+};
+
+const blurPassword = () => {
+    passwordFocused.value = passwordErrors.value.length > 0;
+    if (password.value && !passwordValidated.value) {
+        validatePasswordWithBackend();
+    }
+};
+
+const validatePasswordWithBackend = async () => {
+    if (!password.value || isValidatingPassword.value) return;
+
+    isValidatingPassword.value = true;
+
+    try {
+        const result = await validatePassword(password.value);
+        if (result.status === 'error') {
+            if (Array.isArray(result.message)) {
+                passwordErrors.value = result.message;
+            } else if (typeof result.message === 'string') {
+                passwordErrors.value = [result.message];
+            } else {
+                passwordErrors.value = ['Invalid password'];
+            }
+        } else {
+            passwordErrors.value = [];
+            passwordValidated.value = true;
+        }
+    } catch (error) {
+        passwordErrors.value = ['Failed to validate password'];
+    } finally {
+        isValidatingPassword.value = false;
+    }
+};
+
+const handleRegister = async () => {
+    errorMessage.value = '';
+    successMessage.value = '';
+    formSubmitted.value = true;
+
+    if (!isFormValid.value) {
+        errorMessage.value = 'Please fill in all required fields correctly';
+        return;
+    }
+
+    const userData = {
+        username: username.value || email.value,
+        email: email.value,
+        password: password.value,
+        first_name: firstName.value,
+        last_name: lastName.value
+    };
+
+    try {
+        const user = await register(userData);
+        console.log('Registered user:', user);
+        successMessage.value = 'Registration successful! Redirecting to login...';
+
+        setTimeout(() => {
+            router.push('/login');
+        }, 2000);
+    } catch (error) {
+        errorMessage.value = error.message || 'Registration failed. Please try again.';
+    }
+};
+
+const togglePasswordVisibility = () => {
+    passwordVisible.value = !passwordVisible.value;
+};
+
+const toggleConfirmPasswordVisibility = () => {
+    confirmPasswordVisible.value = !confirmPasswordVisible.value;
+};
 </script>
 
 <template>
@@ -226,9 +214,18 @@ export default {
                         <!-- Enhanced header section -->
                         <div>
                             <div class="mb-8">
-                                <div class="flex items-center">
-                                    <div class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2" />
-                                    <span class="font-semibold text-gray-800 text-lg tracking-wide">Resonance</span>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <div
+                                            class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-md mr-2" />
+                                        <span class="font-semibold text-gray-800 text-lg tracking-wide">Resonance</span>
+                                    </div>
+                                    <!-- Back to Homepage Link in Header -->
+                                    <NuxtLink
+to="/"
+                                        class="text-sm text-orange-500 hover:text-orange-600 hover:underline">
+                                        Back to Homepage
+                                    </NuxtLink>
                                 </div>
                             </div>
                             <div class="mb-10">
@@ -247,17 +244,17 @@ export default {
                             </div>
                         </div>
 
-                        <!-- Main form section-->
+                        <!-- Main form section -->
                         <div class="grid gap-6">
-                            <!--  Error/Success Messages -->
+                            <!-- Error/Success Messages -->
                             <div
-                                v-if="errorMessage"
+v-if="errorMessage"
                                 class="bg-red-50 border-l-4 border-red-400 text-red-700 p-4 rounded-r-md flex items-start">
                                 <span class="text-xl mr-2">ⓘ</span>
                                 {{ errorMessage }}
                             </div>
                             <div
-                                v-if="successMessage"
+v-if="successMessage"
                                 class="bg-green-50 border-l-4 border-green-400 text-green-700 p-4 rounded-r-md flex items-start">
                                 <span class="text-xl mr-2">✓</span>
                                 {{ successMessage }}
@@ -265,7 +262,7 @@ export default {
 
                             <!-- Missing requirements indicator -->
                             <div
-v-if="!isFormValid && formSubmitted" 
+v-if="!isFormValid && formSubmitted"
                                 class="bg-amber-50 border-l-4 border-amber-400 text-amber-700 p-4 rounded-r-md">
                                 <div class="font-medium mb-1">Please complete the following:</div>
                                 <ul class="list-disc pl-5 space-y-1">
@@ -277,9 +274,7 @@ v-if="!isFormValid && formSubmitted"
                             <div class="grid gap-5">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label
-                                            for="firstName"
-                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                        <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">
                                             First Name <span class="text-red-500">*</span>
                                         </label>
                                         <div class="relative">
@@ -292,24 +287,21 @@ id="firstName" v-model="firstName" type="text"
                                                 placeholder="First Name"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(firstNameStatus)">
-                                            
                                             <!-- Status indicator icon -->
                                             <span
-v-if="firstNameStatus === 'valid'" 
+v-if="firstNameStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
                                             <span
-v-else-if="firstNameStatus === 'error'" 
+v-else-if="firstNameStatus === 'error'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
                                         </div>
                                     </div>
                                     <div>
-                                        <label
-for="lastName" 
-                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                        <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">
                                             Last Name <span class="text-red-500">*</span>
                                         </label>
                                         <div class="relative">
@@ -318,19 +310,17 @@ for="lastName"
                                                 👤
                                             </span>
                                             <input
-id="lastName" v-model="lastName" type="text" 
-                                                placeholder="Last Name"
+id="lastName" v-model="lastName" type="text" placeholder="Last Name"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(lastNameStatus)">
-                                            
                                             <!-- Status indicator icon -->
                                             <span
-v-if="lastNameStatus === 'valid'" 
+v-if="lastNameStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
                                             <span
-v-else-if="lastNameStatus === 'error'" 
+v-else-if="lastNameStatus === 'error'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
@@ -338,7 +328,7 @@ v-else-if="lastNameStatus === 'error'"
                                     </div>
                                     <div class="lg:col-span-2">
                                         <label
-                                            for="Username"
+for="username"
                                             class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                                         <div class="relative">
                                             <span
@@ -346,23 +336,20 @@ v-else-if="lastNameStatus === 'error'"
                                                 👤
                                             </span>
                                             <input
-id="username" v-model="username" type="text" 
+id="username" v-model="username" type="text"
                                                 placeholder="Username (optional)"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(usernameStatus)">
-                                            
                                             <!-- Status indicator icon -->
                                             <span
-v-if="usernameStatus === 'valid'" 
+v-if="usernameStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
                                         </div>
                                     </div>
                                     <div class="lg:col-span-2">
-                                        <label
-                                            for="email"
-                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
                                             Email <span class="text-red-500">*</span>
                                         </label>
                                         <div class="relative">
@@ -371,19 +358,17 @@ v-if="usernameStatus === 'valid'"
                                                 ✉
                                             </span>
                                             <input
-id="email" v-model="email" type="email" 
-                                                placeholder="Email address"
+id="email" v-model="email" type="email" placeholder="Email address"
                                                 class="w-full pl-10 pr-10 py-3 rounded-xl border focus:outline-none focus:ring-2 focus:border-transparent transition-all"
                                                 :class="getFieldClasses(emailStatus)">
-                                            
                                             <!-- Status indicator icon -->
                                             <span
-v-if="emailStatus === 'valid'" 
+v-if="emailStatus === 'valid'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-green-500">
                                                 ✓
                                             </span>
                                             <span
-v-else-if="emailStatus === 'error'" 
+v-else-if="emailStatus === 'error'"
                                                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-red-500">
                                                 !
                                             </span>
@@ -391,9 +376,7 @@ v-else-if="emailStatus === 'error'"
                                     </div>
                                     <!-- Updated password input -->
                                     <div>
-                                        <label
-                                            for="password"
-                                            class="block text-sm font-medium text-gray-700 mb-1">
+                                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
                                             Password <span class="text-red-500">*</span>
                                         </label>
                                         <div class="relative">
@@ -417,16 +400,14 @@ type="button"
                                                 <span v-if="!passwordVisible">👁</span>
                                                 <span v-else>👁‍🗨</span>
                                             </button>
-
                                             <!-- Loading indicator while validating -->
                                             <div
 v-if="isValidatingPassword"
                                                 class="absolute right-10 top-1/2 transform -translate-y-1/2">
                                                 <div
-                                                    class="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin"/>
+                                                    class="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
                                             </div>
                                         </div>
-
                                         <!-- Password errors from Django -->
                                         <div
 v-if="passwordFocused || passwordErrors.length > 0"
@@ -437,21 +418,18 @@ v-if="passwordErrors.length === 0 && password && passwordValidated"
                                                 <span class="mr-1">✓</span>
                                                 <span>Password meets requirements</span>
                                             </div>
-
                                             <div
 v-for="(error, index) in passwordErrors" :key="index"
                                                 class="flex items-start text-red-500">
                                                 <span class="mr-1 mt-0.5">•</span>
                                                 <span>{{ error }}</span>
                                             </div>
-
                                             <div v-if="!password && passwordFocused" class="text-gray-500">
                                                 <span>Enter a password that meets Django's validation
                                                     requirements.</span>
                                             </div>
                                         </div>
                                     </div>
-
                                     <!-- Updated confirm password input -->
                                     <div>
                                         <label
@@ -481,7 +459,6 @@ type="button"
                                                 <span v-else>👁‍🗨</span>
                                             </button>
                                         </div>
-
                                         <!-- Password match indicator -->
                                         <div
 v-if="confirmPassword && !passwordsMatch"
@@ -494,7 +471,6 @@ v-else-if="confirmPassword && passwordsMatch && password"
                                             Passwords match
                                         </div>
                                     </div>
-
                                     <!-- Updated checkboxes -->
                                     <div class="flex flex-col gap-4 lg:col-span-2">
                                         <div class="flex items-center">
@@ -508,28 +484,28 @@ id="agreeTerms" v-model="agreeTerms" type="checkbox"
                                                 <label for="agreeTerms" class="ml-3 text-sm">
                                                     <span class="text-gray-700">I agree to the </span>
                                                     <a
-href="#"
-                                                        class="text-orange-500 hover:text-orange-600 font-medium hover:underline">Terms
-                                                        of Service</a>
+class="text-orange-500 hover:text-orange-600 font-medium hover:underline"
+                                                        @click="showTermsModal = true">
+                                                        Terms of Service
+                                                    </a>
                                                     <span class="text-gray-700"> and </span>
                                                     <a
-href="#"
-                                                        class="text-orange-500 hover:text-orange-600 font-medium hover:underline">Privacy
-                                                        Policy</a>
+class="text-orange-500 hover:text-orange-600 font-medium hover:underline"
+                                                        @click="showPrivacyModal = true">
+                                                        Privacy Policy
+                                                    </a>
                                                     <span class="text-red-500">*</span>
                                                 </label>
                                             </div>
                                         </div>
                                     </div>
-                                    
                                     <!-- Create account button -->
                                     <div class="lg:col-span-2 pt-2 flex justify-center">
                                         <button
                                             class="w-3/4 py-3.5 bg-gradient-to-r transition-all shadow-md transform duration-150 rounded-xl font-medium"
-                                            :class="isFormValid 
-                                                ? 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white hover:shadow-lg active:shadow-sm hover:-translate-y-0.5 active:translate-y-0' 
-                                                : 'from-gray-300 to-gray-400 text-gray-100 cursor-not-allowed'"
-                                            :disabled="!isFormValid"
+                                            :class="isFormValid
+                                                ? 'from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white hover:shadow-lg active:shadow-sm hover:-translate-y-0.5 active:translate-y-0'
+                                                : 'from-gray-300 to-gray-400 text-gray-100 cursor-not-allowed'" :disabled="!isFormValid"
                                             @click="isFormValid && handleRegister()">
                                             <div class="flex items-center justify-center">
                                                 <span>CREATE ACCOUNT</span>
@@ -541,13 +517,15 @@ href="#"
                             </div>
 
                             <div class="grid gap-4 pt-4">
-                                <div class="grid place-items-center"/>
+                                <div class="grid place-items-center" />
                                 <div class="text-gray-600 mt-2">
-                                    <div class="flex flex-row gap-2 justify-center">
-                                        <span class="text-gray-600">Already have an account?</span>
-                                        <NuxtLink
-                                            class="text-orange-500 hover:text-orange-600 font-medium hover:underline"
-                                            :to="'/login'">Log in here</NuxtLink>
+                                    <div class="flex flex-col gap-2 items-center">
+                                        <div class="flex flex-row gap-2 justify-center">
+                                            <span class="text-gray-600">Already have an account?</span>
+                                            <NuxtLink
+                                                class="text-orange-500 hover:text-orange-600 font-medium hover:underline"
+                                                to="/login">Log in here</NuxtLink>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
