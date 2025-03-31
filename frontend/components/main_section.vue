@@ -17,7 +17,7 @@ interface Product {
 }
 
 const config = useRuntimeConfig();
-const isClient = process.client;
+const isClient = import.meta.client;
 const apiUrl = isClient ? config.public.apiUrl : 'http://backend:8000';
 const { data: recommendedProducts, error } = await useFetch<Product[]>(`${apiUrl}/api/products/recommendations/`);
 
