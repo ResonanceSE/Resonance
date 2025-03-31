@@ -105,7 +105,7 @@ def register(request):
                     "username": user.username,
                     "email": user.email,
                     "token": token.key,
-                    "address": user.get_full_address(),
+                    "address": user.address,
                     "user_type": user_type,
                     "is_admin": user_type == "admin",
                     "is_superuser": user.is_superuser,
