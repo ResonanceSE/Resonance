@@ -1,4 +1,4 @@
-name: Code Quality Checking
+name: Code Quality Checking (CI)
 
 on:
   pull_request:
